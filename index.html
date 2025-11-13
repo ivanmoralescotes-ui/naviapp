@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eBook de Salud — Landing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#f0fdf4; /* verde muy suave */
+      --bg2:#ecfeff; /* azul suave */
+      --text:#0f172a;
+      --muted:#475569;
+      --card:#ffffff;
+      --brand:#10b981; /* verde */
+      --accent:#38bdf8; /* celeste */
+      --ring:rgba(16,185,129,.35);
+      --shadow:0 12px 30px rgba(2,6,23,.12);
+    }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background: radial-gradient(80rem 60rem at 10% -10%, rgba(16,185,129,.15), transparent 45%),
+                  radial-gradient(60rem 60rem at 100% 0%, rgba(56,189,248,.18), transparent 50%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+    .wrap{ width:min(980px, 92vw); margin:0 auto; padding:28px 0 48px; }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:24px 18px;
+      margin: 0 auto;
+    }
+    .center{ text-align:center; }
+    .sp-1{ margin-top:18px; }
+    .sp-2{ margin-top:28px; }
+    .sp-3{ margin-top:40px; }
+
+    .headline{ font-size:clamp(22px, 3.5vw, 32px); font-weight:800; letter-spacing:-.02em; }
+    .lead{ color:var(--muted); font-size:clamp(15px, 1.8vw, 17px); }
+
+    img.media{ width:min(342px, 80vw); height:auto; border-radius:18px; box-shadow:var(--shadow); outline:2px solid var(--ring); outline-offset:4px; }
+
+    video.media{ width:min(520px, 92vw); height:auto; border-radius:18px; box-shadow:var(--shadow); border:1px solid rgba(148,163,184,.25); }
+
+    a.ws img{ width:min(240px, 60vw); height:auto; border-radius:18px; box-shadow:var(--shadow); border:1px solid rgba(148,163,184,.25); transition: transform .15s ease; }
+    a.ws:hover img{ transform: translateY(-2px) scale(1.01); }
+
+    img.qr{ width:min(342px, 75vw); height:auto; border-radius:16px; border:1px dashed rgba(148,163,184,.55); padding:10px; background:linear-gradient(180deg, rgba(255,255,255,.6), transparent); }
+
+    .pill{ display:inline-block; padding:.45rem .8rem; border-radius:999px; background:linear-gradient(180deg, rgba(16,185,129,.12), rgba(56,189,248,.12)); border:1px solid rgba(148,163,184,.35); font-weight:600; color:#0b1220; }
+
+    footer{ color:var(--muted); font-size:.9rem; }
+  </style>
+
+  <script type="text/javascript">
+    // Mantiene tu widget original de WhatsApp
+    window.onload = function(){
+      (function(d, script) {
+        script = d.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        //script.src = 'https://w.app/widget-v1/75pMZC.js';
+		script.src = 'https://w.app/widget-v1/B2TvXY.js';
+        d.getElementsByTagName('head')[0].appendChild(script);
+      }(document));
+    };
+  </script>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card center">
+      <!-- Respetando el ORDEN y manteniendo todo centrado -->
+      <div class="sp-1">
+        <span class="pill">eBook para frenar tu ansiedad</span>
+      </div>
+
+      <div class="sp-2 headline">Hola. Este eBook te explicará como disminuir tu ansiedad y tener frecuentemente pensamientos saludables y positivos.</div>
+
+      <div class="sp-2">
+        <img src="twoo.png" alt="e-book" class="media" width="342" height="342">
+      </div>
+
+      <div class="sp-3 lead">Si quieres más información sobre como este eBook te dará mas tranquilidad minimizando la ansiedad y llenándote de positivismo puedes ver este corto video:</div>
+
+      <div class="sp-2">
+        <video class="media" controls preload="metadata">
+          <source src="sr2b.mp4" type="video/mp4">
+          <source src="movie.ogg" type="video/ogg">
+          Tu navegador no soporta el video.
+        </video>
+      </div>
+
+      <div class="sp-3 lead">Si estás interesado puedes contactarnos con un click acá:</div>
+
+      <div class="sp-2">
+        <a class="ws" href="https://w.app/ebooks" target="_blank" rel="noopener">
+          <img src="ws2.png" alt="Botón para chatear por WhatsApp">
+        </a>
+      </div>
+
+      <div class="sp-3 lead">O si prefieres escanea este QR para contactarnos:</div>
+
+      <div class="sp-2">
+        <img src="ebook2.png" alt="Código QR para contacto" class="qr" width="342" height="342">
+      </div>
+
+      <div class="sp-3">Esperamos que disfrutes y aproveches el eBook porque el poder de disminuir la ansiedad y aumentar tu tranquilidad está en tus manos.&#128522;</div>
+
+      <div class="sp-3">
+        <footer>© <span id="y"></span> · Información educativa</footer>
+      </div>
+    </div>
+  </div>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
