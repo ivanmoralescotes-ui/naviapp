@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subir archivo y palabra</title>
+</head>
+<body>
+  <h1>Procesar archivo y palabra</h1>
+
+  <!-- Campo para seleccionar archivo -->
+  <div>
+    <label for="archivo">Selecciona un archivo:</label>
+    <input type="file" id="archivo" />
+  </div>
+
+  <!-- Campo para escribir la palabra -->
+  <div style="margin-top: 10px;">
+    <label for="palabra">Escribe una palabra:</label>
+    <input type="text" id="palabra" placeholder="Escribe la palabra aquí" />
+  </div>
+
+  <!-- Botón para ejecutar tu código -->
+  <div style="margin-top: 20px;">
+    <button type="button" onclick="ejecutarCodigo()">Ejecutar código</button>
+  </div>
+
+  <script>
+    // AQUÍ pegas o llamas el código JavaScript que ya tienes
+    function ejecutarCodigo() {
+      // Obtenemos el archivo y la palabra desde el HTML
+      const inputArchivo = document.getElementById('archivo');
+      const inputPalabra = document.getElementById('palabra');
+
+      const archivo = inputArchivo.files[0];   // Archivo seleccionado
+      const palabra = inputPalabra.value;      // Palabra escrita
+
+      // --- Ejemplo de uso (puedes borrar esto si quieres) ---
+      console.log('Archivo seleccionado:', archivo);
+      console.log('Palabra ingresada:', palabra);
+
+      // 👉 Aquí dentro usa "archivo" y "palabra" con el código que ya tienes.
+      // Por ejemplo:
+      // miFuncionDeProcesamiento(archivo, palabra);
+    }
+  </script>
+</body>
+</html>
