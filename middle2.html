@@ -12,7 +12,7 @@
     // Aquí decides qué imagen usar según la hora
     let rutaImagen = "";
 
-    if (parteMinutoActual == "0" || parteMinutoActual == "1" || parteMinutoActual == "2") {
+    if (parteMinutoActual == "1" || parteMinutoActual == "2") {
       // 0:00 - 5:59 -> madrugada
       rutaImagen = "./1111/mo3.jpeg";
     } else if (parteMinutoActual == "3" || parteMinutoActual == "4") {
@@ -20,6 +20,8 @@
       rutaImagen = "./1111/monkey6.jpeg";
     } else if (parteMinutoActual == "5" || parteMinutoActual == "6") {
       // 12:00 - 17:59 -> tarde
+      rutaImagen = "./1111/mo8.jpeg";
+	} else if (parteMinutoActual == "7" || parteMinutoActual == "8") {
       rutaImagen = "./1111/middle.jpg";
     } else {
       // 18:00 - 23:59 -> noche
