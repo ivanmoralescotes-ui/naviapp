@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Redirigiendo...</title>
+  <script>
+    // Obtienes la hora actual (0 a 23)
+    const ahora = new Date();
+    const minutoActual = ahora.getMinutes(); // 4 = 4am, 17 = 5pm, etc.
+
+    // Aquí decides qué imagen usar según la hora
+    let rutaImagen = "";
+
+    if (minutoActual == 0 || minutoActual == 1 || minutoActual == 2) {
+      // 0:00 - 5:59 -> madrugada
+      rutaImagen = "./1111/mo3.jpeg";
+    } else if (minutoActual == 3 || minutoActual == 4) {
+      // 6:00 - 11:59 -> mañana
+      rutaImagen = "./1111/monkey6.jpeg";
+    } else if (minutoActual == 5 || minutoActual == 6) {
+      // 12:00 - 17:59 -> tarde
+      rutaImagen = "./1111/middle.jpg";
+    } else {
+      // 18:00 - 23:59 -> noche
+      rutaImagen = "./1111/mo2.jpg";
+    }
+
+    // Redirección
+    window.location.href = rutaImagen;
+    // Si prefieres reemplazar el historial:
+    // window.location.replace(rutaImagen);
+  </script>
+</head>
+<body>
+  <p>Redirigiendo a la imagen correspondiente a la hora actual...</p>
+  <p>Si no eres redirigido automáticamente, haz clic aquí:</p>
+  <a id="link-manual" href="#">Ir a la imagen</a>
+
+  <script>
+    // Fallback: por si el navegador bloquea la redirección automática
+    document.getElementById("link-manual").href = rutaImagen;
+  </script>
+</body>
+</html>
