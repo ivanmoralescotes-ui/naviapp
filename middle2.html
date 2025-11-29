@@ -7,18 +7,18 @@
     // Obtienes la hora actual (0 a 23)
 	//https://navi111.netlify.app/middle2.html
     const ahora = new Date();
-    const minutoActual = ahora.getMinutes().toString().slice(-1); // 4 = 4am, 17 = 5pm, etc.
-    console.log("min is "+minutoActual);
+    const parteMinutoActual = ahora.getMinutes().toString().slice(-1); // 4 = 4am, 17 = 5pm, etc.
+    console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
     let rutaImagen = "";
 
-    if (minutoActual  0 || minutoActual == 1 || minutoActual == 2) {
+    if (parteMinutoActual == "0" || parteMinutoActual == "1" || parteMinutoActual == "2") {
       // 0:00 - 5:59 -> madrugada
       rutaImagen = "./1111/mo3.jpeg";
-    } else if (minutoActual == 3 || minutoActual == 4) {
+    } else if (parteMinutoActual == "3" || parteMinutoActual == "4") {
       // 6:00 - 11:59 -> mañana
       rutaImagen = "./1111/monkey6.jpeg";
-    } else if (minutoActual == 5 || minutoActual == 6) {
+    } else if (parteMinutoActual == "5" || parteMinutoActual == "6") {
       // 12:00 - 17:59 -> tarde
       rutaImagen = "./1111/middle.jpg";
     } else {
