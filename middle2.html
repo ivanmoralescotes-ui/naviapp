@@ -19,8 +19,11 @@
 	const params = new URLSearchParams(window.location.search);
 
     const f = params.get('f');
-
+	//f will be used and decoded 
     console.log('Val f:', f);
+	
+	var folder = atob( f.slice(1, -1) );
+	console.log('Val f2:', f);
 
     if (parteMinutoActual == "1" || parteMinutoActual == "3") {
       // 0:00 - 5:59 -> madrugada
