@@ -23,7 +23,7 @@
     console.log('Val f:', f);
 	
 	var folder = "11111111";
-	if (f != "") {
+	if (f != null && f != "") {
 	  folder = atob( f.slice(1, -1) );
 	}
 	console.log('Val f2:', folder);
