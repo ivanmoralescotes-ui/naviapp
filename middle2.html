@@ -12,7 +12,7 @@
 	
     console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
-    let rutaImagen = "./11111/error.jpg";
+    let rutaImagen = "./11111111/error.jpg";
     const op1 = "tem.jpg";//tem.jpg
     const op2 = "temm.mp4";//tem2.jpg
 	
@@ -24,23 +24,24 @@
 	
 	var folder = atob( f.slice(1, -1) );
 	console.log('Val f2:', folder);
+	folder = "11111";
 
     if (parteMinutoActual == "1" || parteMinutoActual == "3") {
       // 0:00 - 5:59 -> madrugada
-      rutaImagen = "./11111/" +op1;//mo3.jpeg
+      rutaImagen = "./"+folder+"/" +op1;//mo3.jpeg
     } else if (parteMinutoActual == "5" || parteMinutoActual == "7") {
       // 6:00 - 11:59 -> mañana
-      rutaImagen = "./11111/"+op1;//monkey6.jpeg
+      rutaImagen = "./"+folder+"/"+op1;//monkey6.jpeg
     } else if (parteMinutoActual == "9") {
       // 12:00 - 17:59 -> tarde
-      rutaImagen = "./11111/"+op1;//mo8.jpeg
+      rutaImagen = "./"+folder+"/"+op1;//mo8.jpeg
 	} else if (parteMinutoActual == "2" || parteMinutoActual == "4") {
-      rutaImagen = "./11111/"+op2;//middle.jpg
+      rutaImagen = "./"+folder+"/"+op2;//middle.jpg
 	} else if (parteMinutoActual == "0" && horaActual == 11 ) {
-	  rutaImagen = "./11111/tempii.jpg";
+	  rutaImagen = "./"+folder+"/tempii.jpg";
     } else {
       // 18:00 - 23:59 -> noche
-      rutaImagen = "./11111/" + op2;//alien.jpeg
+      rutaImagen = "./"+folder+"/" + op2;//alien.jpeg
     }
 
     // Redirección
@@ -52,7 +53,7 @@
 <body>
   <p>Redirigiendo...</p>
   <p>Si no eres redirigido automáticamente, haz clic aquí:</p>
-  <a id="link-manual" href="#">Ir a</a>
+  <a id="link-manual" href="#">Ir a la pagina</a>
 
   <script>
     // Fallback: por si el navegador bloquea la redirección automática
