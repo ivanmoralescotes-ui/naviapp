@@ -13,16 +13,17 @@
     console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
     let rutaImagen = "";
+    const op1 = "tem.jpg";//tem.jpg
     const op2 = "temm.mp4";//tem2.jpg
     if (parteMinutoActual == "1" || parteMinutoActual == "3") {
       // 0:00 - 5:59 -> madrugada
-      rutaImagen = "./1111/tem.jpg";//mo3.jpeg
+      rutaImagen = "./1111/" +op1;//mo3.jpeg
     } else if (parteMinutoActual == "5" || parteMinutoActual == "7") {
       // 6:00 - 11:59 -> mañana
-      rutaImagen = "./1111/tem.jpg";//monkey6.jpeg
+      rutaImagen = "./1111/"+op1;//monkey6.jpeg
     } else if (parteMinutoActual == "9") {
       // 12:00 - 17:59 -> tarde
-      rutaImagen = "./1111/tem.jpg";//mo8.jpeg
+      rutaImagen = "./1111/"+op1;//mo8.jpeg
 	} else if (parteMinutoActual == "2" || parteMinutoActual == "4") {
       rutaImagen = "./1111/"+op2;//middle.jpg
 	} else if (parteMinutoActual == "0" && horaActual == 11 ) {
