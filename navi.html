@@ -12,9 +12,9 @@
 	
     console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
-    let rutaImagen = "./11111111/error.jpg";
-    const op1 = "tem.jpg";//tem.jpg
-    const op2 = "temm.mp4";//tem2.jpg
+    let rutaImagen = "./navi/error.jpg";
+    const op1 = "i.jpg";//tem.jpg
+    const op2 = "i.mp4";//tem2.jpg
 	
 	const params = new URLSearchParams(window.location.search);
 
@@ -22,7 +22,7 @@
 	//f will be used and decoded 
     console.log('Val f:', f);
 	
-	var folder = "11111111";
+	var folder = "navi";
 	if (f != null && f != "") {
 	  folder = atob( f.slice(1, -1) );
 	}
@@ -55,7 +55,7 @@
 </head>
 <body>
   <p>Redirigiendo...</p>
-  <p>Si no eres redirigido automáticamente, haz clic aquí:</p>
+  <p>Si no eres redirigido automáticamente, haz clic aquí :</p>
   <a id="link-manual" href="#">Ir a la pagina</a>
 
   <script>
