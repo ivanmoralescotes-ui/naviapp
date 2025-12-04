@@ -12,7 +12,11 @@
 	 
 	 document.addEventListener("DOMContentLoaded", () => {
       const img = document.getElementById("theimg");
-      img.src = "tem" + segundoActual + ".jpg";
+	  var filename = "tem.jpg";
+	  if (segundoActual < 26){
+	     filename = "tem" + segundoActual + ".jpg";
+	  }
+      img.src = filename;
     });
 	
 	</script>
