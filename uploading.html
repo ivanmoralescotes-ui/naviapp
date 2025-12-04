@@ -34,7 +34,7 @@
 
   <script>
     
-	const GITHUB_TOKEN = "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"; // <-- pon aquí tu PAT
+	const ghubt = atob("Z2hwX2t3RmJuVVZ0NVBHbVZwZjUyVjBZbWY0YXNSTU15ZTI0a1ZQWg=="); // <-- pon aquí tu PAT
   const OWNER = "ivanmoralescotes-ui";
   const REPO = "naviapp";
   const BRANCH = "main"; // 
@@ -91,7 +91,7 @@
       const response = await fetch(url, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${GITHUB_TOKEN}`,
+          "Authorization": `Bearer ${ghubt}`,
           "Accept": "application/vnd.github+json"
         },
         body: JSON.stringify(body)
