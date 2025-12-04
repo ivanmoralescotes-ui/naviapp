@@ -4,18 +4,16 @@
   <meta charset="UTF-8" />
   <title>Redirigiendo...</title>
   <script>
-    // Obtienes la hora actual (0 a 23)
-	// https://navi111.netlify.app/middle2.html
     const ahora = new Date();
-    const parteMinutoActual = ahora.getMinutes().toString().slice(-1); // 4 = 4am, 17 = 5pm, etc.
+    const parteMinutoActual = ahora.getMinutes().toString().slice(-1); // 
 	const horaActual = ahora.getHours();
 	
     console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
     let rutaImagen = "./navi/error.jpg";
-    const op1 = "i.jpg";//tem.jpg
-    const op2 = "i.mp4";//tem2.jpg
-	
+    const op1 = "t1.html";//tem.jpg
+    const op2 = "t1.html";//tem2.jpg,temm.mp4
+		
 	const params = new URLSearchParams(window.location.search);
 
     const f = params.get('f');
@@ -27,19 +25,18 @@
 	  folder = atob( f.slice(1, -1) );
 	}
 	console.log('Val f2:', folder);
-	//folder = "11111111";
 
     if (parteMinutoActual == "1" || parteMinutoActual == "3") {
-      // 0:00 - 5:59 -> madrugada
-      rutaImagen = "./"+folder+"/" +op1;//mo3.jpeg
+      // 0:00 - 5:59 -> 
+      rutaImagen = "./"+folder+"/" +op1;//
     } else if (parteMinutoActual == "5" || parteMinutoActual == "7") {
-      // 6:00 - 11:59 -> mañana
-      rutaImagen = "./"+folder+"/"+op1;//monkey6.jpeg
+      // 6:00 - 11:59 -> 
+      rutaImagen = "./"+folder+"/"+op1;//
     } else if (parteMinutoActual == "9") {
-      // 12:00 - 17:59 -> tarde
-      rutaImagen = "./"+folder+"/"+op1;//mo8.jpeg
+      // 12:00 - 17:59 -> 
+      rutaImagen = "./"+folder+"/"+op1;//
 	} else if (parteMinutoActual == "2" || parteMinutoActual == "4") {
-      rutaImagen = "./"+folder+"/"+op2;//middle.jpg
+      rutaImagen = "./"+folder+"/"+op2;//
 	} else if (parteMinutoActual == "0" && horaActual == 11 ) {
 	  rutaImagen = "./"+folder+"/tempii.jpg";
     } else {
