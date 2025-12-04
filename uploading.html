@@ -74,37 +74,33 @@
         return;
       }
 	  
+	  
 	  try {
-      // Leemos el archivo como ArrayBuffer
-      const arrayBuffer = await file.arrayBuffer();
-      const base64Content = arrayBufferToBase64(arrayBuffer);
-
-      // Ruta dentro del repo: /naviapp/{nombreArchivo}
-      //const pathInRepo = `naviapp/${file.name}`;//naviapp
-	  const pathInRepo = `naviapp/11121443/tem.jpg`;
-
-      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(pathInRepo)}`;
-
-      const body = {
-        message: `Subir archivo ${file.name} desde formulario HTML`,
-        content: base64Content,
-        branch: BRANCH
-      };
-
-
-
-
-
-
-
-        // Hacemos una petición a la función serverless
+	  
+	          // Hacemos una petición a la función serverless
         fetch('/.netlify/functions/getTheToken')
             .then(response => response.json())
             .then(data => {
                 console.log('Token recibido:', data.token);
                 // Aquí podrías hacer algo con el token o con los datos que te devuelva la función serverless.
 			      ghubt=data.token;
-							
+			
+						  // Leemos el archivo como ArrayBuffer
+				  const arrayBuffer = await file.arrayBuffer();
+				  const base64Content = arrayBufferToBase64(arrayBuffer);
+
+				  // Ruta dentro del repo: /naviapp/{nombreArchivo}
+				  //const pathInRepo = `naviapp/${file.name}`;//naviapp
+				  const pathInRepo = `naviapp/11121443/tem.jpg`;
+
+				  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(pathInRepo)}`;
+
+				  const body = {
+					message: `Subir archivo ${file.name} desde formulario HTML`,
+					content: base64Content,
+					branch: BRANCH
+				  };
+			
 				  const response = await fetch(url, {
 					method: "PUT",
 					headers: {
@@ -123,13 +119,10 @@
 					alert("Archivo subido correctamente a GitHub 👍");
 				  }		
 				
-				
             })
-            .catch(error => console.error('Error al invocar la función:', error));
-			
-			
-
-
+	  
+	  
+		  
 
       
     } catch (error) {
