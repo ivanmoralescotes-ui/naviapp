@@ -85,7 +85,13 @@
                 // Aquí podrías hacer algo con el token o con los datos que te devuelva la función serverless.
 			      ghubt=data.token;
 			
-						  // Leemos el archivo como ArrayBuffer
+		
+				
+            })
+			
+			console.log('Token recibido2:', ghubt);
+	  
+								  // Leemos el archivo como ArrayBuffer
 				  const arrayBuffer = await file.arrayBuffer();
 				  const base64Content = arrayBufferToBase64(arrayBuffer);
 
@@ -117,11 +123,7 @@
 					alert("Hubo un error subiendo el archivo. Revisa la consola o el <pre>.");
 				  } else {
 					alert("Archivo subido correctamente a GitHub 👍");
-				  }		
-				
-            })
-	  
-	  
+				  }
 		  
 
       
