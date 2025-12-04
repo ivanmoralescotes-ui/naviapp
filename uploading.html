@@ -35,7 +35,8 @@
    <pre id="resultado"></pre>
   <script>
     
-	const ghubt = atob("Z2l0aHViX3BhdF8xMUJZQ09GSVEwVkRCaXNpMTFzdk1CX1g4dEtyZGYyZ0tMQWRiVEQzODZlN1ZDZUNGRHlQTXkzbGtjVjVESU10VXVURFJNWDJFSUtpbFF6bWpD"); // <-- pon aquí tu PAT
+	var ghubt = "";
+	//atob("2l0aHViX3BhdF8xMUJZQ09GSVEwVkRCaXNpMTFzdk1CX1g4dEtyZGYyZ0tMQWRiVEQzODZlN1ZDZUNGRHlQTXkzbGtjVjVESU10VXVURFJNWDJFSUtpbFF6bWpD"); // <-- pon aquí tu PAT
   const OWNER = "ivanmoralescotes-ui";
   const REPO = "naviapp";
   const BRANCH = "main"; // 
@@ -90,23 +91,47 @@
         branch: BRANCH
       };
 
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${ghubt}`,
-          "Accept": "application/vnd.github+json"
-        },
-        body: JSON.stringify(body)
-      });
 
-      const data = await response.json();
-      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
 
-      if (!response.ok) {
-        alert("Hubo un error subiendo el archivo. Revisa la consola o el <pre>.");
-      } else {
-        alert("Archivo subido correctamente a GitHub 👍");
-      }
+
+
+
+
+        // Hacemos una petición a la función serverless
+        fetch('/.netlify/functions/getTheToken')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Token recibido:', data.token);
+                // Aquí podrías hacer algo con el token o con los datos que te devuelva la función serverless.
+			      ghubt=data.token;
+							
+				  const response = await fetch(url, {
+					method: "PUT",
+					headers: {
+					  "Authorization": `Bearer ${ghubt}`,
+					  "Accept": "application/vnd.github+json"
+					},
+					body: JSON.stringify(body)
+				  });
+
+				  const data = await response.json();
+				  document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+
+				  if (!response.ok) {
+					alert("Hubo un error subiendo el archivo. Revisa la consola o el <pre>.");
+				  } else {
+					alert("Archivo subido correctamente a GitHub 👍");
+				  }		
+				
+				
+            })
+            .catch(error => console.error('Error al invocar la función:', error));
+			
+			
+
+
+
+      
     } catch (error) {
       console.error(error);
       alert("Error inesperado al subir el archivo.");
