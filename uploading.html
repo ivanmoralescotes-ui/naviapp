@@ -16,23 +16,28 @@
   <!-- Campo para escribir la palabra -->
   <div style="margin-top: 10px;">
     <label for="palabra">Escribe la clave:</label>
-    <input type="text" id="palabra" placeholder="Escribe la clave aquí" />
+    <input type="text" id="clave" placeholder="Escribe la clave aquí" />
   </div>
 
   <br>
-  <input type="checkbox" name="isSecondary">&nbsp;Secundario
+  <label for="miLista">Elige una opción:</label>
+  <select id="miLista" name="miLista">
+    <option value="1">1</option>
+    <option value="2">2</option>
+	<option value="3">3</option>
+  </select>
   
   <!-- Botón para ejecutar tu código -->
   <div style="margin-top: 20px;">
-    <button type="button" onclick="ejecutarCodigo()">Ejecutar código</button>
+    <button type="button" onclick="procesarImagen()">Ejecutar código</button>
   </div>
 
   <script>
     // AQUÍ pegas o llamas el código JavaScript que ya tienes
-    function ejecutarCodigo() {
+    function procesarImagen() {
       // Obtenemos el archivo y la palabra desde el HTML
       const inputArchivo = document.getElementById('archivo');
-      const inputPalabra = document.getElementById('palabra');
+      const inputPalabra = document.getElementById('clave');
 
       const archivo = inputArchivo.files[0];   // Archivo seleccionado
       const palabra = inputPalabra.value;      // Palabra escrita
