@@ -80,18 +80,14 @@
 	          // Hacemos una petición a la función serverless
         fetch('/.netlify/functions/getTheToken')
             .then(response => response.json())
-            .then(data => {
+            .then(async (data) => {
                 console.log('Token recibido:', data.token);
                 // Aquí podrías hacer algo con el token o con los datos que te devuelva la función serverless.
 			      ghubt=data.token;
-			
 		
-				
-            })
-			
-			console.log('Token recibido2:', ghubt);
+				  console.log('Token recibido2:', ghubt);
 	  
-								  // Leemos el archivo como ArrayBuffer
+				  // Leemos el archivo como ArrayBuffer
 				  const arrayBuffer = await file.arrayBuffer();
 				  const base64Content = arrayBufferToBase64(arrayBuffer);
 
@@ -126,6 +122,12 @@
 				  }
 		  
 
+		
+				
+            })
+				
+				  
+			      
       
     } catch (error) {
       console.error(error);
