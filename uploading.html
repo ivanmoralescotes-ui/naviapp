@@ -51,6 +51,32 @@
     }
     return btoa(binary);
   }
+  
+  async function getFileSha(path, token) {
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github+json"
+        }
+      });
+
+      if (res.status === 200) {
+        const data = await res.json();
+        return data.sha; // sha real del archivo actual
+      } else if (res.status === 404) {
+        // No existe el archivo, devolvemos null
+        return null;
+      } else {
+        const text = await res.text();
+        console.error("Error al obtener sha:", text);
+        throw new Error("No se pudo obtener el sha del archivo");
+      }
+    }
+
+    
 	
     //function procesarImagen() {
 	document.getElementById("subir").addEventListener("click", async () => {
@@ -86,14 +112,19 @@
 			      ghubt=data.token;
 		
 				  console.log('Token recibido2:', ghubt);
-	  
+	
+				  const pathInRepo = `11121443/tem.jpg`;//toDo
+				  
+				  // sha
+				  const sha = await getFileSha(pathInRepo, ghubt);
+	
 				  // Leemos el archivo como ArrayBuffer
 				  const arrayBuffer = await file.arrayBuffer();
 				  const base64Content = arrayBufferToBase64(arrayBuffer);
 
 				  // Ruta dentro del repo: /naviapp/{nombreArchivo}
 				  //const pathInRepo = `naviapp/${file.name}`;//naviapp
-				  const pathInRepo = `11121443/tem.jpg`;
+				  
 
 				  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(pathInRepo)}`;
 
@@ -103,6 +134,10 @@
 					branch: BRANCH
 				  };
 			
+			      if (sha) {
+                    body.sha = sha;
+                  }
+				  
 				  const response = await fetch(url, {
 					method: "PUT",
 					headers: {
