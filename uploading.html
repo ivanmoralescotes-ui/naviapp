@@ -29,7 +29,7 @@
   
   <!-- Botón para ejecutar tu código -->
   <div style="margin-top: 20px;">
-    <button type="button" onclick="procesarImagen()">Ejecutar código</button>
+    <button id="subir" type="button" >Ejecutar código</button>
   </div>
 
   <script>
@@ -50,7 +50,8 @@
     return btoa(binary);
   }
 	
-    function procesarImagen() {
+    //function procesarImagen() {
+	document.getElementById("subir").addEventListener("click", async () => {
       // Obtenemos el archivo y la palabra desde el HTML
       const inputArchivo = document.getElementById('archivo');
       const inputPalabra = document.getElementById('clave');
@@ -111,7 +112,7 @@
     }
 	  
 	  
-    }
+   });
   </script>
 </body>
 </html>
