@@ -1,38 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Images</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
-        img {
-            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
-            height: auto;     /* mantiene proporción */
-            display: block;
-            margin: 0 auto 16px;  /* centrada y con espacio abajo */
-        }
-		video {
-            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
-            height: auto;     /* mantiene proporción */
-            display: block;
-            margin: 0 auto 16px;  /* centrada y con espacio abajo */
-        }
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	* {
+  <meta charset="UTF-8">
+  <title>Slideshow</title>
+  <style>
+    * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -60,7 +32,7 @@
     #slideshow img {
       width: 100%;
       height: 100%;
-      object-fit: contain;      /* clave para que se vea grande pero completa */
+      object-fit: contain;
       opacity: 0;
       transition: opacity 0.8s ease-in-out;
       display: block;
@@ -69,84 +41,110 @@
     #slideshow img.show {
       opacity: 1;
     }
-  
-    </style>
+
+    /* Mensaje opcional si no hay imágenes válidas */
+    #message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
-    <!--<img src="tem.jpg" alt="Imagen 1"> 
-	https://drive.google.com/file/d/1RjlGq9CJZJcyTbLYm39G1HXhwZ7Jsto1/view 
-	&dl=0-->
-	
-	<br><br>
-	<center>Una imagen vale mas que mil palabras:</center><br> 
-    
-    <img src="tem3.jpg" alt="Imagen 3" onerror="this.style.display='none';">
-	<img src="tem4.jpg" alt="Imagen 4" onerror="this.style.display='none';">
-	<img src="tem5.jpg" alt="Imagen 5" onerror="this.style.display='none';">
-	<img src="tem6.jpg" alt="Imagen 6" onerror="this.style.display='none';">
-	<img src="tem7.jpg" alt="Imagen 7" onerror="this.style.display='none';">
-	<img src="tem8.jpg" alt="Imagen 8" onerror="this.style.display='none';">
-	<img src="tem9.jpg" alt="Imagen 9" onerror="this.style.display='none';">
-	
-	<video src="v.mp4" controls  onerror="this.style.display='none';"></video>
-	<video src="v2.mp4" controls  onerror="this.style.display='none';"></video>
-	
-	<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
-	
-	<div id="slideshow">
-      <!-- Esta imagen la vamos a ir cambiando con JS -->
-      <img id="slide-img" src="" alt="Imagenn" />
-    </div>
-  
-  
-    <!--<img src="https://www.dropbox.com/scl/fi/kszjh5x61ssyvx6scp5qi/tem2.jpg?rlkey=dibc8xkr87z7aztvqlwq90o3t&st=4gcuvm3b?raw=1" alt="Imagen 4">-->
-    <!--<img src="https://dl.dropboxusercontent.com/s/kszjh5x61ssyvx6scp5qi/tem2.jpg" alt="Imagen desde Dropbox">-->
-	
-    <script>
-	
-		const images = [
-		  "tem3.jpg",
-		  "tem4.jpg"
-		];//toDo
+  <div id="slideshow">
+    <img id="slide-img" src="" alt="Imagen" />
+  </div>
 
+  <div id="message" style="display:none;"></div>
 
-        const fullPath = window.location.pathname;
-        const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
-		console.log("directoryPath is "+directoryPath); 
-		
-		// Carpeta donde están las imágenes (ajusta esto)
-		const folderPath = "/11121443/"; // por ejemplo: "imagenes/" o "./imgs/" toDo
+  <script>
+    // 1. Imágenes candidatas
+    const candidateImages = [
+      "tem.jpg",
+      "tem2.jpg",
+      "tem3.jpg",
+	  "tem4.jpg"
+    ];
 
-		const imgElement = document.getElementById("slide-img");
-		let currentIndex = 0;
-		const displayTime = 5000; // 5000 ms = 5 segundos
+    // 2. Ruta de la carpeta actual (la del HTML + imágenes)
+    const fullPath = window.location.pathname;
+    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    const folderPath = directoryPath + "/"; 
+    // Ejemplo: si la URL es /qr/1234/index.html → folderPath = "/qr/1234/"
 
-		function showImage(index) {
-		  // Quita la clase para que se apague (fade out)
-		  imgElement.classList.remove("show");
+    const imgElement   = document.getElementById("slide-img");
+    const messageBox   = document.getElementById("message");
+    const displayTime  = 5000; // 5 segundos
+    let validImages    = [];   // aquí irán solo las que existen
+    let currentIndex   = 0;
 
-		  // Espera un poquito, cambia la imagen y vuelve a mostrar (fade in)
-		  setTimeout(() => {
-			imgElement.src = folderPath + images[index];
-			imgElement.alt = images[index];
-			imgElement.classList.add("show");
-		  }, 300); // 300 ms de “apagado” antes de cambiar
-		}
+    // Devuelve una Promise que resuelve con la URL si existe, o null si no
+    function checkImage(url) {
+      return new Promise(resolve => {
+        const testImg = new Image();
+        testImg.onload = () => resolve(url);   // existe
+        testImg.onerror = () => resolve(null); // no existe
+        testImg.src = url;
+      });
+    }
 
-		// Si hay imágenes, arranca el slideshow
-		if (images.length > 0) {
-		  showImage(currentIndex);
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.style.display = "block";
+    }
 
-		  setInterval(() => {
-			currentIndex = (currentIndex + 1) % images.length;
-			showImage(currentIndex);
-		  }, displayTime);
-		} else {
-		  console.warn("El arreglo 'images' está vacío.");
-		}
-	
-	</script>
+    function showImage(index) {
+      imgElement.classList.remove("show");
+
+      setTimeout(() => {
+        const url = validImages[index];
+        imgElement.src = url;
+        imgElement.alt = url.split("/").pop(); // nombre del archivo
+        imgElement.classList.add("show");
+      }, 300);
+    }
+
+    async function initSlideshow() {
+      if (candidateImages.length === 0) {
+        showMessage("No hay nombres de imágenes configurados.");
+        console.warn("El arreglo candidateImages está vacío.");
+        return;
+      }
+
+      // Validar todas las imágenes en paralelo
+      const checks = candidateImages.map(name => checkImage(folderPath + name));
+      const results = await Promise.all(checks);
+
+      // Nos quedamos solo con las URLs válidas
+      validImages = results.filter(Boolean);
+
+      if (validImages.length === 0) {
+        showMessage("Ninguna de las imágenes existe en esta carpeta.");
+        console.warn("No se encontró ninguna imagen válida.");
+        return;
+      }
+
+      console.log("Imágenes válidas:", validImages);
+
+      // Arrancamos el slideshow
+      showImage(currentIndex);
+
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % validImages.length;
+        showImage(currentIndex);
+      }, displayTime);
+    }
+
+    // Iniciar cuando cargue la página
+    window.addEventListener("load", initSlideshow);
+  </script>
 
 </body>
 </html>

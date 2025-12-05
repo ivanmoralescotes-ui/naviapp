@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Images</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        img {
+            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
+            height: auto;     /* mantiene proporción */
+            display: block;
+            margin: 0 auto 16px;  /* centrada y con espacio abajo */
+        }
+		video {
+            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
+            height: auto;     /* mantiene proporción */
+            display: block;
+            margin: 0 auto 16px;  /* centrada y con espacio abajo */
+        }
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	* {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Contenedor ocupa toda la pantalla */
+    #slideshow {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* La imagen se ajusta al máximo sin salirse */
+    #slideshow img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;      /* clave para que se vea grande pero completa */
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+      display: block;
+    }
+
+    #slideshow img.show {
+      opacity: 1;
+    }
+  
+    </style>
+</head>
+<body>
+
+    <!--<img src="tem.jpg" alt="Imagen 1"> 
+	https://drive.google.com/file/d/1RjlGq9CJZJcyTbLYm39G1HXhwZ7Jsto1/view 
+	&dl=0-->
+	
+	<br><br>
+	<center>Una imagen vale mas que mil palabras:</center><br> 
+    <!--
+    <img src="tem3.jpg" alt="Imagen 3" onerror="this.style.display='none';">
+	<img src="tem4.jpg" alt="Imagen 4" onerror="this.style.display='none';">
+	<img src="tem5.jpg" alt="Imagen 5" onerror="this.style.display='none';">
+	<img src="tem6.jpg" alt="Imagen 6" onerror="this.style.display='none';">
+	<img src="tem7.jpg" alt="Imagen 7" onerror="this.style.display='none';">
+	<img src="tem8.jpg" alt="Imagen 8" onerror="this.style.display='none';">
+	<img src="tem9.jpg" alt="Imagen 9" onerror="this.style.display='none';">
+	
+	<video src="v.mp4" controls  onerror="this.style.display='none';"></video>
+	<video src="v2.mp4" controls  onerror="this.style.display='none';"></video>
+	-->
+		
+	<div id="slideshow">
+      <!-- Esta imagen la vamos a ir cambiando con JS -->
+      <img id="slide-img" src="" alt="Imagenn" />
+    </div>
+	
+    <br>
+	<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
+  
+    <!--<img src="https://www.dropbox.com/scl/fi/kszjh5x61ssyvx6scp5qi/tem2.jpg?rlkey=dibc8xkr87z7aztvqlwq90o3t&st=4gcuvm3b?raw=1" alt="Imagen 4">-->
+    <!--<img src="https://dl.dropboxusercontent.com/s/kszjh5x61ssyvx6scp5qi/tem2.jpg" alt="Imagen desde Dropbox">-->
+	
+    <script>
+	
+		const images = [
+		  "tem3.jpg",
+		  "tem4.jpg"
+		];//toDo
+
+
+        const fullPath = window.location.pathname;
+        const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+		console.log("directoryPath is "+directoryPath); 
+		
+		// Carpeta donde están las imágenes (ajusta esto)
+		const folderPath = directoryPath+ "/"; // por ejemplo: "imagenes/" o "./imgs/" toDo
+
+		const imgElement = document.getElementById("slide-img");
+		let currentIndex = 0;
+		const displayTime = 5000; // 5000 ms = 5 segundos
+
+		function showImage(index) {
+		  // Quita la clase para que se apague (fade out)
+		  imgElement.classList.remove("show");
+
+		  // Espera un poquito, cambia la imagen y vuelve a mostrar (fade in)
+		  setTimeout(() => {
+			imgElement.src = folderPath + images[index];
+			imgElement.alt = images[index];
+			imgElement.classList.add("show");
+		  }, 300); // 300 ms de “apagado” antes de cambiar
+		}
+
+		// Si hay imágenes, arranca el slideshow
+		if (images.length > 0) {
+		  showImage(currentIndex);
+
+		  setInterval(() => {
+			currentIndex = (currentIndex + 1) % images.length;
+			showImage(currentIndex);
+		  }, displayTime);
+		} else {
+		  console.warn("El arreglo 'images' está vacío.");
+		}
+	
+	</script>
+
+</body>
+</html>
