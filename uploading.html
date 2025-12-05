@@ -15,7 +15,7 @@
 
   <!-- Campo para escribir la palabra -->
   <div style="margin-top: 10px;">
-    <label for="llave">Escribe la  llave:</label>
+    <label for="llave">Escribe la llave:</label>
     <input type="text" id="llave" placeholder="Escribe aquí" />
   </div>
   <div style="margin-top: 10px;">
@@ -25,9 +25,8 @@
   <br>
   <label for="miLista">Elige el tipo:</label>
   <select id="miLista" name="miLista">
-    <option value="0">0</option>
     <option value="1">1</option>
-    <option value="2">2</option>
+    <option value="2" selected>2</option>
 	<option value="3">3</option>
 	<option value="4">4</option>
   </select>
@@ -57,6 +56,16 @@
     return btoa(binary);
   }
   
+  function simpleStringHash(str) {//1234
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  } 
+  
   async function getFileSha(path, token) {
       const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
 
@@ -82,13 +91,13 @@
     }
 
     
-	
-    //function procesarImagen() {
-	document.getElementById("subir").addEventListener("click", async () => {
+	  console.log("mira el hash:" + simpleStringHash("234"));
+      //function procesarImagen() {
+      document.getElementById("subir").addEventListener("click", async () => {
       // Obtenemos el archivo y la palabra desde el HTML
       const inputArchivo = document.getElementById('archivo');
       const inputPalabra = document.getElementById('llave');
-      const mySelectElement = document.getElementById('mySelectId').value; 
+      const mySelectElement = document.getElementById('miLista').value; 
 	
       const file = inputArchivo.files[0];   // Archivo seleccionado
       const palabra = btoa((inputPalabra.value).slice(3,-1));      // Palabra escrita
