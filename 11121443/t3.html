@@ -23,9 +23,78 @@
             display: block;
             margin: 0 auto 16px;  /* centrada y con espacio abajo */
         }
+		
+	/* Contenedor del slideshow */
+    #slideshow {
+      width: 400px;          /* ajusta el tamaño que quieras */
+      height: 400px;
+      margin: 40px auto;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    /* Imagen dentro del slideshow */
+    #slideshow img {
+      max-width: 100%;
+      max-height: 100%;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+      display: block;
+    }
+
+    #slideshow img.show {
+      opacity: 1;
+    }
+  
     </style>
 </head>
 <body>
+
+	<script>
+	
+	const images = [
+      "tem3.jpg",
+      "tem4.jpg"
+    ];
+
+    // Carpeta donde están las imágenes (ajusta esto)
+    const folderPath = "11121443/"; // por ejemplo: "imagenes/" o "./imgs/"
+
+    const imgElement = document.getElementById("slide-img");
+    let currentIndex = 0;
+    const displayTime = 5000; // 5000 ms = 5 segundos
+
+    function showImage(index) {
+      // Quita la clase para que se apague (fade out)
+      imgElement.classList.remove("show");
+
+      // Espera un poquito, cambia la imagen y vuelve a mostrar (fade in)
+      setTimeout(() => {
+        imgElement.src = folderPath + images[index];
+        imgElement.alt = images[index];
+        imgElement.classList.add("show");
+      }, 300); // 300 ms de “apagado” antes de cambiar
+    }
+
+    // Si hay imágenes, arranca el slideshow
+    if (images.length > 0) {
+      showImage(currentIndex);
+
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % images.length;
+        showImage(currentIndex);
+      }, displayTime);
+    } else {
+      console.warn("El arreglo 'images' está vacío.");
+    }
+	
+	</script>
+
     <!--<img src="tem.jpg" alt="Imagen 1"> 
 	https://drive.google.com/file/d/1RjlGq9CJZJcyTbLYm39G1HXhwZ7Jsto1/view 
 	&dl=0-->
@@ -44,6 +113,12 @@
 	
 	<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
 	
+	<div id="slideshow">
+      <!-- Esta imagen la vamos a ir cambiando con JS -->
+      <img id="slide-img" src="" alt="Imagen" />
+    </div>
+  
+  
 <!--<img src="https://www.dropbox.com/scl/fi/kszjh5x61ssyvx6scp5qi/tem2.jpg?rlkey=dibc8xkr87z7aztvqlwq90o3t&st=4gcuvm3b?raw=1" alt="Imagen 4">-->
 
 <!--<img src="https://dl.dropboxusercontent.com/s/kszjh5x61ssyvx6scp5qi/tem2.jpg" alt="Imagen desde Dropbox">-->

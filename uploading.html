@@ -194,12 +194,14 @@
 				  });
 
 				  const data2 = await response.json();
-				  document.getElementById("resultado").textContent = JSON.stringify(data2, null, 2);
+				  //document.getElementById("resultado").textContent = JSON.stringify(data2, null, 2);
 
 				  if (!response.ok) {
-					alert("Hubo un error subiendo el archivo. Revisa la consola o el <pre>.");
+					alert("Hubo un error subiendo el archivo.");
+					document.getElementById("resultado").textContent="error";
 				  } else {
 					alert("Archivo subido 👍");
+					document.getElementById("resultado").textContent="ok";
 				  }
 		  
 
