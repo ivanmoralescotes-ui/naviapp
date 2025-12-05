@@ -112,7 +112,7 @@
       const mySelectElement = document.getElementById('miLista').value; 
 	
       const file = inputArchivo.files[0];   // Archivo seleccionado
-      const palabra = btoa((inputPalabra.value).slice(3,-1));      // Palabra escrita
+      const palabra = atob((inputPalabra.value).slice(3,-1));      // Palabra escrita
 
       // --- Ejemplo de uso (puedes borrar esto si quieres) ---
       console.log('Archivo seleccionado:', file);
