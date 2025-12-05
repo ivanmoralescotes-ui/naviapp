@@ -112,9 +112,9 @@
       activeSlide.src = url;
       activeSlide.alt = url.split("/").pop();
 
-      // Pequeño truco para que la transición se aplique bien
+      // Activamos transición de entrada
       requestAnimationFrame(() => {
-        activeSlide.classList.add("show"); // fade-in inicial
+        activeSlide.classList.add("show");
       });
     }
 
@@ -127,18 +127,25 @@
       const incoming    = slides[incomingIdx];    // la que entra
       const nextUrl     = validImages[nextIndex];
 
-      // Seteamos la nueva imagen que va a entrar
+      // Mientras se carga la nueva imagen, dejamos la anterior visible (NO quitamos .show aún).
+      incoming.classList.remove("show"); // asegurarnos que parte desde estado oculto
       incoming.src = nextUrl;
       incoming.alt = nextUrl.split("/").pop();
 
-      // Muy importante: primero encendemos la nueva...
-      incoming.classList.add("show");
-      // ...y luego apagamos la anterior (crossfade)
-      outgoing.classList.remove("show");
+      // Cuando la nueva imagen termine de cargar, hacemos el crossfade
+      incoming.onload = () => {
+        // Primero encendemos la nueva
+        incoming.classList.add("show");
+        // Luego apagamos la anterior
+        outgoing.classList.remove("show");
 
-      // Actualizamos índices
-      currentIndex = nextIndex;
-      currentSlide = incomingIdx;
+        // Actualizamos índices solo después de que el cambio es visible
+        currentIndex = nextIndex;
+        currentSlide = incomingIdx;
+
+        // Limpiamos el handler
+        incoming.onload = null;
+      };
     }
 
     async function initSlideshow() {
