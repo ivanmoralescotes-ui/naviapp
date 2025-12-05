@@ -24,24 +24,43 @@
             margin: 0 auto 16px;  /* centrada y con espacio abajo */
         }
 		
-	/* Contenedor del slideshow */
+		
+		
+		
+		
+		
+		
+		
+		
+	* {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Contenedor ocupa toda la pantalla */
     #slideshow {
-      width: 400px;          /* ajusta el tamaño que quieras */
-      height: 400px;
-      margin: 40px auto;
-      background: #111;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: #000;
       overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
-    /* Imagen dentro del slideshow */
+    /* La imagen se ajusta al máximo sin salirse */
     #slideshow img {
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;      /* clave para que se vea grande pero completa */
       opacity: 0;
       transition: opacity 0.8s ease-in-out;
       display: block;
@@ -89,10 +108,15 @@
 		const images = [
 		  "tem3.jpg",
 		  "tem4.jpg"
-		];
+		];//toDo
 
+
+        const fullPath = window.location.pathname;
+        const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+		console.log("directoryPath is "+directoryPath); 
+		
 		// Carpeta donde están las imágenes (ajusta esto)
-		const folderPath = "/11121443/"; // por ejemplo: "imagenes/" o "./imgs/"
+		const folderPath = "/11121443/"; // por ejemplo: "imagenes/" o "./imgs/" toDo
 
 		const imgElement = document.getElementById("slide-img");
 		let currentIndex = 0;
