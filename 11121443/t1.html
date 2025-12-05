@@ -1,27 +1,150 @@
 <!DOCTYPE html>
 <html lang="es">
- <head>
-    <meta charset="UTF-8">
-    <title>Images</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        img {
-            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
-            height: auto;     /* mantiene proporción */
-            display: block;
-            margin: 0 auto 16px;  /* centrada y con espacio abajo */
-        }
-    </style>
- </head>
- <body>
-    <img src="tem.jpg" alt="Imagen 1" onerror="this.style.display='none';">
-	<img src="tem2.jpg" alt="Imagen 2" onerror="this.style.display='none';">
-    <!--<img src="tem2.jpg" alt="Imagen 2">-->
-    <!--<img src="tem3.jpg" alt="Imagen 3">-->
- </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Slideshow</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Contenedor ocupa toda la pantalla */
+    #slideshow {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* La imagen se ajusta al máximo sin salirse */
+    #slideshow img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+      display: block;
+    }
+
+    #slideshow img.show {
+      opacity: 1;
+    }
+
+    /* Mensaje opcional si no hay imágenes válidas */
+    #message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="slideshow">
+    <img id="slide-img" src="" alt="Imagen" />
+  </div>
+
+  <div id="message" style="display:none;"></div>
+
+  <script>
+    // 1. Imágenes candidatas
+    const candidateImages = [
+      "tem4.jpg",
+      "tem5.jpg",
+      "tem6.jpg",
+	  "tem7.jpg"
+    ];
+
+    // 2. Ruta de la carpeta actual (la del HTML + imágenes)
+    const fullPath = window.location.pathname;
+    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    const folderPath = directoryPath + "/"; 
+    // Ejemplo: si la URL es /qr/1234/index.html → folderPath = "/qr/1234/"
+
+    const imgElement   = document.getElementById("slide-img");
+    const messageBox   = document.getElementById("message");
+    const displayTime  = 5000; // 5 segundos
+    let validImages    = [];   // aquí irán solo las que existen
+    let currentIndex   = 0;
+
+    // Devuelve una Promise que resuelve con la URL si existe, o null si no
+    function checkImage(url) {
+      return new Promise(resolve => {
+        const testImg = new Image();
+        testImg.onload = () => resolve(url);   // existe
+        testImg.onerror = () => resolve(null); // no existe
+        testImg.src = url;
+      });
+    }
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.style.display = "block";
+    }
+
+    function showImage(index) {
+      imgElement.classList.remove("show");
+
+      setTimeout(() => {
+        const url = validImages[index];
+        imgElement.src = url;
+        imgElement.alt = url.split("/").pop(); // nombre del archivo
+        imgElement.classList.add("show");
+      }, 300);
+    }
+
+    async function initSlideshow() {
+      if (candidateImages.length === 0) {
+        showMessage("No hay nombres de imágenes configurados.");
+        console.warn("El arreglo candidateImages está vacío.");
+        return;
+      }
+
+      // Validar todas las imágenes en paralelo
+      const checks = candidateImages.map(name => checkImage(folderPath + name));
+      const results = await Promise.all(checks);
+
+      // Nos quedamos solo con las URLs válidas
+      validImages = results.filter(Boolean);
+
+      if (validImages.length === 0) {
+        showMessage("Ninguna de las imágenes existe en esta carpeta.");
+        console.warn("No se encontró ninguna imagen válida.");
+        return;
+      }
+
+      console.log("Imágenes válidas:", validImages);
+
+      // Arrancamos el slideshow
+      showImage(currentIndex);
+
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % validImages.length;
+        showImage(currentIndex);
+      }, displayTime);
+    }
+
+    // Iniciar cuando cargue la página
+    window.addEventListener("load", initSlideshow);
+  </script>
+
+</body>
 </html>
