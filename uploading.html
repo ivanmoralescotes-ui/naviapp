@@ -30,6 +30,11 @@
     <option value="2" selected>2</option>
 	<option value="3">3</option>
 	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	
   </select>
   
   <!-- Botón para ejecutar tu código -->
@@ -68,6 +73,14 @@
     }
     return hash;
   } 
+  
+  function getFileExtension(filename) {
+    const lastDotIndex = filename.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return ''; // No extension found
+    }
+    return filename.substring(lastDotIndex + 1);
+  }
   
   async function getFileSha(path, token) {
       const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
@@ -128,6 +141,11 @@
         return;
       }
 	  
+	  const theExtension = getFileExtension(file.name);
+	  var newExtension = "jpg";
+	  if ( theExtension == "MP4" || theExtension == "mp4" ){
+	    newExtension = "mp4";
+	  }
 	  
 	  try {
 	  
@@ -141,7 +159,7 @@
 		
 				  console.log('Token recibido2:', ghubt);
 	
-				  const pathInRepo = palabra + `/tem`+mySelectElement+`.jpg`;// 11121443  toDo
+				  const pathInRepo = palabra + `/tem`+mySelectElement+`.`+newExtension;// 11121443  toDo
 				  
 				  // sha
 				  const sha = await getFileSha(pathInRepo, ghubt);
