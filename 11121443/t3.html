@@ -58,8 +58,9 @@
     <!--<img src="tem.jpg" alt="Imagen 1"> 
 	https://drive.google.com/file/d/1RjlGq9CJZJcyTbLYm39G1HXhwZ7Jsto1/view 
 	&dl=0-->
+	
 	<br><br>
-	<center>Hola. Si estas acá seguramente escaneaste el QR. A continuación tenemos imágenes: </center><br> 
+	<center>Una imagen vale mas que mil palabras:</center><br> 
     
     <img src="tem3.jpg" alt="Imagen 3" onerror="this.style.display='none';">
 	<img src="tem4.jpg" alt="Imagen 4" onerror="this.style.display='none';">
@@ -67,6 +68,7 @@
 	<img src="tem6.jpg" alt="Imagen 6" onerror="this.style.display='none';">
 	<img src="tem7.jpg" alt="Imagen 7" onerror="this.style.display='none';">
 	<img src="tem8.jpg" alt="Imagen 8" onerror="this.style.display='none';">
+	<img src="tem9.jpg" alt="Imagen 9" onerror="this.style.display='none';">
 	
 	<video src="v.mp4" controls  onerror="this.style.display='none';"></video>
 	<video src="v2.mp4" controls  onerror="this.style.display='none';"></video>
@@ -79,47 +81,46 @@
     </div>
   
   
-<!--<img src="https://www.dropbox.com/scl/fi/kszjh5x61ssyvx6scp5qi/tem2.jpg?rlkey=dibc8xkr87z7aztvqlwq90o3t&st=4gcuvm3b?raw=1" alt="Imagen 4">-->
-
-<!--<img src="https://dl.dropboxusercontent.com/s/kszjh5x61ssyvx6scp5qi/tem2.jpg" alt="Imagen desde Dropbox">-->
+    <!--<img src="https://www.dropbox.com/scl/fi/kszjh5x61ssyvx6scp5qi/tem2.jpg?rlkey=dibc8xkr87z7aztvqlwq90o3t&st=4gcuvm3b?raw=1" alt="Imagen 4">-->
+    <!--<img src="https://dl.dropboxusercontent.com/s/kszjh5x61ssyvx6scp5qi/tem2.jpg" alt="Imagen desde Dropbox">-->
 	
     <script>
 	
-	const images = [
-      "tem3.jpg",
-      "tem4.jpg"
-    ];
+		const images = [
+		  "tem3.jpg",
+		  "tem4.jpg"
+		];
 
-    // Carpeta donde están las imágenes (ajusta esto)
-    const folderPath = "11121443/"; // por ejemplo: "imagenes/" o "./imgs/"
+		// Carpeta donde están las imágenes (ajusta esto)
+		const folderPath = "/"; // por ejemplo: "imagenes/" o "./imgs/"
 
-    const imgElement = document.getElementById("slide-img");
-    let currentIndex = 0;
-    const displayTime = 5000; // 5000 ms = 5 segundos
+		const imgElement = document.getElementById("slide-img");
+		let currentIndex = 0;
+		const displayTime = 5000; // 5000 ms = 5 segundos
 
-    function showImage(index) {
-      // Quita la clase para que se apague (fade out)
-      imgElement.classList.remove("show");
+		function showImage(index) {
+		  // Quita la clase para que se apague (fade out)
+		  imgElement.classList.remove("show");
 
-      // Espera un poquito, cambia la imagen y vuelve a mostrar (fade in)
-      setTimeout(() => {
-        imgElement.src = folderPath + images[index];
-        imgElement.alt = images[index];
-        imgElement.classList.add("show");
-      }, 300); // 300 ms de “apagado” antes de cambiar
-    }
+		  // Espera un poquito, cambia la imagen y vuelve a mostrar (fade in)
+		  setTimeout(() => {
+			imgElement.src = folderPath + images[index];
+			imgElement.alt = images[index];
+			imgElement.classList.add("show");
+		  }, 300); // 300 ms de “apagado” antes de cambiar
+		}
 
-    // Si hay imágenes, arranca el slideshow
-    if (images.length > 0) {
-      showImage(currentIndex);
+		// Si hay imágenes, arranca el slideshow
+		if (images.length > 0) {
+		  showImage(currentIndex);
 
-      setInterval(() => {
-        currentIndex = (currentIndex + 1) % images.length;
-        showImage(currentIndex);
-      }, displayTime);
-    } else {
-      console.warn("El arreglo 'images' está vacío.");
-    }
+		  setInterval(() => {
+			currentIndex = (currentIndex + 1) % images.length;
+			showImage(currentIndex);
+		  }, displayTime);
+		} else {
+		  console.warn("El arreglo 'images' está vacío.");
+		}
 	
 	</script>
 
