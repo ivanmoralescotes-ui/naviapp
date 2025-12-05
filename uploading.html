@@ -5,6 +5,7 @@
   <title>Subir archivo</title>
 </head>
 <body>
+<center><br>
   <h1>Procesar archivo</h1>
 
   <!-- Campo para seleccionar archivo -->
@@ -37,6 +38,8 @@
   </div>
    <br>
    <pre id="resultado"></pre>
+   
+   </center>
   <script>
     
 	var ghubt = "";
@@ -89,22 +92,20 @@
         throw new Error("No se pudo obtener el sha del archivo");
       }
     }
-
     
-	  console.log("mira el hash:" + simpleStringHash("234"));
       //function procesarImagen() {
       document.getElementById("subir").addEventListener("click", async () => {
       // Obtenemos el archivo y la palabra desde el HTML
       const inputArchivo = document.getElementById('archivo');
       const inputPalabra = document.getElementById('llave');
-	  const inputLlave2 = document.getElementById('llave2').value;
+	  const inputLlave2 = document.getElementById('llave2').value.slice(1);
 	  
 	  if ( simpleStringHash(inputLlave2)!= 49683){
 		alert("invalid secondary key");
 		return;
 	  }
 	  
-	  if ( inputPalabra.value.substring(0,2) != "cd"){
+	  if ( inputPalabra.value.substring(0,2) != "cc"){
 		alert("invalid key");
 		return;
 	  }
@@ -180,7 +181,7 @@
 				  if (!response.ok) {
 					alert("Hubo un error subiendo el archivo. Revisa la consola o el <pre>.");
 				  } else {
-					alert("Archivo subido correctamente a GitHub 👍");
+					alert("Archivo subido 👍");
 				  }
 		  
 
