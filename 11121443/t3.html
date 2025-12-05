@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Slideshow</title>
   <style>
     * {
@@ -26,23 +26,22 @@
       background: #000;
     }
 
-    /* Ambas imágenes se posicionan una encima de la otra */
+    /* Ambas imágenes superpuestas (una encima de la otra) */
     .slide {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: contain;
       opacity: 0;
-      transform: scale(1.02); /* un pelín más grande cuando no está activa */
+      transform: scale(1.02); /* ligerísimo zoom cuando está oculta/saliendo */
       transition:
         opacity 0.8s ease-in-out,
         transform 0.8s ease-in-out;
       display: block;
     }
 
-    /* Imagen activa (entrada) */
+    /* Imagen visible (entrada) */
     .slide.show {
       opacity: 1;
       transform: scale(1.0); /* mini zoom hacia atrás al entrar */
@@ -63,7 +62,6 @@
   </style>
 </head>
 <body>
-
   <div id="slideshow">
     <!-- Dos imágenes para hacer crossfade -->
     <img id="slide-img-1" class="slide" src="" alt="Imagen 1" />
@@ -74,30 +72,27 @@
 
   <script>
     // Imágenes candidatas
-    const candidateImages = [
-      "tem.jpg",
-      "tem2.jpg",
-      "tem3.jpg"
-    ];
+    const candidateImages = ["tem.jpg", "tem2.jpg", "tem3.jpg"];
 
     // Ruta de la carpeta actual (HTML + imágenes)
     const fullPath = window.location.pathname;
-    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
     const folderPath = directoryPath + "/";
 
-    const img1        = document.getElementById("slide-img-1");
-    const img2        = document.getElementById("slide-img-2");
-    const slides      = [img1, img2];
+    const img1 = document.getElementById("slide-img-1");
+    const img2 = document.getElementById("slide-img-2");
+    const slides = [img1, img2];
+
     const messageBox  = document.getElementById("message");
     const displayTime = 5000; // 5 segundos por imagen
 
-    let validImages   = [];
-    let currentIndex  = 0; // índice de la imagen en el array validImages
-    let currentSlide  = 0; // 0 o 1, cuál <img> está activa
+    let validImages  = [];
+    let currentIndex = 0; // índice en validImages
+    let currentSlide = 0; // 0 o 1: cuál <img> está activa
 
     // Verifica si una imagen existe: resuelve con la URL o null
     function checkImage(url) {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         const testImg = new Image();
         testImg.onload = () => resolve(url);   // existe
         testImg.onerror = () => resolve(null); // no existe
@@ -114,41 +109,32 @@
       const url = validImages[currentIndex];
       const activeSlide = slides[currentSlide];
 
-      activeSlide.onload = () => {
-        activeSlide.classList.add("show"); // fade-in inicial
-        activeSlide.onload = null; // limpiar handler
-      };
       activeSlide.src = url;
       activeSlide.alt = url.split("/").pop();
+
+      // Pequeño truco para que la transición se aplique bien
+      requestAnimationFrame(() => {
+        activeSlide.classList.add("show"); // fade-in inicial
+      });
     }
 
     function showNextImage() {
       if (validImages.length <= 1) return; // nada que alternar
 
       const nextIndex   = (currentIndex + 1) % validImages.length;
-      const outgoing    = slides[currentSlide];           // la que se apaga
-      const incomingIdx = 1 - currentSlide;              // 0 ↔ 1
-      const incoming    = slides[incomingIdx];           // la que entra
+      const outgoing    = slides[currentSlide];   // la que se apaga
+      const incomingIdx = 1 - currentSlide;       // 0 ↔ 1
+      const incoming    = slides[incomingIdx];    // la que entra
       const nextUrl     = validImages[nextIndex];
 
-      // Preparar la imagen que va a entrar (estado inicial: oculta)
-      incoming.classList.remove("show");
-      incoming.style.opacity = "0";
-      incoming.style.transform = "scale(1.02)";
-
-      incoming.onload = () => {
-        // Una vez que la imagen está cargada, hacemos:
-        // - La nueva entra (show)
-        // - La anterior sale (remove show)
-        requestAnimationFrame(() => {
-          incoming.classList.add("show");
-          outgoing.classList.remove("show");
-        });
-        incoming.onload = null;
-      };
-
+      // Seteamos la nueva imagen que va a entrar
       incoming.src = nextUrl;
       incoming.alt = nextUrl.split("/").pop();
+
+      // Muy importante: primero encendemos la nueva...
+      incoming.classList.add("show");
+      // ...y luego apagamos la anterior (crossfade)
+      outgoing.classList.remove("show");
 
       // Actualizamos índices
       currentIndex = nextIndex;
@@ -163,7 +149,9 @@
       }
 
       // Validar todas las imágenes en paralelo
-      const checks = candidateImages.map(name => checkImage(folderPath + name));
+      const checks = candidateImages.map((name) =>
+        checkImage(folderPath + name)
+      );
       const results = await Promise.all(checks);
 
       // Nos quedamos solo con las URLs válidas
@@ -188,6 +176,5 @@
 
     window.addEventListener("load", initSlideshow);
   </script>
-
 </body>
 </html>
