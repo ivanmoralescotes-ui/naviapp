@@ -1,27 +1,187 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Images</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <title>Slideshow</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        img {
-            max-width: 70%;   /* máximo 70% del ancho de la pantalla */
-            height: auto;     /* mantiene proporción */
-            display: block;
-            margin: 0 auto 16px;  /* centrada y con espacio abajo */
-        }
-    </style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Contenedor ocupa toda la pantalla */
+    #slideshow {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* Ambas imágenes superpuestas (una encima de la otra) */
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transform: scale(1.02); /* ligerísimo zoom cuando está oculta/saliendo */
+      transition:
+        opacity 0.8s ease-in-out,
+        transform 0.8s ease-in-out;
+      display: block;
+    }
+
+    /* Imagen visible (entrada) */
+    .slide.show {
+      opacity: 1;
+      transform: scale(1.0); /* mini zoom hacia atrás al entrar */
+    }
+
+    /* Mensaje opcional si no hay imágenes válidas */
+    #message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <!--<img src="tem.jpg" alt="Imagen 1">-->
-    <img src="tem2.jpg" alt="Imagen 2">
-    <img src="tem3.jpg" alt="Imagen 3">
+  <div id="slideshow">
+    <!-- Dos imágenes para hacer crossfade -->
+    <img id="slide-img-1" class="slide" src="" alt="Imagen 1" />
+    <img id="slide-img-2" class="slide" src="" alt="Imagen 2" />
+  </div>
+
+  <div id="message" style="display:none;"></div>
+
+  <script>
+    // Imágenes candidatas
+    const candidateImages = ["tem.jpg", "tem2.jpg", "tem3.jpg"];
+
+    // Ruta de la carpeta actual (HTML + imágenes)
+    const fullPath = window.location.pathname;
+    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
+    const folderPath = directoryPath + "/";
+
+    const img1 = document.getElementById("slide-img-1");
+    const img2 = document.getElementById("slide-img-2");
+    const slides = [img1, img2];
+
+    const messageBox  = document.getElementById("message");
+    const displayTime = 5000; // 5 segundos por imagen
+
+    let validImages  = [];
+    let currentIndex = 0; // índice en validImages
+    let currentSlide = 0; // 0 o 1: cuál <img> está activa
+
+    // Verifica si una imagen existe: resuelve con la URL o null
+    function checkImage(url) {
+      return new Promise((resolve) => {
+        const testImg = new Image();
+        testImg.onload = () => resolve(url);   // existe
+        testImg.onerror = () => resolve(null); // no existe
+        testImg.src = url;
+      });
+    }
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.style.display = "block";
+    }
+
+    function showFirstImage() {
+      const url = validImages[currentIndex];
+      const activeSlide = slides[currentSlide];
+
+      activeSlide.src = url;
+      activeSlide.alt = url.split("/").pop();
+
+      // Activamos transición de entrada
+      requestAnimationFrame(() => {
+        activeSlide.classList.add("show");
+      });
+    }
+
+    function showNextImage() {
+      if (validImages.length <= 1) return; // nada que alternar
+
+      const nextIndex   = (currentIndex + 1) % validImages.length;
+      const outgoing    = slides[currentSlide];   // la que se apaga
+      const incomingIdx = 1 - currentSlide;       // 0 ↔ 1
+      const incoming    = slides[incomingIdx];    // la que entra
+      const nextUrl     = validImages[nextIndex];
+
+      // Mientras se carga la nueva imagen, dejamos la anterior visible (NO quitamos .show aún).
+      incoming.classList.remove("show"); // asegurarnos que parte desde estado oculto
+      incoming.src = nextUrl;
+      incoming.alt = nextUrl.split("/").pop();
+
+      // Cuando la nueva imagen termine de cargar, hacemos el crossfade
+      incoming.onload = () => {
+        // Primero encendemos la nueva
+        incoming.classList.add("show");
+        // Luego apagamos la anterior
+        outgoing.classList.remove("show");
+
+        // Actualizamos índices solo después de que el cambio es visible
+        currentIndex = nextIndex;
+        currentSlide = incomingIdx;
+
+        // Limpiamos el handler
+        incoming.onload = null;
+      };
+    }
+
+    async function initSlideshow() {
+      if (candidateImages.length === 0) {
+        showMessage("No hay nombres de imágenes configurados.");
+        console.warn("El arreglo candidateImages está vacío.");
+        return;
+      }
+
+      // Validar todas las imágenes en paralelo
+      const checks = candidateImages.map((name) =>
+        checkImage(folderPath + name)
+      );
+      const results = await Promise.all(checks);
+
+      // Nos quedamos solo con las URLs válidas
+      validImages = results.filter(Boolean);
+
+      if (validImages.length === 0) {
+        showMessage("Ninguna de las imágenes existe en esta carpeta.");
+        console.warn("No se encontró ninguna imagen válida.");
+        return;
+      }
+
+      console.log("Imágenes válidas:", validImages);
+
+      // Mostrar la primera imagen
+      showFirstImage();
+
+      // Si hay más de una, arrancamos el intervalo
+      if (validImages.length > 1) {
+        setInterval(showNextImage, displayTime);
+      }
+    }
+
+    window.addEventListener("load", initSlideshow);
+  </script>
 </body>
 </html>
