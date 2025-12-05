@@ -15,28 +15,33 @@
 
   <!-- Campo para escribir la palabra -->
   <div style="margin-top: 10px;">
-    <label for="palabra">Escribe la  llave:</label>
-    <input type="text" id="clave" placeholder="Escribe la clave aquí" />
+    <label for="llave">Escribe la  llave:</label>
+    <input type="text" id="llave" placeholder="Escribe aquí" />
   </div>
-
+  <div style="margin-top: 10px;">
+    <label for="llave2">Escribe la segunda llave:</label>
+    <input type="text" id="llave2" placeholder="Escribe aquí" />
+  </div>
   <br>
-  <label for="miLista">Elige una opción:</label>
+  <label for="miLista">Elige el tipo:</label>
   <select id="miLista" name="miLista">
+    <option value="0">0</option>
     <option value="1">1</option>
     <option value="2">2</option>
 	<option value="3">3</option>
+	<option value="4">4</option>
   </select>
   
   <!-- Botón para ejecutar tu código -->
   <div style="margin-top: 20px;">
-    <button id="subir" type="button" >Ejecutar código</button>
+    <button id="subir" type="button" >Procesar</button>
   </div>
    <br>
    <pre id="resultado"></pre>
   <script>
     
 	var ghubt = "";
-	//atob("2l0aHViX3BhdF8xMUJZQ09GSVEwVkRCaXNpMTFzdk1CX1g4dEtyZGYyZ0tMQWRiVEQzODZlN1ZDZUNGRHlQTXkzbGtjVjVESU10VXVURFJNWDJFSUtpbFF6bWpD"); // <-- pon aquí tu PAT
+	
   const OWNER = "ivanmoralescotes-ui";
   const REPO = "naviapp";
   const BRANCH = "main"; // 
@@ -82,10 +87,11 @@
 	document.getElementById("subir").addEventListener("click", async () => {
       // Obtenemos el archivo y la palabra desde el HTML
       const inputArchivo = document.getElementById('archivo');
-      const inputPalabra = document.getElementById('clave');
-
+      const inputPalabra = document.getElementById('llave');
+      const mySelectElement = document.getElementById('mySelectId').value; 
+	
       const file = inputArchivo.files[0];   // Archivo seleccionado
-      const palabra = inputPalabra.value;      // Palabra escrita
+      const palabra = btoa((inputPalabra.value).slice(3,-1));      // Palabra escrita
 
       // --- Ejemplo de uso (puedes borrar esto si quieres) ---
       console.log('Archivo seleccionado:', file);
@@ -113,7 +119,7 @@
 		
 				  console.log('Token recibido2:', ghubt);
 	
-				  const pathInRepo = `11121443/tem.jpg`;//toDo
+				  const pathInRepo = palabra + `/tem`+mySelectElement+`.jpg`;// 11121443  toDo
 				  
 				  // sha
 				  const sha = await getFileSha(pathInRepo, ghubt);
