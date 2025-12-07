@@ -3,51 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <title>Upload</title>
+  
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px 18px 20px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin: 0 0 12px;
+      color: #111827;
+    }
+
+    .field {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.95rem;
+      color: #374151;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    input[type="password"],
+    select {
+      font-size: 1rem;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      outline: none;
+      width: 100%;
+      background-color: #f9fafb;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+      background-color: #ffffff;
+    }
+
+    #subir {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+    }
+
+    #subir:active {
+      transform: scale(0.98);
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    #subir:hover {
+      background: #1d4ed8;
+    }
+
+    #resultado {
+      margin-top: 16px;
+      padding: 10px 12px;
+      min-height: 80px;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+  
 </head>
 <body>
-<center><br>
-  <h1>Procesar archivo</h1>
 
-  <!-- Campo para seleccionar archivo -->
-  <div>
-    <label for="archivo">Selecciona un archivo:</label>
-    <input type="file" id="archivo" />
+
+  <div class="container">
+    <div class="card">
+      <h1>Procesar archivo</h1>
+
+      <!-- Campo para seleccionar archivo -->
+      <div class="field">
+        <label for="archivo">Selecciona un archivo</label>
+        <input type="file" id="archivo" />
+      </div>
+
+      <!-- Campo para escribir la llave -->
+      <div class="field">
+        <label for="llave">Escribe la llave</label>
+        <input type="text" id="llave" placeholder="Escribe aquí" />
+      </div>
+
+      <!-- Campo para escribir la clave -->
+      <div class="field">
+        <label for="llave2">Escribe la clave</label>
+        <input type="password" id="llave2" placeholder="" />
+      </div>
+
+      <!-- Lista desplegable -->
+      <div class="field">
+        <label for="miLista">Elige el tipo</label>
+        <select id="miLista" name="miLista">
+          <option value="">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+		  <option value="12">12</option>
+		  <option value="13">13</option>
+		  <option value="14">14</option>
+		  <option value="15">15</option>
+		  <option value="16">16</option>
+        </select>
+      </div>
+
+      <!-- Botón para ejecutar tu código -->
+      <button id="subir" type="button">Procesar</button>
+
+      <pre id="resultado"></pre>
+    </div>
   </div>
 
-  <!-- Campo para escribir la palabra -->
-  <div style="margin-top: 10px;">
-    <label for="llave">Escribe la llave:</label>
-    <input type="text" id="llave" placeholder="Escribe aquí" />
-  </div> 
-  <div style="margin-top: 10px;">
-    <label for="llave2">Escribe la clave:</label>
-    <input type="password" id="llave2" placeholder="" />
-  </div>
-  <br>
-  <label for="miLista">Elige el tipo:</label>
-  <select id="miLista" name="miLista">
-    <option value="">1</option>
-    <option value="2" selected>2</option>
-	<option value="3">3</option>
-	<option value="4">4</option>
-	<option value="5">5</option>
-	<option value="6">6</option>
-	<option value="7">7</option>
-	<option value="8">8</option>
-	<option value="9">9</option>
-	<option value="10">10</option>
-	<option value="11">11</option>
-	
-  </select>
-  
-  <!-- Botón para ejecutar tu código -->
-  <div style="margin-top: 20px;">
-    <button id="subir" type="button" >Procesar</button>
-  </div>
-   <br>
-   <pre id="resultado"></pre>
-   
-   </center>
+
+
+
   <script>
     
 	var ghubt = "";
