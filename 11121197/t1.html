@@ -41,7 +41,7 @@
       inset: 0;
     }
 
-    /* Slide HTML (versículo) */
+    /* 🔹 Slide HTML (versículo) mejorado para móvil */
     #slide-html {
       position: absolute;
       inset: 0;
@@ -50,16 +50,24 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 20px;
+      padding: min(6vh, 32px);         /* padding adaptable */
       opacity: 0;
       transition: opacity 0.8s ease-in-out;
       color: #fff;
     }
 
+    /* Contenedor para que todo el contenido no quede tan pegado a los bordes */
+    #slide-html-inner {
+      max-width: 700px;
+      width: 100%;
+    }
+
     #slide-html a {
       color: #00c3ff;
       text-decoration: none;
-      font-size: 1.1rem;
+      font-size: clamp(1.1rem, 2.4vh, 1.6rem); /* más grande en celular */
+      display: block;
+      margin-bottom: 8px;
     }
 
     #slide-html a:hover {
@@ -68,8 +76,8 @@
 
     #slide-html p {
       margin-top: 10px;
-      font-size: 1.2rem;
-      line-height: 1.4;
+      font-size: clamp(1.1rem, 2.3vh, 1.5rem); /* texto más grande */
+      line-height: 1.5;
     }
 
     /* Mostrar slide activo */
@@ -99,42 +107,35 @@
     <img id="slide-img" src="" alt="Imagen" />
 	
     <div id="slide-html">
-      <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
-        Ver playlist
-      </a><br>
-	  <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
-	    Ver instagram
-	  </a><br>
-	  <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
-	    Whatsapp
-	  </a>
+      <div id="slide-html-inner">
+        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
+          Ver playlist
+        </a>
+        <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
+          Ver instagram
+        </a>
+        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
+          Whatsapp
+        </a>
 	  
-      <p id="verse-text">Aquí va el versículo de la Biblia.</p>
-	  
-	  <p id="quote-text">Aquí va la frase.</p>
-	  
-	  <p id="blood-text">Aquí va el tipo.</p>
-	  	  
+        <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+        <p id="quote-text">Aquí va la frase.</p>
+        <p id="blood-text">Aquí va el tipo.</p>
+      </div>
     </div>
   </div>
 
   <div id="message" style="display:none;"></div>
 
   <script>
-    // 👉 Configura aquí tu link y tu versículo
-    const verseLink = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
-	const verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
-	
-	const verseLink3 = "https://wa.me/573113068430";
-	
-    // https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej?si=eEjO9Yi2TL2xS7NPnHwhlg&pi=JnrMjQ7NSWeWa	
-	//<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
+    // 👉 Configura aquí tus links y textos
+    const verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
+    const verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+    const verseLink3 = "https://wa.me/573113068430";
 
-    const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
-	
-	const quoteText = "“Deja de pensar en la vida y resuélvete a vivirla. Paulo Coelho.”";
-
-	const bloodText = "Tipo de sangre: A+ ";
+    const verseText  = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
+    const quoteText  = "“Deja de pensar en la vida y resuélvete a vivirla.” (Paulo Coelho)";
+    const bloodText  = "Tipo de sangre: A+           Número de suerte: 34 ";
 	
     // Slides: 2º es HTML, los demás imágenes
     const slides = [
@@ -151,14 +152,14 @@
     const imgElement   = document.getElementById("slide-img");
     const htmlElement  = document.getElementById("slide-html");
     const verseLinkEl  = document.getElementById("verse-link");
-	const verseLinkEl2  = document.getElementById("verse-link2");
-	const verseLinkEl3  = document.getElementById("verse-link3");
+    const verseLinkEl2 = document.getElementById("verse-link2");
+    const verseLinkEl3 = document.getElementById("verse-link3");
     const verseTextEl  = document.getElementById("verse-text");
-	const quoteTextEl  = document.getElementById("quote-text");
-	const bloodTextEl  = document.getElementById("blood-text");
+    const quoteTextEl  = document.getElementById("quote-text");
+    const bloodTextEl  = document.getElementById("blood-text");
 	
     const messageBox   = document.getElementById("message");
-    const displayTime  = 5000; // 5 segundos
+    const displayTime  = 6000; // 6 segundos
 
     let currentIndex = 0;
 
@@ -167,33 +168,41 @@
       messageBox.style.display = "block";
     }
 
+    // 🔹 Transición suavizada: primero se desvanece, luego se carga y se vuelve a mostrar
     function showSlide(index) {
       if (!slides.length) {
         showMessage("No hay slides configurados.");
         return;
       }
 
-      // Ocultar ambos
+      const slide = slides[index];
+
+      // Quitamos clase show para que empiece a desvanecerse
       imgElement.classList.remove("show");
       htmlElement.classList.remove("show");
 
-      const slide = slides[index];
-
+      // Esperamos un poco para que la salida no sea brusca
       setTimeout(() => {
         if (slide.type === "image") {
+          // cuando cargue la imagen, la mostramos con fade-in
+          imgElement.onload = () => {
+            imgElement.classList.add("show");
+          };
           imgElement.src = slide.file; // misma carpeta que el HTML
           imgElement.alt = slide.file;
-          imgElement.classList.add("show");
+
         } else if (slide.type === "html") {
-          verseLinkEl.href = verseLink;
-		  verseLinkEl2.href = verseLink2;
-		  verseLinkEl3.href = verseLink3;
-          verseTextEl.textContent = verseText;
-		  quoteTextEl.textContent = quoteText;
-		  bloodTextEl.textContent = bloodText;
+          verseLinkEl.href  = verseLink;
+          verseLinkEl2.href = verseLink2;
+          verseLinkEl3.href = verseLink3;
+
+          verseTextEl.textContent  = verseText;
+          quoteTextEl.textContent  = quoteText;
+          bloodTextEl.textContent  = bloodText;
+
           htmlElement.classList.add("show");
         }
-      }, 300);
+      }, 200); // pequeño delay para que el fade-out se sienta más suave
     }
 
     function initSlideshow() {

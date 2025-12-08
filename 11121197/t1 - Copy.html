@@ -26,23 +26,60 @@
       justify-content: center;
       background: #000;
       overflow: hidden;
+      position: relative;
     }
 
-    /* La imagen se ajusta al máximo sin salirse */
-    #slideshow img {
+    /* Imagen pantalla completa */
+    #slide-img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       opacity: 0;
       transition: opacity 0.8s ease-in-out;
       display: block;
+      position: absolute;
+      inset: 0;
     }
 
-    #slideshow img.show {
+    /* Slide HTML (versículo) */
+    #slide-html {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+      color: #fff;
+    }
+
+    #slide-html a {
+      color: #00c3ff;
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+
+    #slide-html a:hover {
+      text-decoration: underline;
+    }
+
+    #slide-html p {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      line-height: 1.4;
+    }
+
+    /* Mostrar slide activo */
+    #slide-img.show {
+      opacity: 1;
+    }
+    #slide-html.show {
       opacity: 1;
     }
 
-    /* Mensaje opcional si no hay imágenes válidas */
     #message {
       position: fixed;
       top: 20px;
@@ -60,85 +97,119 @@
 
   <div id="slideshow">
     <img id="slide-img" src="" alt="Imagen" />
+	
+    <div id="slide-html">
+      <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
+        Ver playlist
+      </a><br>
+	  <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
+	    Ver instagram
+	  </a><br>
+	  <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
+	    Whatsapp
+	  </a>
+	  
+      <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+	  <br>
+	  <p id="quote-text">Aquí va la frase.</p>
+	  <br>
+	  <p id="blood-text">Aquí va el tipo.</p>
+	  	  
+    </div>
   </div>
 
   <div id="message" style="display:none;"></div>
 
   <script>
-    // 1. Imágenes candidatas
-    const candidateImages = ["tem10.jpg",      "tem11.jpg",      "tem12.jpg",	  "tem13.jpg"
-         ,"tem14.jpg","tem15.jpg","tem16.jpg"	];
+    // 👉 Configura aquí tu link y tu versículo
+    const verseLink = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
+	const verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+	
+	const verseLink3 = "https://wa.me/573113068430";
+	
+    // https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej?si=eEjO9Yi2TL2xS7NPnHwhlg&pi=JnrMjQ7NSWeWa	
+	//<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
 
-    // 2. Ruta de la carpeta actual (la del HTML + imágenes)
-    const fullPath = window.location.pathname;
-    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
-    const folderPath = directoryPath + "/"; 
-    // Ejemplo: si la URL es /qr/1234/index.html → folderPath = "/qr/1234/"
+    const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
+	
+	const quoteText = "“Deja de pensar en la vida y resuélvete a vivirla.” (Paulo Coelho)";
+
+	const bloodText = "Tipo de sangre: A+           Número de suerte: 34 ";
+	
+    // Slides: 2º es HTML, los demás imágenes
+    const slides = [
+      { type: "image", file: "tem10.jpg" }, // 1
+      { type: "html" },                     // 2 (versículo)
+      { type: "image", file: "tem11.jpg" }, // 3
+      { type: "image", file: "tem12.jpg" },
+      { type: "image", file: "tem13.jpg" },
+      { type: "image", file: "tem14.jpg" },
+      { type: "image", file: "tem15.jpg" },
+      { type: "image", file: "tem16.jpg" }
+    ];
 
     const imgElement   = document.getElementById("slide-img");
+    const htmlElement  = document.getElementById("slide-html");
+    const verseLinkEl  = document.getElementById("verse-link");
+	const verseLinkEl2  = document.getElementById("verse-link2");
+	const verseLinkEl3  = document.getElementById("verse-link3");
+    const verseTextEl  = document.getElementById("verse-text");
+	const quoteTextEl  = document.getElementById("quote-text");
+	const bloodTextEl  = document.getElementById("blood-text");
+	
     const messageBox   = document.getElementById("message");
-    const displayTime  = 5000; // 5 segundos
-    let validImages    = [];   // aquí irán solo las que existen
-    let currentIndex   = 0;
+    const displayTime  = 6000; // 5 segundos
 
-    // Devuelve una Promise que resuelve con la URL si existe, o null si no
-    function checkImage(url) {
-      return new Promise(resolve => {
-        const testImg = new Image();
-        testImg.onload = () => resolve(url);   // existe
-        testImg.onerror = () => resolve(null); // no existe
-        testImg.src = url;
-      });
-    }
+    let currentIndex = 0;
 
     function showMessage(text) {
       messageBox.textContent = text;
       messageBox.style.display = "block";
     }
 
-    function showImage(index) {
+    function showSlide(index) {
+      if (!slides.length) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+
+      // Ocultar ambos
       imgElement.classList.remove("show");
+      htmlElement.classList.remove("show");
+
+      const slide = slides[index];
 
       setTimeout(() => {
-        const url = validImages[index];
-        imgElement.src = url;
-        imgElement.alt = url.split("/").pop(); // nombre del archivo
-        imgElement.classList.add("show");
+        if (slide.type === "image") {
+          imgElement.src = slide.file; // misma carpeta que el HTML
+          imgElement.alt = slide.file;
+          imgElement.classList.add("show");
+        } else if (slide.type === "html") {
+          verseLinkEl.href = verseLink;
+		  verseLinkEl2.href = verseLink2;
+		  verseLinkEl3.href = verseLink3;
+          verseTextEl.textContent = verseText;
+		  quoteTextEl.textContent = quoteText;
+		  bloodTextEl.textContent = bloodText;
+          htmlElement.classList.add("show");
+        }
       }, 300);
     }
 
-    async function initSlideshow() {
-      if (candidateImages.length === 0) {
-        showMessage("No hay nombres de imágenes configurados.");
-        console.warn("El arreglo candidateImages está vacío.");
+    function initSlideshow() {
+      if (slides.length === 0) {
+        showMessage("No hay slides configurados.");
         return;
       }
 
-      // Validar todas las imágenes en paralelo
-      const checks = candidateImages.map(name => checkImage(folderPath + name));
-      const results = await Promise.all(checks);
-
-      // Nos quedamos solo con las URLs válidas
-      validImages = results.filter(Boolean);
-
-      if (validImages.length === 0) {
-        showMessage("Ninguna de las imágenes existe en esta carpeta.");
-        console.warn("No se encontró ninguna imagen válida.");
-        return;
-      }
-
-      console.log("Imágenes válidas:", validImages);
-
-      // Arrancamos el slideshow
-      showImage(currentIndex);
+      showSlide(currentIndex);
 
       setInterval(() => {
-        currentIndex = (currentIndex + 1) % validImages.length;
-        showImage(currentIndex);
+        currentIndex = (currentIndex + 1) % slides.length;
+        showSlide(currentIndex);
       }, displayTime);
     }
 
-    // Iniciar cuando cargue la página
     window.addEventListener("load", initSlideshow);
   </script>
 
