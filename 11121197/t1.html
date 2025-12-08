@@ -178,6 +178,17 @@
 		"“Mejora un 1% cada día.”","“Hazlo por ti, no por aplausos.”","“Menos excusas, más acción.”",
         "“El secreto para salir adelante es comenzar.”"		
 	];
+	
+	const versiculos =["“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
+	   ,"“Y Jesús dijo: No temas; cree solamente.” (Marcos 5:36)"
+	   ,"“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
+	   ,"“Jesús le dijo: No te he dicho que si crees verás la gloria de Dios?” (Juan 11:40)"
+	   ,"“Y Jesús dijo: Yo estoy con ustedes todos los días, hasta el fin del mundo.” (Mateo 28:20)"
+	   ,"“El Señor es mi pastor, nada me falta.” (Salmo 23:1)"
+	   ,"“Porque todo aquel que invoque el nombre del Señor será salvo.” (Romanos 10:13)"
+	   ,"“Deléitate en el Señor, y él te concederá los deseos de tu corazón.” (Salmo 37:4)"
+	   //,"“”"
+	   ]
 
 
     const imgElement   = document.getElementById("slide-img");
@@ -231,10 +242,12 @@
           verseLinkEl3.href = verseLink3;
           verseLinkEl4.href = verseLink4;
 
-          verseTextEl.textContent  = verseText;
+          //verseTextEl.textContent  = verseText;
 		  const quoteNumber = getRandomNumber(0,22);
+		  const versiculoNumber = getRandomNumber(0,7);
           quoteTextEl.textContent  = quotes[quoteNumber]; //quoteText
-          bloodTextEl.textContent  = bloodText;
+          verseTextEl.textContent  = versiculos[versiculoNumber]; //quoteText
+		  bloodTextEl.textContent  = bloodText;
 		  		  
 		  lucknumberTextEl.textContent =lucknumberText + getRandomNumber(0,36);
 
