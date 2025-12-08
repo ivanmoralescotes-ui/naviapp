@@ -97,11 +97,24 @@
 
   <div id="slideshow">
     <img id="slide-img" src="" alt="Imagen" />
+	
     <div id="slide-html">
       <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
-        Ver más
-      </a>
+        Ver playlist
+      </a><br>
+	  <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
+	    Ver instagram
+	  </a><br>
+	  <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
+	    Whatsapp
+	  </a>
+	  
       <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+	  
+	  <p id="quote-text">Aquí va la frase.</p>
+	  
+	  <p id="blood-text">Aquí va el tipo.</p>
+	  	  
     </div>
   </div>
 
@@ -109,9 +122,20 @@
 
   <script>
     // 👉 Configura aquí tu link y tu versículo
-    const verseLink = "https://TU-LINK-AQUI.com";
-    const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
+    const verseLink = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
+	const verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+	
+	const verseLink3 = "https://wa.me/573113068430";
+	
+    // https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej?si=eEjO9Yi2TL2xS7NPnHwhlg&pi=JnrMjQ7NSWeWa	
+	//<a href="https://open.spotify.com/playlist/3MqYggls7TIRtI3V7hJHnq">Playlist</a>
 
+    const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
+	
+	const quoteText = "“Deja de pensar en la vida y resuélvete a vivirla. Paulo Coelho.”";
+
+	const bloodText = "Tipo de sangre: A+ ";
+	
     // Slides: 2º es HTML, los demás imágenes
     const slides = [
       { type: "image", file: "tem10.jpg" }, // 1
@@ -127,7 +151,12 @@
     const imgElement   = document.getElementById("slide-img");
     const htmlElement  = document.getElementById("slide-html");
     const verseLinkEl  = document.getElementById("verse-link");
+	const verseLinkEl2  = document.getElementById("verse-link2");
+	const verseLinkEl3  = document.getElementById("verse-link3");
     const verseTextEl  = document.getElementById("verse-text");
+	const quoteTextEl  = document.getElementById("quote-text");
+	const bloodTextEl  = document.getElementById("blood-text");
+	
     const messageBox   = document.getElementById("message");
     const displayTime  = 5000; // 5 segundos
 
@@ -157,7 +186,11 @@
           imgElement.classList.add("show");
         } else if (slide.type === "html") {
           verseLinkEl.href = verseLink;
+		  verseLinkEl2.href = verseLink2;
+		  verseLinkEl3.href = verseLink3;
           verseTextEl.textContent = verseText;
+		  quoteTextEl.textContent = quoteText;
+		  bloodTextEl.textContent = bloodText;
           htmlElement.classList.add("show");
         }
       }, 300);
