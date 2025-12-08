@@ -93,125 +93,100 @@
 </head>
 <body>
 
+  
   <div id="slideshow">
-    <img id="slide-img" src="" alt="Imagen" />
-    <!-- Slide HTML (versículo) -->
-    <div id="slide-html">
-      <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
-        Ver más
-      </a>
-      <p id="verse-text">Filipenses 4:13 : "Todo lo puedo en Cristo que me fortalece".
-	  <br>34</p>
-    </div>
+  <img id="slide-img" src="" alt="Imagen" />
+  <div id="slide-html">
+    <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
+      Ver más
+    </a>
+    <p id="verse-text">Filipenses 4:13 : "Todo lo puedo en Cristo que me fortalece".</p>
   </div>
+</div>
+
 
   <div id="message" style="display:none;"></div>
 
   <script>
-    // 👉 Configura aquí tu link y tu versículo
-    const verseLink = "https://TU-LINK-AQUI.com";
-    const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
+  // 👉 Configura aquí tu link y tu versículo
+  const verseLink = "https://TU-LINK-AQUI.com";
+  const verseText = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
 
-    // 1. Definición de slides: algunos son imágenes, uno es HTML
-    const slides = [
-      { type: "image", name: "tem10.jpg" },
-      { type: "html",  id: "versiculo" },  // ESTE ES EL SEGUNDO SLIDE (HTML)
-      { type: "image", name: "tem11.jpg" },
-      { type: "image", name: "tem12.jpg" },
-      { type: "image", name: "tem13.jpg" },
-      { type: "image", name: "tem14.jpg" },
-      { type: "image", name: "tem15.jpg" },
-      { type: "image", name: "tem16.jpg" }
-    ];
+  // 1. Definición de slides: imágenes + 1 HTML
+  const slides = [
+    { type: "image", file: "tem10.jpg" }, // 1er slide
+    { type: "html" },                     // 2do slide (versículo)
+    { type: "image", file: "tem11.jpg" },
+    { type: "image", file: "tem12.jpg" },
+    { type: "image", file: "tem13.jpg" },
+    { type: "image", file: "tem14.jpg" },
+    { type: "image", file: "tem15.jpg" },
+    { type: "image", file: "tem16.jpg" }
+  ];
 
-    // 2. Ruta de la carpeta actual (la del HTML + imágenes)
-    const fullPath = window.location.pathname;
-    const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
-    const folderPath = directoryPath + "/";
+  // 2. Ruta de la carpeta actual (HTML + imágenes)
+  const fullPath = window.location.pathname;
+  const directoryPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+  const folderPath = directoryPath + "/";
 
-    const imgElement     = document.getElementById("slide-img");
-    const htmlElement    = document.getElementById("slide-html");
-    const verseLinkEl    = document.getElementById("verse-link");
-    const verseTextEl    = document.getElementById("verse-text");
-    const messageBox     = document.getElementById("message");
-    const displayTime    = 5000; // 5 segundos
-    let validSlides      = [];
-    let currentIndex     = 0;
+  const imgElement   = document.getElementById("slide-img");
+  const htmlElement  = document.getElementById("slide-html");
+  const verseLinkEl  = document.getElementById("verse-link");
+  const verseTextEl  = document.getElementById("verse-text");
+  const messageBox   = document.getElementById("message");
+  const displayTime  = 5000; // 5 segundos
 
-    // Devuelve una Promise que resuelve con un slide de tipo imagen si existe, o null si no
-    function checkImageSlide(slide) {
-      return new Promise(resolve => {
-        const testImg = new Image();
-        const url = folderPath + slide.name;
-        testImg.onload = () => resolve({ ...slide, url });   // existe
-        testImg.onerror = () => resolve(null);               // no existe
-        testImg.src = url;
-      });
+  let currentIndex = 0;
+
+  function showMessage(text) {
+    messageBox.textContent = text;
+    messageBox.style.display = "block";
+  }
+
+  function showSlide(index) {
+    if (!slides.length) {
+      showMessage("No hay slides configurados.");
+      return;
     }
 
-    function showMessage(text) {
-      messageBox.textContent = text;
-      messageBox.style.display = "block";
-    }
+    // Ocultamos ambos
+    imgElement.classList.remove("show");
+    htmlElement.classList.remove("show");
 
-    function showSlide(index) {
-      imgElement.classList.remove("show");
-      htmlElement.classList.remove("show");
+    const slide = slides[index];
 
-      setTimeout(() => {
-        const slide = validSlides[index];
-
-        if (!slide) return;
-
-        if (slide.type === "image") {
-          imgElement.src = slide.url;
-          imgElement.alt = slide.name;
-          imgElement.classList.add("show");
-        } else if (slide.type === "html") {
-          // Configuramos el contenido del slide HTML
-          verseLinkEl.href = verseLink;
-          verseTextEl.textContent = verseText;
-          htmlElement.classList.add("show");
-        }
-      }, 300);
-    }
-
-    async function initSlideshow() {
-      if (slides.length === 0) {
-        showMessage("No hay slides configurados.");
-        return;
+    setTimeout(() => {
+      if (slide.type === "image") {
+        imgElement.src = folderPath + slide.file;
+        imgElement.alt = slide.file;
+        imgElement.classList.add("show");
+      } else if (slide.type === "html") {
+        verseLinkEl.href = verseLink;
+        verseTextEl.textContent = verseText;
+        htmlElement.classList.add("show");
       }
+    }, 300);
+  }
 
-      // Validar imágenes; los slides HTML se mantienen tal cual
-      const checks = slides.map(slide => {
-        if (slide.type === "image") {
-          return checkImageSlide(slide);
-        } else {
-          // Slide HTML siempre es válido
-          return Promise.resolve(slide);
-        }
-      });
+  function initSlideshow() {
+    if (slides.length === 0) {
+      showMessage("No hay slides configurados.");
+      return;
+    }
 
-      const results = await Promise.all(checks);
-      validSlides = results.filter(Boolean);
+    // Primer slide
+    showSlide(currentIndex);
 
-      if (validSlides.length === 0) {
-        showMessage("No se encontró ninguna imagen ni slide válido.");
-        return;
-      }
-
-      console.log("Slides válidos:", validSlides);
-
+    // Siguiente cada X segundos
+    setInterval(() => {
+      currentIndex = (currentIndex + 1) % slides.length;
       showSlide(currentIndex);
+    }, displayTime);
+  }
 
-      setInterval(() => {
-        currentIndex = (currentIndex + 1) % validSlides.length;
-        showSlide(currentIndex);
-      }, displayTime);
-    }
+  window.addEventListener("load", initSlideshow);
+</script>
 
-    window.addEventListener("load", initSlideshow);
-  </script>
 
 </body>
 </html>
