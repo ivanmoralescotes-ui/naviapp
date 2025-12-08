@@ -104,25 +104,32 @@
 <body>
 
   <div id="slideshow">
-    <img id="slide-img" src="" alt="Imagen" />
+    
+	<img id="slide-img" src="" alt="Imagen" />
+	
 	
     <div id="slide-html">
       <div id="slide-html-inner">
         <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
-          Ver playlist
-        </a><br>
+		  Spotify
+        </a><br><br>
         <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
-          Ver instagram
-        </a><br>
-        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
+          Instagram
+        </a><br><br>
+        <!--<a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
           Whatsapp
-        </a><br>
+        </a><br><br>-->
 	  
         <p id="verse-text">Aquí va el versículo de la Biblia.</p>
-		<br>
+		<br><br>
         <p id="quote-text">Aquí va la frase.</p>
 		<br>
         <p id="blood-text">Aquí va el tipo.</p>
+		<p id="lucknumber-text">Aquí va el numero.</p>
+		<br>
+		<a id="verse-link4" href="#" target="_blank" rel="noopener noreferrer">
+          <i>Nike</i>
+        </a>
       </div>
     </div>
   </div>
@@ -135,33 +142,58 @@
     const verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
     const verseLink3 = "https://wa.me/573113068430";
 
-    const verseText  = "“Jehová es mi pastor; nada me faltará.” (Salmo 23:1)";
-    const quoteText  = "“Deja de pensar en la vida y resuélvete a vivirla.” (Paulo Coelho)";
-    const bloodText  = "Tipo de sangre: A+<br>Número de suerte: 34 ";
+    const verseText  = "“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)";
+    const quoteText  = "“El secreto para salir adelante es comenzar.”";
+    const bloodText  = "Tipo de sangre: A+";
+	const lucknumberText  = "Número de suerte: ";
 	
+	const verseLink4 = "https://www.nike.com.co";
+
     // Slides: 2º es HTML, los demás imágenes
     const slides = [
-      { type: "image", file: "tem10.jpg" }, // 1
+      
       { type: "html" },                     // 2 (versículo)
-      { type: "image", file: "tem11.jpg" }, // 3
+      { type: "image", file: "tem10.jpg" }, // 1
+	  { type: "image", file: "tem11.jpg" }, // 3
       { type: "image", file: "tem12.jpg" },
       { type: "image", file: "tem13.jpg" },
       { type: "image", file: "tem14.jpg" },
       { type: "image", file: "tem15.jpg" },
       { type: "image", file: "tem16.jpg" }
     ];
+	
+	const quotes = [
+	   "“La disciplina empieza donde termina la motivación.”","“Hazlo sencillo, pero hazlo siempre.”",
+        "“Cambia tus hábitos y cambia tu destino.”","“Lo que repites, te construye.”",
+        "“La acción cura el miedo.”",
+		"“Tu futuro empieza hoy, no mañana.”","“El que se controla, vence.”",
+		"“No te rindas: ajusta el plan, no el objetivo.”",
+		"“Avanza aunque sea un milímetro.”","“Haz lo difícil hasta que sea fácil.”",
+		"“La mente fuerte escucha, decide y actúa.”","“Quien domina su atención, domina su mundo.”",
+		"“El progreso ama la constancia.”","“Tu vida mejora cuando tú mejoras.”",
+		"“Haz más de lo que dices y di menos de lo que haces.”",
+		"“Deja de esperar y empieza a construir.”",
+		"“Avanza sin hacer ruido.”","“Si te caes siete veces, levántate ocho.”",
+		"“Siembra disciplina y cosecharás libertad.”","“La vida premia a los constantes.”",
+		"“Mejora un 1% cada día.”","“Hazlo por ti, no por aplausos.”","“Menos excusas, más acción.”",
+        "“El secreto para salir adelante es comenzar.”"		
+	];
+
 
     const imgElement   = document.getElementById("slide-img");
     const htmlElement  = document.getElementById("slide-html");
     const verseLinkEl  = document.getElementById("verse-link");
     const verseLinkEl2 = document.getElementById("verse-link2");
-    const verseLinkEl3 = document.getElementById("verse-link3");
+    const verseLinkEl3 = "";//document.getElementById("verse-link3");
     const verseTextEl  = document.getElementById("verse-text");
     const quoteTextEl  = document.getElementById("quote-text");
     const bloodTextEl  = document.getElementById("blood-text");
-	
+	const lucknumberTextEl  = document.getElementById("lucknumber-text");
+	const verseLinkEl4 = document.getElementById("verse-link4");
+		
     const messageBox   = document.getElementById("message");
-    const displayTime  = 6000; // 6 segundos
+    let displayTime  = 5000; // 6 segundos
+	let randomNumber = 0;
 
     let currentIndex = 0;
 
@@ -197,15 +229,25 @@
           verseLinkEl.href  = verseLink;
           verseLinkEl2.href = verseLink2;
           verseLinkEl3.href = verseLink3;
+          verseLinkEl4.href = verseLink4;
 
           verseTextEl.textContent  = verseText;
-          quoteTextEl.textContent  = quoteText;
+		  const quoteNumber = getRandomNumber(0,22);
+          quoteTextEl.textContent  = quotes[quoteNumber]; //quoteText
           bloodTextEl.textContent  = bloodText;
+		  		  
+		  lucknumberTextEl.textContent =lucknumberText + getRandomNumber(0,36);
 
           htmlElement.classList.add("show");
         }
-      }, 200); // pequeño delay para que el fade-out se sienta más suave
+      }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
     }
+
+	function getRandomNumber(min, max) {
+	  min = Math.ceil(min);
+	  max = Math.floor(max);
+	  return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
 
     function initSlideshow() {
       if (slides.length === 0) {
@@ -215,6 +257,12 @@
 
       showSlide(currentIndex);
 
+      if (currentIndex==0){
+	     displayTime=7000;
+	  }else{
+	     displayTime=5000;
+	  }
+	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
         showSlide(currentIndex);
