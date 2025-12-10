@@ -30,31 +30,32 @@
     }
 
     /* Imagen pantalla completa */
-    #slide-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      opacity: 0;
-      transition: opacity 0.8s ease-in-out;
-      display: block;
-      position: absolute;
-      inset: 0;
-    }
+    
+#slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;  /* más suave */
+  display: block;
+  position: absolute;
+  inset: 0;
+}
 
     /* 🔹 Slide HTML (versículo) mejorado para móvil */
     #slide-html {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: min(6vh, 32px);         /* padding adaptable */
-      opacity: 0;
-      transition: opacity 0.8s ease-in-out;
-      color: #fff;
-    }
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: min(6vh, 32px);
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;  /* mismo tiempo que la imagen */
+  color: #fff;
+}
 
     /* Contenedor para que todo el contenido no quede tan pegado a los bordes */
     #slide-html-inner {
@@ -99,15 +100,26 @@
       border-radius: 8px;
       font-size: 14px;
     }
+	
+	
 	/* 🔹 Extra: en pantallas pequeñas aún más grande para que se lea sabroso */
-    @media (max-width: 768px) {
-      #slide-html a {
-        font-size: 1.9rem;
-      }
-      #slide-html p {
-        font-size: 1.7rem;
-      }
-    }
+ @media (max-width: 768px) {
+  /* que el texto use más ancho de la pantalla */
+  #slide-html-inner {
+    max-width: 95%;
+  }
+
+  #slide-html a {
+    font-size: 2.6rem;   /* links más grandes */
+  }
+
+  #slide-html p {
+    font-size: 2.3rem;   /* texto principal más grande */
+    line-height: 1.7;    /* más espacio entre líneas */
+  }
+}
+
+
   </style>
 </head>
 <body>
@@ -127,7 +139,7 @@
         </a><br><br>
         <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
           Whatsapp
-        </a><br><br>
+        </a><br>
 	  
         <p id="verse-text">Aquí va el versículo de la Biblia.</p>
 		<br><br>
@@ -162,7 +174,7 @@
 	let verseLink4 = "https://www.nike.com.co";
 
     // Slides: 2º es HTML, los demás imágenes
-    const slides = [      
+    let slides = [      
       { type: "html" },                     // 2 (versículo)
       { type: "image", file: "tem10.jpg" }, // 1
 	  { type: "image", file: "tem11.jpg" }, // 3
@@ -223,6 +235,15 @@
 	   ,"“El Señor es mi pastor, nada me falta.” (Salmo 23:1)"
 	   ,"“Porque todo aquel que invoque el nombre del Señor será salvo.” (Romanos 10:13)"
 	   ,"“Deléitate en el Señor, y él te concederá los deseos de tu corazón.” (Salmo 37:4)"
+	   ,"“El Señor es mi fortaleza y mi escudo.” (Salmo 28:7)"
+	   ,"“El Señor sostiene a los que caen.” (Salmo 145:14)"
+	   ,"“El Señor dirige los pasos del hombre.” (Salmo 37:23)"
+	   ,"“El Señor te dará fuerzas y te sostendrá.” (Isaias 41:10)"
+	   ,"“Confía en el Señor y Él actuará.” (Salmo 37:5)"
+	   ,"“Él da fuerzas al cansado y multiplica las fuerzas del débil.” (Isaias 40:29)"
+	   ,"“El Señor te fortalecerá y te ayudará; te sostendrá con su mano victoriosa.” (Isaias 41:10)"
+	   ,"“Entréguenle todas sus preocupaciones a Dios, porque Él cuida de ustedes.” (Pedro 5:7)"
+	   
 	   //,"“”"
 	   
 	   ]
@@ -245,8 +266,12 @@
     let currentIndex = 0;
 	//https://gist.githubusercontent.com/usuario/loquesea/raw/mi-archivo.txt
 
-    //2e622908bddcff30c1acb9bedf3094e3a64d8fd5
-    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/b10ff3e6d9a8dd1d680d62c6d964590b/raw/prop'+'11121197'+'.txt')
+    const parts = location.pathname.split("/").filter(p => p !== "");
+    const penultima = parts[parts.length - 2];
+	console.log("penultima:"+penultima);
+	
+    //2e622908bddcff30c1acb9bedf3094e3a64d8fd5  '11121197'
+    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/b10ff3e6d9a8dd1d680d62c6d964590b/raw/prop'+penultima+'.txt')
      .then(r => r.text())
      .then(r2 => {
    	        console.log("the object:"+r2);
@@ -257,6 +282,23 @@
 			const thewhatsapp = props.whatsapp;
 			const thespotify = props.spotify;
 			const thepublicidad = props.publicidad;
+			const theimages = props.images;
+			let imagesList = [];
+			if (theimages != ""){
+				imagesList = theimages.split(",");
+				console.log("first image:"+imagesList[0]);
+			
+			    let cuentaImagen = 1;
+				
+				for (const unaimagen of imagesList) {
+				  if (slides.length > cuentaImagen){
+				    slides[cuentaImagen] = 
+					  { type: "image", file: unaimagen };
+				    cuentaImagen = cuentaImagen + 1;
+				  }
+				}
+				
+			}
 			
 			//console.log("mostrarVersiculo:"+mostrarVersiculo);
  	     	if (mostrarVersiculo == "si") {
@@ -376,7 +418,7 @@
       if (currentIndex==0){
 	     displayTime=7000;
 	  }else{
-	     displayTime=5000;
+	     displayTime=15000;
 	  }
 	  
       setInterval(() => {
