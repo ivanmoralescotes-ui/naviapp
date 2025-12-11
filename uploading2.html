@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload</title>
+  
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px 18px 20px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin: 0 0 12px;
+      color: #111827;
+    }
+
+    .field {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.95rem;
+      color: #374151;
+    }
+
+    input[type="file"],
+    input[type="text"],
+	input[type="checkbox"],
+    input[type="password"],
+    select {
+      font-size: 1rem;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      outline: none;
+      width: 100%;
+      background-color: #f9fafb;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+      background-color: #ffffff;
+    }
+
+    #subir {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+    }
+
+    #subir:active {
+      transform: scale(0.98);
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    #subir:hover {
+      background: #1d4ed8;
+    }
+
+    #resultado {
+      margin-top: 16px;
+      padding: 10px 12px;
+      min-height: 80px;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+  
+</head>
+<body>
+
+
+  <div class="container">
+    <div class="card">
+      <h1>Procesar archivo</h1>
+
+      <!-- Campo para seleccionar archivo -->
+      <!--<div class="field">
+        <label for="archivo">Selecciona un archivo</label>
+        <input type="file" id="archivo" />
+      </div>-->
+
+      <!-- Campo para escribir la llave -->
+      <div class="field">
+        <label for="llave">Tu c&oacute;digo</label>
+        <input type="text" id="llave" placeholder="" maxlength="20" />
+      </div>
+
+      <!-- Campo para escribir la clave -->
+      <div class="field">
+        <label for="llave2">Tu clave</label>
+        <input type="password" id="llave2" placeholder="" maxlength="16" />
+      </div>
+
+      <!-- Lista desplegable -->
+      <!--<div class="field">
+        <label for="miLista">Elige el tipo</label>
+        <select id="miLista" name="miLista">
+          <option value="">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+		  <option value="12">12</option>
+		  <option value="13">13</option>
+		  <option value="14">14</option>
+		  <option value="15">15</option>
+		  <option value="16">16</option>
+        </select>
+      </div>-->
+	  
+	  <div class="field">
+        <label for="listaspotify">Lista de Spotify</label>
+        <input type="text" id="listaspotify" placeholder="" title="ejemplo: 6zV9uAXv1YVor3H3m5PAej" maxlength="30" />
+      </div>
+	  
+	  <div class="field">
+        <label for="tuinstagram">Link de Instagram</label>
+        <input type="text" id="tuinstagram" placeholder="" value="" 
+		    maxlength="200" />
+      </div>
+	  
+	  <div class="field">
+        <label for="tuwhatsapp">Whatsapp</label>
+        <input type="text" id="tuwhatsapp" placeholder="" value="57" 
+		    maxlength="15" />
+      </div>
+	  <br>
+	  <div class="field">
+	    Quieres vers&iacute;culo?<input type="checkbox" name="quieresversiculo" 
+		       value="value1" id="quieresversiculo">			   
+      </div>
+	  <br>
+	  <div class="field">
+	    Quieres n&uacute;mero de suerte?<input type="checkbox" name="quieresnumerosuerte" 
+		       value="value1" id="quieresnumerosuerte">		   
+      </div>
+	  
+	  <div class="field">
+	    <label for="linkpublicidad">Link adicional</label>
+        <input type="text" id="linkpublicidad" placeholder="" value="" />
+      </div>
+	  
+	  <div class="field">
+	    <label for="imagenes">Im&aacute;genes</label>
+        <textarea id="imagenes" rows="9">https://i.imgur.com/g6iZtGM.jpg
+https://i.imgur.com/8NzdfyN.jpg
+https://i.imgur.com/5tjgm2Y.jpg
+https://i.imgur.com/Dsfab2o.jpg
+https://i.imgur.com/3zNbLXS.jpg
+https://i.imgur.com/e6JpQI9.jpg
+</textarea>
+      </div>
+	  
+      <!-- Botón para ejecutar tu código -->
+      <button id="subir" type="button">Procesar</button>
+
+      <pre id="resultado"></pre>
+    </div>
+  </div>
+
+
+
+  <script>
+    
+	var ghubt = "";
+	
+  const OWNER = "ivanmoralescotes-ui";
+  const REPO = "naviapp";
+  const BRANCH = "main"; // 
+	
+	// Convierte ArrayBuffer a base64 (lo que exige la API de GitHub)
+  function arrayBufferToBase64(buffer) {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+  
+  function simpleStringHash(str) {//1234
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  } 
+  
+  function getFileExtension(filename) {
+    const lastDotIndex = filename.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return ''; // No extension found
+    }
+    return filename.substring(lastDotIndex + 1);
+  }
+  
+  async function getFileSha(path, token) {
+      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/vnd.github+json"
+        }
+      });
+
+      if (res.status === 200) {
+        const data = await res.json();
+        return data.sha; // sha real del archivo actual
+      } else if (res.status === 404) {
+        // No existe el archivo, devolvemos null
+        return null;
+      } else {
+        const text = await res.text();
+        console.error("Error al obtener sha:", text);
+        throw new Error("No se pudo obtener el sha del archivo");
+      }
+    }
+    
+	
+      //function procesarImagen() {
+      document.getElementById("subir").addEventListener("click", async () => {
+		  const inputArchivo = document.getElementById('archivo');
+		  const inputPalabra = document.getElementById('llave');
+		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
+		  
+		  if ( simpleStringHash(inputLlave2)!= 49683){
+			alert("invalid secondary key");
+			return;
+		  }
+		  
+		  if ( inputPalabra.value.substring(0,2) != "cc"){
+			alert("invalid key");
+			return;
+		  }
+
+		  const mySelectElement = document.getElementById('miLista').value; 
+		
+		  const file = inputArchivo.files[0];   // Archivo seleccionado
+		  const palabra = atob((inputPalabra.value).slice(3,-1));      
+
+		  // --- Ejemplo de uso (puedes borrar esto si quieres) ---
+		  console.log('Archivo seleccionado:', file);
+		  console.log('Palabra ingresada:', palabra);
+		  		  
+		  if (!file) {
+			alert("Primero selecciona un archivo.");
+			return;
+		  }
+		  
+		  const theExtension = getFileExtension(file.name);
+		  var newExtension = "jpg";
+		  if ( theExtension == "MP4" || theExtension == "mp4" ){
+			newExtension = "mp4";
+		  }
+		  
+		  
+		  try {
+		  
+		  
+		  
+		  
+		    /*
+		    // Hacemos una peticion a la funcion serverless
+			fetch('/.netlify/functions/getTheToken')
+				.then(response => response.json())
+				.then(async (data) => {
+					console.log('Token recibido:', data.token);
+					
+					  ghubt=data.token;
+			
+				  console.log('Token recibido2:', ghubt);
+	
+				  const pathInRepo = palabra + `/tem`+mySelectElement+`.`+newExtension;// 11121443  toDo
+				  
+				  const sha = await getFileSha(pathInRepo, ghubt);
+	
+				  // Leemos el archivo como ArrayBuffer
+				  const arrayBuffer = await file.arrayBuffer();
+				  const base64Content = arrayBufferToBase64(arrayBuffer);
+
+				  // Ruta dentro del repo: /naviapp/{nombreArchivo}
+				  //const pathInRepo = `naviapp/${file.name}`;//naviapp
+				  
+				  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(pathInRepo)}`;
+
+				  const body = {
+					message: `Subir archivo ${file.name} desde formulario HTML`,
+					content: base64Content,
+					branch: BRANCH
+				  };
+			
+			      if (sha) {
+                    body.sha = sha;
+                  }
+				  
+				  const response = await fetch(url, {
+					method: "PUT",
+					headers: {
+					  "Authorization": `Bearer ${ghubt}`,
+					  "Accept": "application/vnd.github+json"
+					},
+					body: JSON.stringify(body)
+				  });
+
+				  const data2 = await response.json();
+				  //document.getElementById("resultado").textContent = JSON.stringify(data2, null, 2);
+
+				  if (!response.ok) {
+					alert("Hubo un error subiendo el archivo.");
+					document.getElementById("resultado").textContent="error";
+				  } else {
+					alert("Archivo subido");
+					document.getElementById("resultado").textContent="ok";
+				  }
+		  						
+				})*/
+
+				
+      
+			} catch (error) {
+			  console.error(error);
+			  alert("Error inesperado al subir el archivo.");
+			}	  
+	  
+   });
+  </script>
+</body>
+</html>
