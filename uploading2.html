@@ -206,10 +206,18 @@ https://i.imgur.com/e6JpQI9.jpg
 
       <pre id="resultado"></pre>
     </div>
+	<br>
+	<div class="field">
+	    <label for="urlimagen">Url:</label>
+        <input type="text" id="urlimagen" placeholder="" 
+		  value="https://imgur.com/5NaF9Cm" />
+		<button id="ajustarimagen" type="button">Ajustar Url</button>
+    </div>
+
+	
   </div>
 
-
-
+  
   <script>
     
 	var ghubt = "";
@@ -247,6 +255,7 @@ https://i.imgur.com/e6JpQI9.jpg
     return filename.substring(lastDotIndex + 1);
   }
   
+  
   async function getFileSha(path, token) {
       const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
 
@@ -271,9 +280,69 @@ https://i.imgur.com/e6JpQI9.jpg
       }
     }
     
+
+	document.getElementById("ajustarimagen").addEventListener("click", async () => {
+		  let urlimagen = document.getElementById('urlimagen').value;
+		  console.log("urlimagen:"+urlimagen);
+		  
+		  if ( urlimagen.slice(-4) != ".jpg" && 
+		       urlimagen.slice(-4) != ".JPG"){
+		     urlimagen = urlimagen + ".jpg";
+		  }
+		  
+		  urlimagen = urlimagen.replaceAll("https://imgur.com"
+		      ,"https://i.imgur.com");
+	      console.log("urlimagen2:"+urlimagen);
+		  document.getElementById('urlimagen').value=urlimagen;
+	});
 	
+	
+	console.log("startt");
+	
+	async function leerJsonDeGist() {
+				  const url = `https://api.github.com/gists/${gistId}`;
+
+				  const response = await fetch(url, {
+					method: 'GET',
+					headers: {
+					  'Accept': 'application/vnd.github+json',
+					  'Authorization': `Bearer ${token}`  // tambi¨¦n puede ser `token ${TOKEN}`
+					}
+				  });
+
+				  if (!response.ok) {
+					console.error('Error al leer el Gist:', response.status, response.statusText);
+					return null;
+				  }
+
+				  const data = await response.json();
+
+				  // Obtener el archivo espec¨ªfico
+				  const file = data.files[FILE_NAME];
+				  if (!file) {
+					console.error('No encontro archivo "${FILE_NAME}" en el Gist');
+					return null;
+				  }
+
+				  // El contenido del archivo viene como texto
+				  const jsonText = file.content;
+                  console.log("jsonText:"+jsonText);
+				  // Parsear el JSON
+				  let jsonData;
+				  try {
+					jsonData = JSON.parse(jsonText);
+				  } catch (e) {
+					console.error('Error parseando el JSON:', e);
+					return null;
+				  }
+
+				  console.log('JSON leido desde Gist:', jsonData);
+				  return jsonData;
+				}
+				
+				
       //function procesarImagen() {
-      document.getElementById("subir").addEventListener("click", async () => {
+      /*document.getElementById("subir").addEventListener("click", async () => {
 		  const inputArchivo = document.getElementById('archivo');
 		  const inputPalabra = document.getElementById('llave');
 		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
@@ -307,12 +376,53 @@ https://i.imgur.com/e6JpQI9.jpg
 		  if ( theExtension == "MP4" || theExtension == "mp4" ){
 			newExtension = "mp4";
 		  }
+		*/  
 		  
-		  
+		document.getElementById("subir").addEventListener("click", async () => {  
 		  try {
-		  
-		  
-		  
+		    console.log("before getting token");
+			
+			const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+			//  /.netlify/functions/getTheToken
+		    
+			fetch(tokenurl)
+				.then(response => response.json())
+				.then(async (data) => {
+					console.log('Token recibido:', data.token);
+					
+					  ghubt=data.token;
+			
+				const gistId = 'ivanmoralescotes-ui';
+				const token = ghubt;
+				const FILE_NAME = 'prop11121197.json';//archivo.json
+				//const url = `https://api.github.com/gists/${gistId}`;
+
+				leerJsonDeGist();
+				
+			});
+			
+			
+			/*
+			const updatedContent = {
+			  "files": {
+				"nombre_del_archivo.txt": {
+				  "content": "Este es el nuevo contenido del archivo."
+				}
+			  }
+			};
+
+			fetch(url, {
+			  method: 'PUT',
+			  headers: {
+				'Authorization': `token ${token}`,
+				'Content-Type': 'application/json'
+			  },
+			  body: JSON.stringify(updatedContent)
+			})
+			.then(response => response.json())
+			.then(data => console.log('Gist actualizado:', data))
+			.catch(error => console.error('Error actualizando el Gist:', error));
+            */
 		  
 		    /*
 		    // Hacemos una peticion a la funcion serverless
