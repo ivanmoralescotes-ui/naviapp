@@ -392,7 +392,14 @@ https://i.imgur.com/e6JpQI9.jpg
 		*/  
 				
 		//subir  
-		  
+		document.getElementById("subir").addEventListener("click", async () => {  
+			try {
+				alert("not yet");
+     		} catch (error) {
+			  console.error(error);
+			  alert("Error inesperado al subir el archivo.");
+			}
+		});		
 		document.getElementById("consultarprops").addEventListener("click", async () => {  
 			try {
 				console.log("before getting token");				
@@ -454,7 +461,8 @@ https://i.imgur.com/e6JpQI9.jpg
 						
 						
 						
-							document.getElementById("imagenes").value = jsonData.images;
+							document.getElementById("imagenes").value = jsonData.images.join("\n");
+							//textarea.value = frases.join("\n");
 						}else{
 						    document.getElementById("imagenes").value = "";
 						}

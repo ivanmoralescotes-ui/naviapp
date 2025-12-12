@@ -265,7 +265,7 @@
 	const verseLinkEl4 = document.getElementById("verse-link4");
 		
     const messageBox   = document.getElementById("message");
-    let displayTime  = 5000; // 6 segundos
+    var displayTime  = 7000; // 6 segundos
 	let randomNumber = 0;
 
     let currentIndex = 0;
@@ -376,6 +376,13 @@
         showMessage("No hay slides configurados.");
         return;
       }
+	  
+	  /*if (index == 0){
+	      displayTime=10000;
+		  console.log("displayTime is "+displayTime);
+	    }else{
+	      displayTime=5000;
+	    }*/
 
       const slide = slides[index];
 
@@ -413,11 +420,7 @@
       }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
     }
 
-	/*function getRandomNumber(min, max) {
-	  min = Math.ceil(min);
-	  max = Math.floor(max);
-	  return Math.floor(Math.random() * (max - min + 1)) + min;
-	}*/
+	
 
     function initSlideshow() {
       if (slides.length === 0) {
@@ -426,15 +429,17 @@
       }
 
       showSlide(currentIndex);
-
-      if (currentIndex==0){
-	     displayTime=7000;
-	  }else{
-	     displayTime=15000;
-	  }
+       
 	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
+		console.log("currentIndex"+currentIndex);
+        /*if (currentIndex == 0){
+	      displayTime=10000;
+		  console.log("displayTime"+displayTime);
+	    }else{
+	      displayTime=5000;
+	    }*/
         showSlide(currentIndex);
       }, displayTime);
     }

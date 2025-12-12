@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Images</title>
+	<script>
+     const ahora = new Date();
+     const parteMinutoActual = ahora.getMinutes().toString().slice(-1); // 
+	 const horaActual = ahora.getHours();
+	 const segundoActual = ahora.getSeconds();
+	 console.log("segundoActual"+segundoActual);
+	 
+	 document.addEventListener("DOMContentLoaded", () => {
+      const img = document.getElementById("theimg");
+	  var filename = "tem.jpg";
+	  if (segundoActual < 60){
+	     filename = "tem" + segundoActual + ".jpg";
+	  }
+      img.src = filename;
+    });
+	
+	</script>
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        img {
+            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
+            height: auto;     /* mantiene proporción */
+            display: block;
+            margin: 0 auto 16px;  /* centrada y con espacio abajo */
+        }
+    </style>
+</head>
+<body>
+    <img id="theimg" src="" alt="Imagen 1">
+    <!--<img src="tem2.jpg" alt="Imagen 2">tem.jpg-->
+    <!--<img src="tem3.jpg" alt="Imagen 3">-->
+</body>
+</html>
