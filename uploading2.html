@@ -220,7 +220,7 @@ https://i.imgur.com/e6JpQI9.jpg
   
   <script>
     
-	var ghubt = "";
+	let ghubt = "";
 	
   const OWNER = "ivanmoralescotes-ui";
   const REPO = "naviapp";
@@ -299,14 +299,22 @@ https://i.imgur.com/e6JpQI9.jpg
 	
 	console.log("startt");
 	
+	const gistId = 'b10ff3e6d9a8dd1d680d62c6d964590b'; // ivanmoralescotes-ui 
+	//72b4874243e1613ba3dd8b9eb9d8e9d9
+	
+	//let token = ghubt;
+  	const FILE_NAME = 'prop11121197.txt';//archivo.json
+	//const url = `https://api.github.com/gists/${gistId}`;
+
+
 	async function leerJsonDeGist() {
 				  const url = `https://api.github.com/gists/${gistId}`;
-
+                  console.log("ghubt:"+ghubt);
 				  const response = await fetch(url, {
 					method: 'GET',
 					headers: {
 					  'Accept': 'application/vnd.github+json',
-					  'Authorization': `Bearer ${token}`  // tambi¨¦n puede ser `token ${TOKEN}`
+					  'Authorization': `Bearer ${ghubt}`  // tambi¨¦n puede ser `token ${TOKEN}`
 					}
 				  });
 
@@ -377,6 +385,7 @@ https://i.imgur.com/e6JpQI9.jpg
 			newExtension = "mp4";
 		  }
 		*/  
+				
 		  
 		document.getElementById("subir").addEventListener("click", async () => {  
 		  try {
@@ -388,16 +397,12 @@ https://i.imgur.com/e6JpQI9.jpg
 			fetch(tokenurl)
 				.then(response => response.json())
 				.then(async (data) => {
-					console.log('Token recibido:', data.token);
+					//console.log('Token recibido:', data.token);
 					
-					  ghubt=data.token;
+					ghubt=data.token;
 			
-				const gistId = 'ivanmoralescotes-ui';
-				const token = ghubt;
-				const FILE_NAME = 'prop11121197.json';//archivo.json
-				//const url = `https://api.github.com/gists/${gistId}`;
-
-				leerJsonDeGist();
+				
+				    leerJsonDeGist();
 				
 			});
 			

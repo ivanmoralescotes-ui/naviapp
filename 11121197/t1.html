@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slideshow</title>
   <style>
     * {
@@ -61,6 +62,7 @@
     #slide-html-inner {
       max-width: 700px;
       width: 100%;
+	  margin: 0.4rem 0;
     }
 
     #slide-html a {
@@ -102,20 +104,21 @@
     }
 	
 	
-	/* 🔹 Extra: en pantallas pequeñas aún más grande para que se lea sabroso */
- @media (max-width: 768px) {
-  /* que el texto use más ancho de la pantalla */
+	
+	
+	
+	@media (max-width: 768px) {
   #slide-html-inner {
     max-width: 95%;
   }
 
   #slide-html a {
-    font-size: 2.6rem;   /* links más grandes */
+    font-size: 1.6rem;      /* antes 2.6rem */
   }
 
   #slide-html p {
-    font-size: 2.3rem;   /* texto principal más grande */
-    line-height: 1.7;    /* más espacio entre líneas */
+    font-size: 1.5rem;      /* antes 2.3rem */
+    line-height: 1.4;       /* menos espacio vertical */
   }
 }
 
@@ -123,7 +126,7 @@
   </style>
 </head>
 <body>
-
+  
   <div id="slideshow">
     
 	<img id="slide-img" src="" alt="Imagen" />
@@ -131,18 +134,20 @@
 	
     <div id="slide-html">
       <div id="slide-html-inner">
+	  
+	    <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+		<br>
+		
         <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
 		  Spotify
-        </a><br><br>
+        </a><br>
         <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
           Instagram
-        </a><br><br>
+        </a>
         <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
           Whatsapp
         </a><br>
-	  
-        <p id="verse-text">Aquí va el versículo de la Biblia.</p>
-		<br><br>
+        
         <p id="quote-text">Aquí va la frase.</p>
 		<br>
         <!--<p id="blood-text">Aquí va el tipo.</p>-->
@@ -180,12 +185,12 @@
 	  { type: "image", file: "tem1.jpg" }, // 3
       { type: "image", file: "tem2.jpg" },
       { type: "image", file: "tem3.jpg" },
-      { type: "image", file: "tem4.jpg" },
-      //{ type: "image", file: "tem5.jpg" },
-      //{ type: "image", file: "tem6.jpg" }
+      { type: "image", file: "tem4.jpg" }
+      //{ type: "image", file: "tem15.jpg" },
+      //{ type: "image", file: "tem16.jpg" }
     ];
 	
-	const quotes = [
+	/*const quotes = [
 	    "“La disciplina empieza donde termina la motivación.”",
 	    "“Hazlo sencillo, pero hazlo siempre.”",
         "“Cambia tus hábitos y cambia tu destino.”",
@@ -224,9 +229,9 @@
 		"“La constancia convierte metas en realidad.”"
 		
 		// "“”",
-	];
+	];*/
 	
-	const versiculos =[
+	/*const versiculos =[
 	    "“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
 	   ,"“Y Jesús dijo: No temas; cree solamente.” (Marcos 5:36)"
 	   ,"“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
@@ -246,7 +251,7 @@
 	   
 	   //,"“”"
 	   
-	   ]
+	   ]*/
 
     const imgElement   = document.getElementById("slide-img");
     const htmlElement  = document.getElementById("slide-html");
@@ -281,11 +286,12 @@
 			const theinstagram = props.instagram;
 			const thewhatsapp = props.whatsapp;
 			const thespotify = props.spotify;
-			const thepublicidad = props.publicidad;
+			const thepublicidad = props.linkpublicidad;
+			const nombrepublicidad = props.nombrepublicidad;
 			const theimages = props.images;
-			let imagesList = [];
-			if (theimages != ""){
-				imagesList = theimages.split(",");
+			let imagesList = props.images ;//[];
+			if (theimages != null && theimages.length > 0){
+				//imagesList = theimages.split(",");
 				console.log("first image:"+imagesList[0]);
 			
 			    let cuentaImagen = 1;
@@ -308,7 +314,7 @@
 			}
 			
 			// if mostrarInstagram
-			if (theinstagram != "") {
+			if (theinstagram != "" && theinstagram != "no" ) {
 			  verseLinkEl2.style.display = 'block';
 			  verseLink2 = theinstagram;
 			} else {
@@ -316,7 +322,7 @@
 			}
 			
 			// if mostrarWhatsapp
-			if (thewhatsapp != "") {
+			if (thewhatsapp != "" && thewhatsapp != "no") {
 			  verseLinkEl3.style.display = 'block';
 			  verseLink3 = "https://wa.me/" + thewhatsapp;
 			} else {
@@ -324,7 +330,7 @@
 			}
 			
 			// if mostrarSpotify
-			if (thespotify != "") {
+			if (thespotify != "" && thespotify != "no") {
 			  verseLinkEl.style.display = 'block';
 			  verseLink = "https://open.spotify.com/playlist/" + thespotify;
 			} else {
@@ -339,13 +345,19 @@
 			}
 			
 			// if mostrarPublicidad
-			if (thepublicidad != ""){
+			if (thepublicidad != "" && thepublicidad != "no"){
 				verseLinkEl4.style.display = 'block';
 				verseLink4 = thepublicidad;
 			}else{
 				verseLinkEl4.style.display = 'none';
-			}			
-	
+			}
+			
+	        if (nombrepublicidad != "" && nombrepublicidad != "no"){
+				verseLinkEl4.innerHTML  = "<i>"+nombrepublicidad+"</i>";				
+			}else{
+				verseLinkEl4.innerHTML = 'Ad';
+			}	
+			
         });
 
     
@@ -388,24 +400,24 @@
           verseLinkEl4.href = verseLink4;
 
           //verseTextEl.textContent  = verseText;
-		  const quoteNumber = getRandomNumber(0,(quotes.length-1) ); //22
-		  const versiculoNumber = getRandomNumber(0,(versiculos.length-1) );//7
-          quoteTextEl.textContent  = quotes[quoteNumber]; //quoteText
-          verseTextEl.textContent  = versiculos[versiculoNumber]; //quoteText
+		  //const quoteNumber = getRandomNumber(0,(quotes.length-1) ); //22
+		  //const versiculoNumber = getRandomNumber(0,(versiculos.length-1) );//7
+          quoteTextEl.textContent  = obtenerFrase(); //quoteText
+          verseTextEl.textContent  = obtenerVersiculo(); //quoteText
 		  //bloodTextEl.textContent  = bloodText;
 		  		  
-		  lucknumberTextEl.textContent =lucknumberText + getRandomNumber(0,36);
+		  lucknumberTextEl.textContent =lucknumberText + obtenerNumeroAleatorio(); //getRandomNumber(0,36)
 
           htmlElement.classList.add("show");
         }
       }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
     }
 
-	function getRandomNumber(min, max) {
+	/*function getRandomNumber(min, max) {
 	  min = Math.ceil(min);
 	  max = Math.floor(max);
 	  return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
+	}*/
 
     function initSlideshow() {
       if (slides.length === 0) {
@@ -429,6 +441,6 @@
 
     window.addEventListener("load", initSlideshow);
   </script>
-
+  <script src="../js/someFunctions.js"></script>
 </body>
 </html>

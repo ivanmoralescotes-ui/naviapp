@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slideshow</title>
   <style>
     * {
@@ -61,6 +62,7 @@
     #slide-html-inner {
       max-width: 700px;
       width: 100%;
+	  margin: 0.4rem 0;
     }
 
     #slide-html a {
@@ -102,20 +104,21 @@
     }
 	
 	
-	/* 🔹 Extra: en pantallas pequeñas aún más grande para que se lea sabroso */
- @media (max-width: 768px) {
-  /* que el texto use más ancho de la pantalla */
+	
+	
+	
+	@media (max-width: 768px) {
   #slide-html-inner {
     max-width: 95%;
   }
 
   #slide-html a {
-    font-size: 2.6rem;   /* links más grandes */
+    font-size: 1.6rem;      /* antes 2.6rem */
   }
 
   #slide-html p {
-    font-size: 2.3rem;   /* texto principal más grande */
-    line-height: 1.7;    /* más espacio entre líneas */
+    font-size: 1.5rem;      /* antes 2.3rem */
+    line-height: 1.4;       /* menos espacio vertical */
   }
 }
 
@@ -123,7 +126,7 @@
   </style>
 </head>
 <body>
-
+  
   <div id="slideshow">
     
 	<img id="slide-img" src="" alt="Imagen" />
@@ -133,14 +136,14 @@
       <div id="slide-html-inner">
 	  
 	    <p id="verse-text">Aquí va el versículo de la Biblia.</p>
-		<br><br>
+		<br>
 		
         <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
 		  Spotify
-        </a><br><br>
+        </a><br>
         <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
           Instagram
-        </a><br>
+        </a>
         <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
           Whatsapp
         </a><br>
@@ -187,7 +190,7 @@
       //{ type: "image", file: "tem16.jpg" }
     ];
 	
-	const quotes = [
+	/*const quotes = [
 	    "“La disciplina empieza donde termina la motivación.”",
 	    "“Hazlo sencillo, pero hazlo siempre.”",
         "“Cambia tus hábitos y cambia tu destino.”",
@@ -226,9 +229,9 @@
 		"“La constancia convierte metas en realidad.”"
 		
 		// "“”",
-	];
+	];*/
 	
-	const versiculos =[
+	/*const versiculos =[
 	    "“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
 	   ,"“Y Jesús dijo: No temas; cree solamente.” (Marcos 5:36)"
 	   ,"“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
@@ -248,7 +251,7 @@
 	   
 	   //,"“”"
 	   
-	   ]
+	   ]*/
 
     const imgElement   = document.getElementById("slide-img");
     const htmlElement  = document.getElementById("slide-html");
@@ -403,18 +406,18 @@
           verseTextEl.textContent  = versiculos[versiculoNumber]; //quoteText
 		  //bloodTextEl.textContent  = bloodText;
 		  		  
-		  lucknumberTextEl.textContent =lucknumberText + getRandomNumber(0,36);
+		  lucknumberTextEl.textContent =lucknumberText + obtenerNumeroAleatorio(); //getRandomNumber(0,36)
 
           htmlElement.classList.add("show");
         }
       }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
     }
 
-	function getRandomNumber(min, max) {
+	/*function getRandomNumber(min, max) {
 	  min = Math.ceil(min);
 	  max = Math.floor(max);
 	  return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
+	}*/
 
     function initSlideshow() {
       if (slides.length === 0) {
@@ -438,6 +441,6 @@
 
     window.addEventListener("load", initSlideshow);
   </script>
-
+  <script src="../js/someFunctions.js"></script>
 </body>
 </html>
