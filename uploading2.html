@@ -134,7 +134,7 @@
         <label for="llave2">Tu clave</label>
         <input type="password" id="llave2" placeholder="" maxlength="16" />
       </div>
-
+      <button id="consultarprops" type="button">Consultar</button>
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -189,6 +189,11 @@
 	    <label for="linkpublicidad">Link adicional</label>
         <input type="text" id="linkpublicidad" placeholder="" value="" />
       </div>
+	  <div class="field">
+	    <label for="nombrepublicidad">Nombre Link adicional</label>
+        <input type="text" id="nombrepublicidad" placeholder="" value="" />
+      </div>
+	  
 	  
 	  <div class="field">
 	    <label for="imagenes">Im&aacute;genes</label>
@@ -386,27 +391,81 @@ https://i.imgur.com/e6JpQI9.jpg
 		  }
 		*/  
 				
+		//subir  
 		  
-		document.getElementById("subir").addEventListener("click", async () => {  
-		  try {
-		    console.log("before getting token");
-			
-			const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
-			//  /.netlify/functions/getTheToken
-		    
-			fetch(tokenurl)
-				.then(response => response.json())
-				.then(async (data) => {
-					//console.log('Token recibido:', data.token);
-					
-					ghubt=data.token;
-			
+		document.getElementById("consultarprops").addEventListener("click", async () => {  
+			try {
+				console.log("before getting token");				
+				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+				//  /.netlify/functions/getTheToken
 				
-				    leerJsonDeGist();
-				
-			});
-			
-			
+				fetch(tokenurl)
+					.then(response => response.json())
+					.then(async (data) => {
+						//console.log('Token recibido:', data.token);						
+						ghubt=data.token;
+								
+						let jsonData = await leerJsonDeGist();
+						console.log("jsonData:"+jsonData.spotify);
+						if ( jsonData.versiculo == "si" ){
+							document.getElementById("quieresversiculo").checked = true;
+						}else{
+						    document.getElementById("quieresversiculo").checked = false;
+						}
+						
+						if ( jsonData.numerosuerte == "si" ){
+							document.getElementById("quieresnumerosuerte").checked = true;
+						}else{
+						    document.getElementById("quieresnumerosuerte").checked = false;
+						}
+						
+						if ( jsonData.spotify != "" && jsonData.spotify != "no"){
+							document.getElementById("listaspotify").value = jsonData.spotify;
+						}else{
+						    document.getElementById("listaspotify").value = "";
+						}
+						
+						if ( jsonData.instagram != "" && jsonData.instagram != "no"){
+							document.getElementById("tuinstagram").value = jsonData.instagram;
+						}else{
+						    document.getElementById("tuinstagram").value = "";
+						}
+						
+						if ( jsonData.whatsapp != "" && jsonData.whatsapp != "no"){
+							document.getElementById("tuwhatsapp").value = jsonData.whatsapp;
+						}else{
+						    document.getElementById("tuwhatsapp").value = "";
+						}
+						
+						if ( jsonData.linkpublicidad != "" && jsonData.linkpublicidad != "no"){
+							document.getElementById("linkpublicidad").value = jsonData.linkpublicidad;
+						}else{
+						    document.getElementById("linkpublicidad").value = "";
+						}
+						
+						if ( jsonData.nombrepublicidad != "" && jsonData.nombrepublicidad != "no"){
+							document.getElementById("nombrepublicidad").value = jsonData.nombrepublicidad;
+						}else{
+						    document.getElementById("nombrepublicidad").value = "";
+						}
+						
+						
+						if ( jsonData.images != null && jsonData.images.length>0){
+						
+						
+						
+							document.getElementById("imagenes").value = jsonData.images;
+						}else{
+						    document.getElementById("imagenes").value = "";
+						}
+						
+						
+				});			
+			} catch (error) {
+			  console.error(error);
+			  alert("Error inesperado al subir el archivo.");
+			}
+		});			
 			/*
 			const updatedContent = {
 			  "files": {
@@ -487,12 +546,9 @@ https://i.imgur.com/e6JpQI9.jpg
 
 				
       
-			} catch (error) {
-			  console.error(error);
-			  alert("Error inesperado al subir el archivo.");
-			}	  
+			  
 	  
-   });
+   
   </script>
 </body>
 </html>
