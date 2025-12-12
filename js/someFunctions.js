@@ -1,3 +1,18 @@
+
+const gists = new Map([
+  ["prop11111111.txt", "e1a872f457ed67a62b48e3c215433972"],
+  ["prop11121197.txt", "b10ff3e6d9a8dd1d680d62c6d964590b"],
+  ["propnavi.txt", "5da599743c686628d2bf96f6ac03c9b0"]
+  
+  ,["prop11121689.txt", "4bb48be499e99c8e9bbcfe4b63ff9e38"]
+  ,["prop11122058.txt", "40c522ea8fc8fc60b4bff319977aa7f0"]
+  ,["prop11123657.txt", "a93237c990ff78e832a7af3faa4e0974"]
+  ,["prop11122550.txt", "70eb094abd17432c851c90ce38f31f6c"]
+  ,["prop11122181.txt", "b6f3c2647d2375ac64f55c0cb9e3151c"]
+  
+  //,["prop.txt", ""]
+]);
+
 const quotes = [
 	    "“La disciplina empieza donde termina la motivación.”",
 	    "“Hazlo sencillo, pero hazlo siempre.”",
@@ -79,4 +94,9 @@ function getRandomNumber(min, max) {
 	  min = Math.ceil(min);
 	  max = Math.floor(max);
 	  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getGistId(filename){
+	return gists.get(filename);
+	//return "b10ff3e6d9a8dd1d680d62c6d964590b";
 }
