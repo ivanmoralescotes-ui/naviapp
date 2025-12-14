@@ -135,7 +135,10 @@
         <label for="llave2">Tu clave</label>
         <input type="password" id="llave2" placeholder="" maxlength="16" />
       </div>
-      <button id="consultarprops" type="button">Consultar</button>
+      <button id="consultarprops" type="button">Consultar</button>&nbsp;&nbsp;&nbsp;
+	  <button id="limpiarprops" type="button">Limpiar</button>&nbsp;&nbsp;&nbsp;
+	  <button id="defaultimages" type="button">Default</button>
+	  
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -172,7 +175,7 @@
 	  
 	  <div class="field">
         <label for="tuwhatsapp">Whatsapp</label>
-        <input type="text" id="tuwhatsapp" placeholder="" value="57" 
+        <input type="text" id="tuwhatsapp" placeholder="" value="" 
 		    maxlength="15" />
       </div>
 	  <br>
@@ -198,13 +201,7 @@
 	  
 	  <div class="field">
 	    <label for="imagenes">Im&aacute;genes</label>
-        <textarea id="imagenes" rows="9">https://i.imgur.com/g6iZtGM.jpg
-https://i.imgur.com/8NzdfyN.jpg
-https://i.imgur.com/5tjgm2Y.jpg
-https://i.imgur.com/Dsfab2o.jpg
-https://i.imgur.com/3zNbLXS.jpg
-https://i.imgur.com/e6JpQI9.jpg
-</textarea>
+        <textarea id="imagenes" rows="9"></textarea>
       </div>
 	  
       <!-- Botón para ejecutar tu código -->
@@ -216,7 +213,7 @@ https://i.imgur.com/e6JpQI9.jpg
 	<div class="field">
 	    <label for="urlimagen">Url:</label>
         <input type="text" id="urlimagen" placeholder="" 
-		  value="https://imgur.com/5NaF9Cm" />
+		  value="" />
 		<button id="ajustarimagen" type="button">Ajustar Url</button>
     </div>
 
@@ -291,11 +288,11 @@ https://i.imgur.com/e6JpQI9.jpg
 		  const inputLlave = document.getElementById('llave');
 
 		  if ( inputLlave.value.substring(0,2) != "cc"){
-			alert("invalid key");
+			alert("LLave invalida");
 			return false;
 		  }
 	      if ( simpleStringHash(inputLlave2)!= 49683){
-			alert("invalid secondary key");
+			alert("Segunda Llave invalida");
 			return false;
 		  }
 		  return true;
@@ -377,8 +374,9 @@ https://i.imgur.com/e6JpQI9.jpg
 				},
 				body: JSON.stringify({
 					  //"testing", 
+					  
 					  files: {
-						theFileName: { content: JSON.stringify(theObject) }, // filename debe ser el nombre ACTUAL
+						[theFileName]: { content: JSON.stringify(theObject) }, // filename debe ser el nombre ACTUAL
 					  },
 					})
 			  
@@ -391,9 +389,39 @@ https://i.imgur.com/e6JpQI9.jpg
 
 			  const data = await response.json();
 			  console.log("response when updating: " + JSON.stringify(data) );	
+			  return data;
 	}
 
-			
+
+    document.getElementById("limpiarprops").addEventListener("click", async () => {
+		document.getElementById('urlimagen').value="";
+		document.getElementById('imagenes').value="";
+		document.getElementById('listaspotify').value="";
+		document.getElementById('tuwhatsapp').value="";
+		document.getElementById('tuinstagram').value="";
+		document.getElementById('llave2').value="";
+		document.getElementById('linkpublicidad').value="";
+		document.getElementById('nombrepublicidad').value="";
+		
+		document.getElementById('quieresversiculo').checked=false;
+		document.getElementById('quieresnumerosuerte').checked=false;
+		
+    });
+	
+	
+	document.getElementById("defaultimages").addEventListener("click", async () => {	
+
+		document.getElementById('quieresversiculo').checked=true;
+
+		document.getElementById("imagenes").value=
+	         "https://i.imgur.com/Ty1npbJ.jpg"+
+			   "\nhttps://i.imgur.com/cej3jvO.jpg"+
+	           "\nhttps://i.imgur.com/bWmEopR.jpg"+
+               "\nhttps://i.imgur.com/E7T8pTv.jpg"+
+               "\nhttps://i.imgur.com/HA1h36w.jpg"+
+               "\nhttps://i.imgur.com/HA1h36w.jpg"
+	});
+	
 	document.getElementById("ajustarimagen").addEventListener("click", async () => {
 			  let urlimagen = document.getElementById('urlimagen').value;
 			  console.log("urlimagen:"+urlimagen);
@@ -482,7 +510,7 @@ https://i.imgur.com/e6JpQI9.jpg
 						}else{
 						    document.getElementById("imagenes").value = "";
 						}
-						
+						alert("Consultado.");
 						
 				});			
 			} catch (error) {
@@ -509,6 +537,9 @@ https://i.imgur.com/e6JpQI9.jpg
 					quiereNumeroSuerte = "si";
 				}
 				
+				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
+				console.log("imagesToUpdate:"+imagesToUpdate);
+				
      			const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
 				  whatsapp: document.getElementById("tuwhatsapp").value,
@@ -517,14 +548,14 @@ https://i.imgur.com/e6JpQI9.jpg
 				  spotify:  document.getElementById("listaspotify").value ,
 				  linkpublicidad: document.getElementById("linkpublicidad").value,
 				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
-				  images: [
+				  images: imagesToUpdate /*[
 						"https://i.imgur.com/cej3jvO.jpg",
 						"https://i.imgur.com/1FgFHds.jpg",
 						"https://i.imgur.com/bWmEopR.jpg",
 						"https://i.imgur.com/E7T8pTv.jpg",
-						"https://i.imgur.com/Kg5Emnz.jpg",
-						"https://i.imgur.com/HA1h36w.jpg"
-				  ]
+						 "https://i.imgur.com/HA1h36w.jpg",
+						"https://i.imgur.com/HA1h36w.jpg"						
+				  ]*/
 	 			};	
 				console.log( "newGist:" + JSON.stringify(newGist) );
 				
@@ -549,7 +580,7 @@ https://i.imgur.com/e6JpQI9.jpg
 						ghubt=data.token;
 						
 				        let jsonData2 = await subirJsonEnGist(gistId2, newGist, FILE_NAME2 );
-						alert("end");
+						alert("ok");
 				});
 						
 	            
