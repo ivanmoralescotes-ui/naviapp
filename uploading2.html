@@ -112,7 +112,8 @@
 </head>
 <body>
 
-
+  <script src="../js/someFunctions.js"></script>
+  
   <div class="container">
     <div class="card">
       <h1>Procesar archivo</h1>
@@ -225,12 +226,12 @@ https://i.imgur.com/e6JpQI9.jpg
   
   <script>
     
-	let ghubt = "";
+	  let ghubt = "";
 	
-  const OWNER = "ivanmoralescotes-ui";
-  const REPO = "naviapp";
-  const BRANCH = "main"; // 
-	
+	  const OWNER = "ivanmoralescotes-ui";
+	  const REPO = "naviapp";
+	  const BRANCH = "main"; // 
+		
 	// Convierte ArrayBuffer a base64 (lo que exige la API de GitHub)
   function arrayBufferToBase64(buffer) {
     let binary = "";
@@ -285,123 +286,139 @@ https://i.imgur.com/e6JpQI9.jpg
       }
     }
     
+	function validateInput(){
+		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
+		  const inputLlave = document.getElementById('llave');
 
-	document.getElementById("ajustarimagen").addEventListener("click", async () => {
-		  let urlimagen = document.getElementById('urlimagen').value;
-		  console.log("urlimagen:"+urlimagen);
-		  
-		  if ( urlimagen.slice(-4) != ".jpg" && 
-		       urlimagen.slice(-4) != ".JPG"){
-		     urlimagen = urlimagen + ".jpg";
+		  if ( inputLlave.value.substring(0,2) != "cc"){
+			alert("invalid key");
+			return false;
 		  }
-		  
-		  urlimagen = urlimagen.replaceAll("https://imgur.com"
-		      ,"https://i.imgur.com");
-	      console.log("urlimagen2:"+urlimagen);
-		  document.getElementById('urlimagen').value=urlimagen;
-	});
-	
+	      if ( simpleStringHash(inputLlave2)!= 49683){
+			alert("invalid secondary key");
+			return false;
+		  }
+		  return true;
+	}
+		
 	
 	console.log("startt");
 	
-	const gistId = 'b10ff3e6d9a8dd1d680d62c6d964590b'; // ivanmoralescotes-ui 
-	//72b4874243e1613ba3dd8b9eb9d8e9d9
-	
-	//let token = ghubt;
-  	const FILE_NAME = 'prop11121197.txt';//archivo.json
-	//const url = `https://api.github.com/gists/${gistId}`;
-
-
+	// para leer gist ya teniendo el token
 	async function leerJsonDeGist() {
-				  const url = `https://api.github.com/gists/${gistId}`;
-                  console.log("ghubt:"+ghubt);
-				  const response = await fetch(url, {
-					method: 'GET',
-					headers: {
-					  'Accept': 'application/vnd.github+json',
-					  'Authorization': `Bearer ${ghubt}`  // tambi¨¦n puede ser `token ${TOKEN}`
-					}
-				  });
+	
+			let gistId= ''; //ivanmoralescotes-ui   b10ff3e6d9a8dd1d680d62c6d964590b
+			//72b4874243e1613ba3dd8b9eb9d8e9d9
+			
+			const keyFromUser =  (document.getElementById("llave").value).slice(3, -1);
+			console.log("keyFromUser:"+keyFromUser);
+			const filenamepart = atob( keyFromUser ); //11121197
+			console.log("filenamepart:"+filenamepart);
 
-				  if (!response.ok) {
-					console.error('Error al leer el Gist:', response.status, response.statusText);
-					return null;
-				  }
+			//let token = ghubt;
+			const FILE_NAME = "prop" + filenamepart + ".txt";
+			
+			gistId = getGistId(FILE_NAME);
+			//const url = `https://api.github.com/gists/${gistId}`;
 
-				  const data = await response.json();
 
-				  // Obtener el archivo espec¨ªfico
-				  const file = data.files[FILE_NAME];
-				  if (!file) {
-					console.error('No encontro archivo "${FILE_NAME}" en el Gist');
-					return null;
-				  }
-
-				  // El contenido del archivo viene como texto
-				  const jsonText = file.content;
-                  console.log("jsonText:"+jsonText);
-				  // Parsear el JSON
-				  let jsonData;
-				  try {
-					jsonData = JSON.parse(jsonText);
-				  } catch (e) {
-					console.error('Error parseando el JSON:', e);
-					return null;
-				  }
-
-				  console.log('JSON leido desde Gist:', jsonData);
-				  return jsonData;
+			  const url = `https://api.github.com/gists/${gistId}`;
+			  console.log("ghubt:"+ghubt);
+			  const response = await fetch(url, {
+				method: 'GET',
+				headers: {
+				  'Accept': 'application/vnd.github+json',
+				  'Authorization': `Bearer ${ghubt}`  // tambi¨¦n puede ser `token ${TOKEN}`
 				}
-				
-				
-      //function procesarImagen() {
-      /*document.getElementById("subir").addEventListener("click", async () => {
-		  const inputArchivo = document.getElementById('archivo');
-		  const inputPalabra = document.getElementById('llave');
-		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
-		  
-		  if ( simpleStringHash(inputLlave2)!= 49683){
-			alert("invalid secondary key");
-			return;
-		  }
-		  
-		  if ( inputPalabra.value.substring(0,2) != "cc"){
-			alert("invalid key");
-			return;
-		  }
+			  });
 
-		  const mySelectElement = document.getElementById('miLista').value; 
-		
-		  const file = inputArchivo.files[0];   // Archivo seleccionado
-		  const palabra = atob((inputPalabra.value).slice(3,-1));      
+			  if (!response.ok) {
+				console.error('Error al leer el Gist:', response.status, response.statusText);
+				return null;
+			  }
 
-		  // --- Ejemplo de uso (puedes borrar esto si quieres) ---
-		  console.log('Archivo seleccionado:', file);
-		  console.log('Palabra ingresada:', palabra);
-		  		  
-		  if (!file) {
-			alert("Primero selecciona un archivo.");
-			return;
-		  }
-		  
-		  const theExtension = getFileExtension(file.name);
-		  var newExtension = "jpg";
-		  if ( theExtension == "MP4" || theExtension == "mp4" ){
-			newExtension = "mp4";
-		  }
-		*/  
-				
-		//subir  
-		document.getElementById("subir").addEventListener("click", async () => {  
-			try {
-				alert("not yet");
-     		} catch (error) {
-			  console.error(error);
-			  alert("Error inesperado al subir el archivo.");
-			}
-		});		
+			  const data = await response.json();
+
+			  // Obtener el archivo espec¨ªfico
+			  const file = data.files[FILE_NAME];
+			  if (!file) {
+				console.error('No encontro archivo "${FILE_NAME}" en el Gist');
+				return null;
+			  }
+
+			  // El contenido del archivo viene como texto
+			  const jsonText = file.content;
+			  console.log("jsonText:"+jsonText);
+			  // Parsear el JSON
+			  let jsonData;
+			  try {
+				jsonData = JSON.parse(jsonText);
+			  } catch (e) {
+				console.error('Error parseando el JSON:', e);
+				return null;
+			  }
+
+			  console.log('JSON leido desde Gist:', jsonData);
+			  return jsonData;
+	}
+
+
+    async function  subirJsonEnGist(theGist, theObject, theFileName){
+	     
+		const url = `https://api.github.com/gists/${theGist}`;
+	    console.log("ghubt:" + ghubt + ".url:" + url);
+		const response = await fetch(url, {
+				method: 'PATCH',
+				headers: {
+				  'Accept': 'application/vnd.github+json',
+				  'Authorization': `Bearer ${ghubt}`,
+				  "X-GitHub-Api-Version": "2022-11-28",
+				  "Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					  //"testing", 
+					  files: {
+						theFileName: { content: JSON.stringify(theObject) }, // filename debe ser el nombre ACTUAL
+					  },
+					})
+			  
+			  });
+
+			  if (!response.ok) {
+				console.error('Error al actualizar el Gist:', response.status, response.statusText);
+				return null;
+			  }
+
+			  const data = await response.json();
+			  console.log("response when updating: " + JSON.stringify(data) );	
+	}
+
+			
+	document.getElementById("ajustarimagen").addEventListener("click", async () => {
+			  let urlimagen = document.getElementById('urlimagen').value;
+			  console.log("urlimagen:"+urlimagen);
+			  
+			  if ( urlimagen.slice(-4) != ".jpg" && 
+				   urlimagen.slice(-4) != ".JPG"){
+				 urlimagen = urlimagen + ".jpg";
+			  }
+			  
+			  urlimagen = urlimagen.replaceAll("https://imgur.com"
+				  ,"https://i.imgur.com");
+			  console.log("urlimagen2:"+urlimagen);
+			  document.getElementById('urlimagen').value=urlimagen;
+		});
+
+
+		// para leer el gist pero antes de tener el token 
 		document.getElementById("consultarprops").addEventListener("click", async () => {  
 			try {
+			
+			    if ( ! validateInput() ) {
+					console.log("error de entrada");
+					return;
+				}
+			
 				console.log("before getting token");				
 				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
@@ -413,7 +430,8 @@ https://i.imgur.com/e6JpQI9.jpg
 						ghubt=data.token;
 								
 						let jsonData = await leerJsonDeGist();
-						console.log("jsonData:"+jsonData.spotify);
+						console.log( "jsonData:" + JSON.stringify(jsonData) );
+						
 						if ( jsonData.versiculo == "si" ){
 							document.getElementById("quieresversiculo").checked = true;
 						}else{
@@ -457,9 +475,7 @@ https://i.imgur.com/e6JpQI9.jpg
 						}
 						
 						
-						if ( jsonData.images != null && jsonData.images.length>0){
-						
-						
+						if ( jsonData.images != null && jsonData.images.length > 0){
 						
 							document.getElementById("imagenes").value = jsonData.images.join("\n");
 							//textarea.value = frases.join("\n");
@@ -471,10 +487,118 @@ https://i.imgur.com/e6JpQI9.jpg
 				});			
 			} catch (error) {
 			  console.error(error);
-			  alert("Error inesperado al subir el archivo.");
+			  alert("Error inesperado al consultar el archivo.");
 			}
 		});			
-			/*
+
+
+		//para subir gist  
+		document.getElementById("subir").addEventListener("click", async () => {  
+			try {
+				if ( ! validateInput() ) {
+					console.log("error de entrada");
+					return;
+				}
+				
+			    let quiereVersiculo = "no";
+				let quiereNumeroSuerte = "no";
+				if ( document.getElementById("quieresversiculo").checked ) {
+					quiereVersiculo = "si";
+				}
+			    if ( document.getElementById("quieresnumerosuerte").checked ) {
+					quiereNumeroSuerte = "si";
+				}
+				
+     			const newGist = {
+				  instagram: document.getElementById("tuinstagram").value,
+				  whatsapp: document.getElementById("tuwhatsapp").value,
+				  versiculo: quiereVersiculo,
+				  numerosuerte: quiereNumeroSuerte,
+				  spotify:  document.getElementById("listaspotify").value ,
+				  linkpublicidad: document.getElementById("linkpublicidad").value,
+				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
+				  images: [
+						"https://i.imgur.com/cej3jvO.jpg",
+						"https://i.imgur.com/1FgFHds.jpg",
+						"https://i.imgur.com/bWmEopR.jpg",
+						"https://i.imgur.com/E7T8pTv.jpg",
+						"https://i.imgur.com/Kg5Emnz.jpg",
+						"https://i.imgur.com/HA1h36w.jpg"
+				  ]
+	 			};	
+				console.log( "newGist:" + JSON.stringify(newGist) );
+				
+				const keyFromUser2 =  (document.getElementById("llave").value).slice(3, -1);
+		        console.log("keyFromUser:"+keyFromUser2);
+		        const filenamepart2 = atob( keyFromUser2 ); //11121197
+		        console.log("filenamepart:"+filenamepart2);
+		    
+		        const FILE_NAME2 = "prop" + filenamepart2 + ".txt";
+    	   	    const gistId2 = getGistId(FILE_NAME2);
+				console.log("gistId2:"+gistId2);
+				
+				
+				console.log("before getting token");				
+				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+				//  /.netlify/functions/getTheToken
+				
+				fetch(tokenurl)
+					.then(response => response.json())
+					.then(async (data) => {
+						//console.log('Token recibido:', data.token);						
+						ghubt=data.token;
+						
+				        let jsonData2 = await subirJsonEnGist(gistId2, newGist, FILE_NAME2 );
+						alert("end");
+				});
+						
+	            
+				
+     		} catch (error) {
+			  console.error(error);
+			  alert("Error inesperado al subir el archivo.");
+			}
+		});
+			
+      //function procesarImagen() {
+      /*document.getElementById("subir").addEventListener("click", async () => {
+		  const inputArchivo = document.getElementById('archivo');
+		  const inputPalabra = document.getElementById('llave');
+		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
+		  
+		  if ( simpleStringHash(inputLlave2)!= 49683){
+			alert("invalid secondary key");
+			return;
+		  }
+		  
+		  if ( inputPalabra.value.substring(0,2) != "cc"){
+			alert("invalid key");
+			return;
+		  }
+
+		  const mySelectElement = document.getElementById('miLista').value; 
+		
+		  const file = inputArchivo.files[0];   // Archivo seleccionado
+		  const palabra = atob((inputPalabra.value).slice(3,-1));      
+
+		  // --- Ejemplo de uso (puedes borrar esto si quieres) ---
+		  console.log('Archivo seleccionado:', file);
+		  console.log('Palabra ingresada:', palabra);
+		  		  
+		  if (!file) {
+			alert("Primero selecciona un archivo.");
+			return;
+		  }
+		  
+		  const theExtension = getFileExtension(file.name);
+		  var newExtension = "jpg";
+		  if ( theExtension == "MP4" || theExtension == "mp4" ){
+			newExtension = "mp4";
+		  }
+		*/  
+			
+			
+		/*
 			const updatedContent = {
 			  "files": {
 				"nombre_del_archivo.txt": {
@@ -551,11 +675,7 @@ https://i.imgur.com/e6JpQI9.jpg
 				  }
 		  						
 				})*/
-
-				
-      
 			  
-	  
    
   </script>
 </body>
