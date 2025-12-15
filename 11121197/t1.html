@@ -265,7 +265,7 @@
 	const verseLinkEl4 = document.getElementById("verse-link4");
 		
     const messageBox   = document.getElementById("message");
-    var displayTime  = 7000; // 6 segundos
+    var displayTime  = getDisplayTime(); // 7 segundos 7000
 	let randomNumber = 0;
 
     let currentIndex = 0;
@@ -303,15 +303,15 @@
 				
 				// para cada imagen de la lista del gist
 				for (const unaimagen of imagesList) { ////a
-				  
+				  console.log("iimagen "+unaimagen);	
 				  //si hay otro elemento en slides para ser reemplazado por lo del gist
 				  if (slides.length > cuentaImagen){   // 3 > 3 
-				    
+					console.log("cambiando imagen");	
 					slides[cuentaImagen] = 
 					    { type: "image", file: unaimagen };
 				    
 				  }else{
-				    
+				    console.log("agregando imagen");
 					slides.push(  { type: "image", file: unaimagen }  );
 				  }
 				  cuentaImagen = cuentaImagen + 1;

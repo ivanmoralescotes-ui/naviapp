@@ -386,9 +386,9 @@
 					  //"testing", 
 					  
 					  files: {
-						[theFileName]: { content: JSON.stringify(theObject) }, // filename debe ser el nombre ACTUAL
+						[theFileName]: { content: JSON.stringify(theObject,null,2) }, // filename debe ser el nombre ACTUAL
 					  },
-					})
+					} , null, 2)
 			  
 			  });
 
