@@ -215,7 +215,17 @@
         <input type="text" id="urlimagen" placeholder="" 
 		  value="" />
 		<button id="ajustarimagen" type="button">Ajustar Url</button>
+		<select id="imagenPorAjustar">
+		    <option value="0">1</option>
+			<option value="1">2</option>
+			<option value="2">3</option>
+			<option value="3">4</option>
+			<option value="4">5</option>
+			<option value="5">6</option>
+		</select>
+		<button id="usarimagen" type="button">Usar</button>
     </div>
+	<div><br><br><center>57 3006291217</center></div>
 
 	
   </div>
@@ -408,6 +418,20 @@
 		
     });
 	
+	document.getElementById("usarimagen").addEventListener("click", async () => {
+		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
+		
+		const indexOfImage = document.getElementById('imagenPorAjustar').value;
+		
+		if (currentImages.length > indexOfImage){
+			currentImages[indexOfImage] = document.getElementById("urlimagen").value;
+			
+		}else {
+			//alert("invalid index");
+			currentImages.push(document.getElementById("urlimagen").value);
+		}		
+		document.getElementById('imagenes').value = currentImages.join("\n");
+	});
 	
 	document.getElementById("defaultimages").addEventListener("click", async () => {	
 

@@ -103,3 +103,9 @@ function getGistId(filename){
 	//return "b10ff3e6d9a8dd1d680d62c6d964590b";
 	return "83a00849e0ed5206d2e76774e0dee1ae";
 }
+
+function getDisplayTime(){
+	
+	return 7000;
+}
+

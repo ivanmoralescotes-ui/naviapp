@@ -183,9 +183,9 @@
       { type: "html" },                     // 2 (versículo)
       { type: "image", file: "tem10.jpg" }, // 1
 	  { type: "image", file: "tem11.jpg" }, // 3
-      { type: "image", file: "tem12.jpg" },
-      { type: "image", file: "tem13.jpg" },
-      { type: "image", file: "tem14.jpg" }
+      { type: "image", file: "tem12.jpg" }
+      //{ type: "image", file: "tem13.jpg" },
+      //{ type: "image", file: "tem14.jpg" }
       //{ type: "image", file: "tem15.jpg" },
       //{ type: "image", file: "tem16.jpg" }
     ];
@@ -265,7 +265,7 @@
 	const verseLinkEl4 = document.getElementById("verse-link4");
 		
     const messageBox   = document.getElementById("message");
-    var displayTime  = 7000; // 6 segundos
+    var displayTime  = getDisplayTime(); // 7 segundos 7000
 	let randomNumber = 0;
 
     let currentIndex = 0;
@@ -301,12 +301,20 @@
 			
 			    let cuentaImagen = 1;
 				
-				for (const unaimagen of imagesList) {
-				  if (slides.length > cuentaImagen){
-				    slides[cuentaImagen] = 
-					  { type: "image", file: unaimagen };
-				    cuentaImagen = cuentaImagen + 1;
+				// para cada imagen de la lista del gist
+				for (const unaimagen of imagesList) { ////a
+				  console.log("iimagen "+unaimagen);	
+				  //si hay otro elemento en slides para ser reemplazado por lo del gist
+				  if (slides.length > cuentaImagen){   // 3 > 3 
+					console.log("cambiando imagen");	
+					slides[cuentaImagen] = 
+					    { type: "image", file: unaimagen };
+				    
+				  }else{
+				    console.log("agregando imagen");
+					slides.push(  { type: "image", file: unaimagen }  );
 				  }
+				  cuentaImagen = cuentaImagen + 1;
 				}
 				
 			}
@@ -434,8 +442,7 @@
       }
 
       showSlide(currentIndex);
-       
-	  
+       	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
 		console.log("currentIndex"+currentIndex);

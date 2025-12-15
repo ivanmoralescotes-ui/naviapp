@@ -183,9 +183,9 @@
       { type: "html" },                     // 2 (versículo)
       { type: "image", file: "tem10.jpg" }, // 1
 	  { type: "image", file: "tem11.jpg" }, // 3
-      { type: "image", file: "tem12.jpg" },
-      { type: "image", file: "tem13.jpg" },
-      { type: "image", file: "tem14.jpg" }
+      { type: "image", file: "tem12.jpg" }
+      //{ type: "image", file: "tem13.jpg" },
+      //{ type: "image", file: "tem14.jpg" }
       //{ type: "image", file: "tem15.jpg" },
       //{ type: "image", file: "tem16.jpg" }
     ];
@@ -301,12 +301,20 @@
 			
 			    let cuentaImagen = 1;
 				
-				for (const unaimagen of imagesList) {
-				  if (slides.length > cuentaImagen){
-				    slides[cuentaImagen] = 
-					  { type: "image", file: unaimagen };
-				    cuentaImagen = cuentaImagen + 1;
+				// para cada imagen de la lista del gist
+				for (const unaimagen of imagesList) { ////a
+				  
+				  //si hay otro elemento en slides para ser reemplazado por lo del gist
+				  if (slides.length > cuentaImagen){   // 3 > 3 
+				    
+					slides[cuentaImagen] = 
+					    { type: "image", file: unaimagen };
+				    
+				  }else{
+				    
+					slides.push(  { type: "image", file: unaimagen }  );
 				  }
+				  cuentaImagen = cuentaImagen + 1;
 				}
 				
 			}
@@ -434,8 +442,7 @@
       }
 
       showSlide(currentIndex);
-       
-	  
+       	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
 		console.log("currentIndex"+currentIndex);
