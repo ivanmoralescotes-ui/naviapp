@@ -418,6 +418,17 @@
 		
     });
 	
+	  let llavee = document.getElementById("llave");
+
+	  llavee.addEventListener("blur", () => {
+		
+		if (llavee.value.length == "12" && llavee.value.startsWith("cc") && llavee.value.endsWith("88") ){
+			console.log("to process the key");
+			
+			llavee.value="ccW" + btoa( llavee.value.slice(2,-2) ) + "i";;
+		}
+	  });
+		
 	document.getElementById("usarimagen").addEventListener("click", async () => {
 		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
 		
