@@ -94,6 +94,11 @@
     #subir:hover {
       background: #1d4ed8;
     }
+	
+	
+	.btn-alto {
+		padding: 14px 18px; /* más alto en celular */
+	}
 
     #resultado {
       margin-top: 16px;
@@ -135,9 +140,9 @@
         <label for="llave2">Tu clave</label>
         <input type="password" id="llave2" placeholder="" maxlength="16" />
       </div>
-      <button id="consultarprops" type="button">Consultar</button>&nbsp;&nbsp;&nbsp;
-	  <button id="limpiarprops" type="button">Limpiar</button>&nbsp;&nbsp;&nbsp;
-	  <button id="defaultimages" type="button">Default</button>
+      <button id="consultarprops" type="button" class="btn-alto">Consultar</button>&nbsp;&nbsp;&nbsp;
+	  <button id="limpiarprops" type="button" class="btn-alto">Limpiar</button>&nbsp;&nbsp;&nbsp;
+	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  
       <!-- Lista desplegable -->
       <!--<div class="field">
@@ -214,7 +219,7 @@
 	    <label for="urlimagen">Url:</label>
         <input type="text" id="urlimagen" placeholder="" 
 		  value="" />
-		<button id="ajustarimagen" type="button">Ajustar Url</button>
+		<button id="ajustarimagen" type="button" class="btn-alto">Ajustar Url</button>
 		<select id="imagenPorAjustar">
 		    <option value="0">1</option>
 			<option value="1">2</option>
@@ -223,7 +228,7 @@
 			<option value="4">5</option>
 			<option value="5">6</option>
 		</select>
-		<button id="usarimagen" type="button">Usar</button>
+		<button id="usarimagen" type="button" class="btn-alto">Usar</button>
     </div>
 	<div><br><br><center>57 3006291217</center></div>
 
