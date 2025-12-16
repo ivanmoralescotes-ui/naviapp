@@ -96,8 +96,12 @@
     }
 	
 	
-	.btn-alto {
-		padding: 14px 18px; /* más alto en celular */
+	button.btn-alto {
+		padding: 14px 18px  ; /* más alto en celular */
+		min-height: 44px;          /* tamaño táctil recomendado */
+  line-height: 1.1;
+  -webkit-appearance: none;  /* iPhone: evita que ignore/“reinterprete” el padding */
+  appearance: none;
 	}
 
     #resultado {
