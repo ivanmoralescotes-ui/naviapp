@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Upload</title>
+  <title>Updating</title>
   
    <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
@@ -122,10 +122,11 @@
 <body>
 
   <script src="../js/someFunctions.js"></script>
-  
+  <!-- for the local environment:-->
+  <script src="js/someFunctions.js"></script>
   <div class="container">
     <div class="card">
-      <h1>Procesar archivo</h1>
+      <h1>Actualizar configuraci&oacute;n</h1>
 
       <!-- Campo para seleccionar archivo -->
       <!--<div class="field">
@@ -136,18 +137,21 @@
       <!-- Campo para escribir la llave -->
       <div class="field">
         <label for="llave">Tu c&oacute;digo</label>
-        <input type="text" id="llave" placeholder="" maxlength="20" />
+        <input type="text" id="llave" placeholder="" maxlength="20"
+           value="1112"		/>
       </div>
 
       <!-- Campo para escribir la clave -->
       <div class="field">
         <label for="llave2">Tu clave</label>
-        <input type="password" id="llave2" placeholder="" maxlength="16" />
+        <input type="password" id="llave2" placeholder="" maxlength="16" 
+             value="1"		/>
       </div>
-      <button id="consultarprops" type="button" class="btn-alto">Consultar</button>&nbsp;&nbsp;&nbsp;
-	  <button id="limpiarprops" type="button" class="btn-alto">Limpiar</button>&nbsp;&nbsp;&nbsp;
+      <button id="consultarprops" type="button" class="btn-alto">Consultar</button>&nbsp;&nbsp;
+	  <button id="limpiarprops" type="button" class="btn-alto">Limpiar</button>&nbsp;&nbsp;
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
-	  
+	  &nbsp;&nbsp;
+	  <button id="irapagina" type="button" class="btn-alto">Ir</button>
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -214,7 +218,7 @@
       </div>
 	  
       <!-- Botón para ejecutar tu código -->
-      <button id="subir" type="button">Procesar</button>
+      <button id="subir" type="button">Guardar</button>
 
       <pre id="resultado"></pre>
     </div>
@@ -222,19 +226,19 @@
 	<div class="field">
 	    <label for="urlimagen">Url:</label>
         <input type="text" id="urlimagen" placeholder="" 
-		  value="" />
-		<button id="ajustarimagen" type="button" class="btn-alto">Ajustar Url</button>
+		  value="" />		
 		<select id="imagenPorAjustar">
-		    <option value="0">1</option>
-			<option value="1">2</option>
-			<option value="2">3</option>
-			<option value="3">4</option>
-			<option value="4">5</option>
-			<option value="5">6</option>
+		    <option value="0">&nbsp;1</option>
+			<option value="1">&nbsp;2</option>
+			<option value="2">&nbsp;3</option>
+			<option value="3">&nbsp;4</option>
+			<option value="4">&nbsp;5</option>
+			<option value="5">&nbsp;6</option>
 		</select>
 		<button id="usarimagen" type="button" class="btn-alto">Usar</button>
+		<button id="ajustarimagen" type="button" class="btn-alto">Ajustar Url</button>
     </div>
-	<div><br><br><center>57 3006291217</center></div>
+	<div><br><br><center>573006291217</center></div>
 
 	
   </div>
@@ -306,12 +310,12 @@
 		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
 		  const inputLlave = document.getElementById('llave');
 
-		  if ( inputLlave.value.substring(0,2) != "cc"){
-			alert("LLave invalida");
+		  if ( inputLlave.value.substring(0,1) != "c" && inputLlave.value.length < 100 ){
+			alert("LLave invalida.");
 			return false;
 		  }
-	      if ( simpleStringHash(inputLlave2)!= 49683){
-			alert("Segunda Llave invalida");
+	      if ( simpleStringHash(inputLlave2)!= 49683 && inputLlave2.length < 100 ){
+			alert("Segunda llave invalida.");
 			return false;
 		  }
 		  return true;
@@ -326,7 +330,7 @@
 			let gistId= ''; //ivanmoralescotes-ui   b10ff3e6d9a8dd1d680d62c6d964590b
 			//72b4874243e1613ba3dd8b9eb9d8e9d9
 			
-			const keyFromUser =  (document.getElementById("llave").value).slice(3, -1);
+			const keyFromUser =  (document.getElementById("llave").value).slice(2, -1);
 			console.log("keyFromUser:"+keyFromUser);
 			const filenamepart = atob( keyFromUser ); //11121197
 			console.log("filenamepart:"+filenamepart);
@@ -431,15 +435,24 @@
 
 	  llavee.addEventListener("blur", () => {
 		
-		if (llavee.value.length == "12" && llavee.value.startsWith("cc") && llavee.value.endsWith("88") ){
+		if (llavee.value.length == "11" && llavee.value.startsWith("c") 
+		        && llavee.value.endsWith("88") ){
 			console.log("to process the key");
 			
-			llavee.value="ccW" + btoa( llavee.value.slice(2,-2) ) + "i";;
+			llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
 		}
 	  });
 		
 	document.getElementById("usarimagen").addEventListener("click", async () => {
 		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
+		const  urlImagenAUsar = document.getElementById("urlimagen").value; 
+		if ( document.getElementById("urlimagen").value == "" 
+		          || !urlImagenAUsar.includes("http")
+                  || !urlImagenAUsar.toLowerCase().includes(".j")				  
+		   ){
+			 alert("Invalid url");
+		     return;
+		}
 		
 		const indexOfImage = document.getElementById('imagenPorAjustar').value;
 		
@@ -457,21 +470,36 @@
 
 		document.getElementById('quieresversiculo').checked=true;
 
-		document.getElementById("imagenes").value=
-	         "https://i.imgur.com/Ty1npbJ.jpg"+
-			   "\nhttps://i.imgur.com/cej3jvO.jpg"+
-	           "\nhttps://i.imgur.com/bWmEopR.jpg"+
-               "\nhttps://i.imgur.com/E7T8pTv.jpg"+
-               "\nhttps://i.imgur.com/HA1h36w.jpg"+
-               "\nhttps://i.imgur.com/HA1h36w.jpg"
+		document.getElementById("imagenes").value =
+	         "https://i.imgur.com/Ty1npbJ.jpg" +
+			   "\nhttps://i.imgur.com/cej3jvO.jpg" +
+	           "\nhttps://i.imgur.com/bWmEopR.jpg"
+               //"\nhttps://i.imgur.com/E7T8pTv.jpg"+
+               //"\nhttps://i.imgur.com/HA1h36w.jpg"+
+               //"\nhttps://i.imgur.com/HA1h36w.jpg"
 	});
+	
+	
+	document.getElementById("irapagina").addEventListener("click", async () => {	
+		const thekey = document.getElementById("llave").value.slice(1,-1);
+		if ( ! validateInput() ) {
+			console.log("Error de entrada..");
+			return;
+		}
+		
+		window.open("https://navi111.netlify.app/i.html?f=" + thekey, "_blank");
+		console.log("ir a");
+	});
+	
 	
 	document.getElementById("ajustarimagen").addEventListener("click", async () => {
 			  let urlimagen = document.getElementById('urlimagen').value;
 			  console.log("urlimagen:"+urlimagen);
 			  
-			  if ( urlimagen.slice(-4) != ".jpg" && 
-				   urlimagen.slice(-4) != ".JPG"){
+			  if ( urlimagen.toLowerCase().slice(-4) != ".jpg" && 
+				   urlimagen.toLowerCase().slice(-4) != ".jpeg"
+				  ){
+				   
 				 urlimagen = urlimagen + ".jpg";
 			  }
 			  
@@ -487,11 +515,11 @@
 			try {
 			
 			    if ( ! validateInput() ) {
-					console.log("error de entrada");
+					console.log("Error de entrada");
 					return;
 				}
 			
-				console.log("before getting token");				
+				console.log("before getting t");				
 				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
 				
@@ -502,7 +530,7 @@
 						ghubt=data.token;
 								
 						let jsonData = await leerJsonDeGist();
-						console.log( "jsonData:" + JSON.stringify(jsonData) );
+						//console.log( "jsonData:" + JSON.stringify(jsonData) );
 						
 						if ( jsonData.versiculo == "si" ){
 							document.getElementById("quieresversiculo").checked = true;
@@ -601,19 +629,19 @@
 						"https://i.imgur.com/HA1h36w.jpg"						
 				  ]*/
 	 			};	
-				console.log( "newGist:" + JSON.stringify(newGist) );
+				//console.log( "newGist:" + JSON.stringify(newGist) );
 				
-				const keyFromUser2 =  (document.getElementById("llave").value).slice(3, -1);
-		        console.log("keyFromUser:"+keyFromUser2);
+				const keyFromUser2 =  (document.getElementById("llave").value).slice(2, -1);
+		        //console.log("keyFromUser:"+keyFromUser2);
 		        const filenamepart2 = atob( keyFromUser2 ); //11121197
-		        console.log("filenamepart:"+filenamepart2);
+		        //console.log("filenamepart:"+filenamepart2);
 		    
 		        const FILE_NAME2 = "prop" + filenamepart2 + ".txt";
     	   	    const gistId2 = getGistId(FILE_NAME2);
-				console.log("gistId2:"+gistId2);
+				//console.log("gistId2:"+gistId2);
 				
 				
-				console.log("before getting token");				
+				//console.log("before getting token");				
 				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
 				
@@ -631,7 +659,7 @@
 				
      		} catch (error) {
 			  console.error(error);
-			  alert("Error inesperado al subir el archivo.");
+			  alert("Error inesperado al actualizar el archivo.");
 			}
 		});
 			
