@@ -1,27 +1,463 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Images</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slideshow</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        img {
-            max-width: 90%;   /* máximo 70% del ancho de la pantalla */
-            height: auto;     /* mantiene proporción */
-            display: block;
-            margin: 0 auto 16px;  /* centrada y con espacio abajo */
-        }
-    </style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Contenedor ocupa toda la pantalla */
+    #slideshow {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Imagen pantalla completa */
+    
+#slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;  /* más suave */
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+    /* 🔹 Slide HTML (versículo) mejorado para móvil */
+    #slide-html {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: min(6vh, 32px);
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;  /* mismo tiempo que la imagen */
+  color: #fff;
+}
+
+    /* Contenedor para que todo el contenido no quede tan pegado a los bordes */
+    #slide-html-inner {
+      max-width: 700px;
+      width: 100%;
+	  margin: 0.4rem 0;
+    }
+
+    #slide-html a {
+      color: #00c3ff;
+      text-decoration: none;
+      font-size: clamp(1.1rem, 2.4vh, 1.6rem); /* más grande en celular */
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    #slide-html a:hover {
+      text-decoration: underline;
+    }
+
+    #slide-html p {
+      margin-top: 10px;
+      font-size: clamp(1.1rem, 2.3vh, 1.5rem); /* texto más grande */
+      line-height: 1.5;
+    }
+
+    /* Mostrar slide activo */
+    #slide-img.show {
+      opacity: 1;
+    }
+    #slide-html.show {
+      opacity: 1;
+    }
+
+    #message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+	
+	
+	
+	
+	
+	@media (max-width: 768px) {
+  #slide-html-inner {
+    max-width: 95%;
+  }
+
+  #slide-html a {
+    font-size: 1.6rem;      /* antes 2.6rem */
+  }
+
+  #slide-html p {
+    font-size: 1.5rem;      /* antes 2.3rem */
+    line-height: 1.4;       /* menos espacio vertical */
+  }
+}
+
+
+  </style>
 </head>
 <body>
-    <!--<img src="tem.jpg" alt="Imagen 1">-->
-    <img src="tem2.jpg" alt="Imagen 2">
-    <img src="tem3.jpg" alt="Imagen 3">
+  
+  <div id="slideshow">
+    
+	<img id="slide-img" src="" alt="Imagen" />
+	
+	
+    <div id="slide-html">
+      <div id="slide-html-inner">
+	  
+	    <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+		<br>
+		
+        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">
+		  Spotify
+        </a><br>
+        <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">
+          Instagram
+        </a>
+        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">
+          Whatsapp
+        </a><br>
+        
+        <p id="quote-text">Aquí va la frase.</p>
+		<br>
+        <!--<p id="blood-text">Aquí va el tipo.</p>-->
+		<p id="lucknumber-text">Aquí va el numero.</p>
+		<br>
+		<a id="verse-link4" href="#" target="_blank" rel="noopener noreferrer">
+          <i>Ad</i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="message" style="display:none;"></div>
+   <script src="../js/someFunctions.js"></script>
+   <script>
+    
+    let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
+    
+	let verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+    
+	let verseLink3 = "https://wa.me/573113068431";
+
+    //let verseText  = "“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)";
+    //let quoteText  = "“El secreto para salir adelante es comenzar.”";
+    //const bloodText  = "Tipo de sangre: A+";
+	
+	let lucknumberText  = "Número de suerte: ";
+	
+	let verseLink4 = "https://www.nike.com.co";
+
+    // Slides: 2º es HTML, los demás imágenes
+    let slides = [      
+      { type: "html" },                     // 2 (versículo)
+      { type: "image", file: "tem10.jpg" }, // 1
+	  { type: "image", file: "tem11.jpg" }, // 3
+      { type: "image", file: "tem12.jpg" }
+      //{ type: "image", file: "tem13.jpg" },
+      //{ type: "image", file: "tem14.jpg" }
+      //{ type: "image", file: "tem15.jpg" },
+      //{ type: "image", file: "tem16.jpg" }
+    ];
+	
+	/*const quotes = [
+	    "“La disciplina empieza donde termina la motivación.”",
+	    "“Hazlo sencillo, pero hazlo siempre.”",
+        "“Cambia tus hábitos y cambia tu destino.”",
+		"“Lo que repites, te construye.”",
+        "“La acción cura el miedo.”",
+		"“Tu futuro empieza hoy, no mañana.”",
+		"“El que se controla, vence.”",
+		"“No te rindas: ajusta el plan, no el objetivo.”",
+		"“Avanza aunque sea un milímetro.”",
+		"“Haz lo difícil hasta que sea fácil.”",
+		"“La mente fuerte escucha, decide y actúa.”",
+		"“Quien domina su atención, domina su mundo.”",
+		"“El progreso ama la constancia.”",
+		"“Tu vida mejora cuando tú mejoras.”",
+		"“Haz más de lo que dices y di menos de lo que haces.”",
+		"“Deja de esperar y empieza a construir.”",
+		"“Avanza sin hacer ruido.”",
+		"“Si te caes siete veces, levántate ocho.”",
+		"“Siembra disciplina y cosecharás libertad.”",
+		"“La vida premia a los constantes.”",
+		"“Mejora un 1% cada día.”",
+		"“Hazlo por ti, no por aplausos.”",
+		"“Menos excusas, más acción.”",
+        "“El secreto para salir adelante es comenzar.”",
+		"“Constancia mata talento cuando el talento no es constante.”",
+		"“El que persiste, llega.”",
+		"“No te detengas: ajusta el ritmo, no el camino.”",
+		"“Sé fuerte cuando nadie te ve.”",
+		"“No esperes milagros: construye hábitos.”",
+		"“Cada día es una oportunidad nueva.”",
+		"“Persevera incluso cuando no tengas ganas.”",
+		"“Hazlo aunque duela.””",
+		"“Pequeños avances crean grandes cambios.”",
+		"“Si controlas tus mañanas, controlas tu vida.”",
+		"“Lo que empiezas, lo terminas.”",
+		"“La constancia convierte metas en realidad.”"
+		
+		// "“”",
+	];*/
+	
+	/*const versiculos =[
+	    "“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
+	   ,"“Y Jesús dijo: No temas; cree solamente.” (Marcos 5:36)"
+	   ,"“Jesús dijo: Todo es posible para el que cree.” (Marcos 9:23)"
+	   ,"“Jesús le dijo: No te he dicho que si crees verás la gloria de Dios?” (Juan 11:40)"
+	   ,"“Y Jesús dijo: Yo estoy con ustedes todos los días, hasta el fin del mundo.” (Mateo 28:20)"
+	   ,"“El Señor es mi pastor, nada me falta.” (Salmo 23:1)"
+	   ,"“Porque todo aquel que invoque el nombre del Señor será salvo.” (Romanos 10:13)"
+	   ,"“Deléitate en el Señor, y él te concederá los deseos de tu corazón.” (Salmo 37:4)"
+	   ,"“El Señor es mi fortaleza y mi escudo.” (Salmo 28:7)"
+	   ,"“El Señor sostiene a los que caen.” (Salmo 145:14)"
+	   ,"“El Señor dirige los pasos del hombre.” (Salmo 37:23)"
+	   ,"“El Señor te dará fuerzas y te sostendrá.” (Isaias 41:10)"
+	   ,"“Confía en el Señor y Él actuará.” (Salmo 37:5)"
+	   ,"“Él da fuerzas al cansado y multiplica las fuerzas del débil.” (Isaias 40:29)"
+	   ,"“El Señor te fortalecerá y te ayudará; te sostendrá con su mano victoriosa.” (Isaias 41:10)"
+	   ,"“Entréguenle todas sus preocupaciones a Dios, porque Él cuida de ustedes.” (Pedro 5:7)"
+	   
+	   //,"“”"
+	   
+	   ]*/
+
+    const imgElement   = document.getElementById("slide-img");
+    const htmlElement  = document.getElementById("slide-html");
+    const verseLinkEl  = document.getElementById("verse-link");
+    const verseLinkEl2 = document.getElementById("verse-link2");
+    const verseLinkEl3 = document.getElementById("verse-link3");
+    const verseTextEl  = document.getElementById("verse-text");
+    const quoteTextEl  = document.getElementById("quote-text");
+    //const bloodTextEl  = document.getElementById("blood-text");
+	const lucknumberTextEl  = document.getElementById("lucknumber-text");
+	const verseLinkEl4 = document.getElementById("verse-link4");
+		
+    const messageBox   = document.getElementById("message");
+    var displayTime  = getDisplayTime(); // 7 segundos 7000
+	let randomNumber = 0;
+
+    let currentIndex = 0;
+	//https://gist.githubusercontent.com/usuario/loquesea/raw/mi-archivo.txt
+
+    const parts = location.pathname.split("/").filter(p => p !== "");
+    const penultima = parts[parts.length - 2];
+	console.log("penultima:"+penultima);
+	
+    //2e622908bddcff30c1acb9bedf3094e3a64d8fd5  '11121197'
+	let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
+	const thefilename ="prop" + penultima + ".txt";
+	thegist = getGistId(thefilename);
+	
+	
+    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/'+thegist+'/raw/'+thefilename)
+     .then(r => r.text())
+     .then(r2 => {
+   	        console.log("the object:"+r2);
+			const props =JSON.parse(r2);
+		    const mostrarVersiculo = props.versiculo;
+			const mostrarNumeroSuerte = props.numerosuerte;	
+			const theinstagram = props.instagram;
+			const thewhatsapp = props.whatsapp;
+			const thespotify = props.spotify;
+			const thepublicidad = props.linkpublicidad;
+			const nombrepublicidad = props.nombrepublicidad;
+			const theimages = props.images;
+			let imagesList = props.images ;//[];
+			if (theimages != null && theimages.length > 0){
+				//imagesList = theimages.split(",");
+				console.log("first image:"+imagesList[0]);
+			
+			    let cuentaImagen = 1;
+				
+				// para cada imagen de la lista del gist
+				for (const unaimagen of imagesList) { ////a
+				  console.log("iimagen "+unaimagen);	
+				  //si hay otro elemento en slides para ser reemplazado por lo del gist
+				  if (slides.length > cuentaImagen){   // 3 > 3 
+					console.log("cambiando imagen");	
+					slides[cuentaImagen] = 
+					    { type: "image", file: unaimagen };
+				    
+				  }else{
+				    console.log("agregando imagen");
+					slides.push(  { type: "image", file: unaimagen }  );
+				  }
+				  cuentaImagen = cuentaImagen + 1;
+				}
+				
+			}
+			
+			//console.log("mostrarVersiculo:"+mostrarVersiculo);
+ 	     	if (mostrarVersiculo == "si") {
+			  verseTextEl.style.display = 'block';
+			} else {
+			  verseTextEl.style.display = 'none';
+			}
+			
+			// if mostrarInstagram
+			if (theinstagram != "" && theinstagram != "no" ) {
+			  verseLinkEl2.style.display = 'block';
+			  verseLink2 = theinstagram;
+			} else {
+			  verseLinkEl2.style.display = 'none';
+			}
+			
+			// if mostrarWhatsapp
+			if (thewhatsapp != "" && thewhatsapp != "no") {
+			  verseLinkEl3.style.display = 'block';
+			  verseLink3 = "https://wa.me/" + thewhatsapp;
+			} else {
+			  verseLinkEl3.style.display = 'none';
+			}
+			
+			// if mostrarSpotify
+			if (thespotify != "" && thespotify != "no") {
+			  verseLinkEl.style.display = 'block';
+			  verseLink = "https://open.spotify.com/playlist/" + thespotify;
+			} else {
+			  verseLinkEl.style.display = 'none';
+			}
+			
+			// if mostrarNumeroSuerte
+			if (mostrarNumeroSuerte == "si") {
+			  lucknumberTextEl.style.display = 'block';
+			} else {
+			  lucknumberTextEl.style.display = 'none';
+			}
+			
+			// if mostrarPublicidad
+			if (thepublicidad != "" && thepublicidad != "no"){
+				verseLinkEl4.style.display = 'block';
+				verseLink4 = thepublicidad;
+			}else{
+				verseLinkEl4.style.display = 'none';
+			}
+			
+	        if (nombrepublicidad != "" && nombrepublicidad != "no"){
+				verseLinkEl4.innerHTML  = "<i>"+nombrepublicidad+"</i>";				
+			}else{
+				verseLinkEl4.innerHTML = 'Ad';
+			}	
+			
+        });
+
+    
+
+
+    
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.style.display = "block";
+    }
+
+    // 🔹 Transición suavizada: primero se desvanece, luego se carga y se vuelve a mostrar
+    function showSlide(index) {
+      if (!slides.length) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+	  
+	  /*if (index == 0){
+	      displayTime=10000;
+		  console.log("displayTime is "+displayTime);
+	    }else{
+	      displayTime=5000;
+	    }*/
+
+      const slide = slides[index];
+
+      // Quitamos clase show para que empiece a desvanecerse
+      imgElement.classList.remove("show");
+      htmlElement.classList.remove("show");
+
+      // Esperamos un poco para que la salida no sea brusca
+      setTimeout(() => {
+        if (slide.type === "image") {
+          // cuando cargue la imagen, la mostramos con fade-in
+          imgElement.onload = () => {
+            imgElement.classList.add("show");
+          };
+          imgElement.src = slide.file; // misma carpeta que el HTML
+          imgElement.alt = slide.file;
+
+        } else if (slide.type === "html") {
+          verseLinkEl.href  = verseLink;
+          verseLinkEl2.href = verseLink2;
+          verseLinkEl3.href = verseLink3;
+          verseLinkEl4.href = verseLink4;
+
+          //verseTextEl.textContent  = verseText;
+		  const quoteNumber = getRandomNumber(0,(quotes.length-1) ); //22
+		  const versiculoNumber = getRandomNumber(0,(versiculos.length-1) );//7
+          quoteTextEl.textContent  = quotes[quoteNumber]; //quoteText
+          verseTextEl.textContent  = versiculos[versiculoNumber]; //quoteText
+		  //bloodTextEl.textContent  = bloodText;
+		  		  
+		  lucknumberTextEl.textContent =lucknumberText + obtenerNumeroAleatorio(); //getRandomNumber(0,36)
+
+          htmlElement.classList.add("show");
+        }
+      }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
+    }
+
+	
+
+    function initSlideshow() {
+      if (slides.length === 0) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+
+      showSlide(currentIndex);
+       	  
+      setInterval(() => {
+        currentIndex = (currentIndex + 1) % slides.length;
+		console.log("currentIndex"+currentIndex);
+        /*if (currentIndex == 0){
+	      displayTime=10000;
+		  console.log("displayTime"+displayTime);
+	    }else{
+	      displayTime=5000;
+	    }*/
+        showSlide(currentIndex);
+      }, displayTime);
+    }
+
+    window.addEventListener("load", initSlideshow);
+  </script>
+  
 </body>
 </html>

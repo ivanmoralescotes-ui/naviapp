@@ -161,8 +161,8 @@
   </div>
 
   <div id="message" style="display:none;"></div>
-
-  <script>
+   <script src="../js/someFunctions.js"></script>
+   <script>
     
     let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
     
@@ -183,9 +183,9 @@
       { type: "html" },                     // 2 (versículo)
       { type: "image", file: "tem10.jpg" }, // 1
 	  { type: "image", file: "tem11.jpg" }, // 3
-      { type: "image", file: "tem12.jpg" },
-      { type: "image", file: "tem13.jpg" },
-      { type: "image", file: "tem14.jpg" }
+      { type: "image", file: "tem12.jpg" }
+      //{ type: "image", file: "tem13.jpg" },
+      //{ type: "image", file: "tem14.jpg" }
       //{ type: "image", file: "tem15.jpg" },
       //{ type: "image", file: "tem16.jpg" }
     ];
@@ -265,7 +265,7 @@
 	const verseLinkEl4 = document.getElementById("verse-link4");
 		
     const messageBox   = document.getElementById("message");
-    var displayTime  = 7000; // 6 segundos
+    var displayTime  = getDisplayTime(); // 7 segundos 7000
 	let randomNumber = 0;
 
     let currentIndex = 0;
@@ -276,7 +276,12 @@
 	console.log("penultima:"+penultima);
 	
     //2e622908bddcff30c1acb9bedf3094e3a64d8fd5  '11121197'
-    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/b10ff3e6d9a8dd1d680d62c6d964590b/raw/prop'+penultima+'.txt')
+	let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
+	const thefilename ="prop" + penultima + ".txt";
+	thegist = getGistId(thefilename);
+	
+	
+    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/'+thegist+'/raw/'+thefilename)
      .then(r => r.text())
      .then(r2 => {
    	        console.log("the object:"+r2);
@@ -296,12 +301,20 @@
 			
 			    let cuentaImagen = 1;
 				
-				for (const unaimagen of imagesList) {
-				  if (slides.length > cuentaImagen){
-				    slides[cuentaImagen] = 
-					  { type: "image", file: unaimagen };
-				    cuentaImagen = cuentaImagen + 1;
+				// para cada imagen de la lista del gist
+				for (const unaimagen of imagesList) { ////a
+				  console.log("iimagen "+unaimagen);	
+				  //si hay otro elemento en slides para ser reemplazado por lo del gist
+				  if (slides.length > cuentaImagen){   // 3 > 3 
+					console.log("cambiando imagen");	
+					slides[cuentaImagen] = 
+					    { type: "image", file: unaimagen };
+				    
+				  }else{
+				    console.log("agregando imagen");
+					slides.push(  { type: "image", file: unaimagen }  );
 				  }
+				  cuentaImagen = cuentaImagen + 1;
 				}
 				
 			}
@@ -429,8 +442,7 @@
       }
 
       showSlide(currentIndex);
-       
-	  
+       	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
 		console.log("currentIndex"+currentIndex);
@@ -446,6 +458,6 @@
 
     window.addEventListener("load", initSlideshow);
   </script>
-  <script src="../js/someFunctions.js"></script>
+  
 </body>
 </html>
