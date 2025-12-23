@@ -153,7 +153,7 @@
         <!--<p id="blood-text">Aquí va el tipo.</p>-->
 		<p id="lucknumber-text">Aquí va el numero.</p>
 		<br>
-		<a id="verse-link4" href="#" target="_blank" rel="noopener noreferrer">
+		<a id="verse-link4" href="#" rel="noopener noreferrer">
           <i>Ad</i>
         </a>
       </div>
@@ -176,14 +176,14 @@
 	
 	let lucknumberText  = "Número de suerte: ";
 	
-	let verseLink4 = "https://www.nike.com.co";
+	let verseLink4 = "#";//https://www.nike.com.co
 
     // Slides: 2º es HTML, los demás imágenes
     let slides = [      
-      { type: "html" },                     // 2 (versículo)
-      { type: "image", file: "tem10.jpg" }, // 1
-	  { type: "image", file: "tem11.jpg" }, // 3
-      { type: "image", file: "tem12.jpg" }
+      { type: "html" }//,                     // 2 (versículo)
+      //{ type: "image", file: "tem10.jpg" }, // 1
+	  //{ type: "image", file: "tem11.jpg" }, // 3
+      //{ type: "image", file: "tem12.jpg" }
       //{ type: "image", file: "tem13.jpg" },
       //{ type: "image", file: "tem14.jpg" }
       //{ type: "image", file: "tem15.jpg" },
@@ -303,18 +303,25 @@
 				
 				// para cada imagen de la lista del gist
 				for (const unaimagen of imagesList) { ////a
-				  console.log("iimagen "+unaimagen);	
-				  //si hay otro elemento en slides para ser reemplazado por lo del gist
-				  if (slides.length > cuentaImagen){   // 3 > 3 
-					console.log("cambiando imagen");	
-					slides[cuentaImagen] = 
-					    { type: "image", file: unaimagen };
-				    
-				  }else{
-				    console.log("agregando imagen");
-					slides.push(  { type: "image", file: unaimagen }  );
-				  }
-				  cuentaImagen = cuentaImagen + 1;
+				    console.log("iimagen "+unaimagen);
+
+				    if (unaimagen != "" && unaimagen.length > 4){				  
+
+						const imgg = new Image();
+						imgg.src = unaimagen;
+
+					  //si hay otro elemento en slides para ser reemplazado por lo del gist
+					  if (slides.length > cuentaImagen){   // 3 > 3 
+						console.log("cambiando imagen");	
+						slides[cuentaImagen] = 
+							{ type: "image", file: unaimagen };
+						
+					  }else{
+						console.log("agregando imagen");
+						slides.push(  { type: "image", file: unaimagen }  );
+					  }
+					  cuentaImagen = cuentaImagen + 1;
+					}
 				}
 				
 			}

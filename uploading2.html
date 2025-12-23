@@ -151,7 +151,7 @@
 	  <button id="limpiarprops" type="button" class="btn-alto">Limpiar</button>&nbsp;&nbsp;
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  &nbsp;&nbsp;
-	  <button id="irapagina" type="button" class="btn-alto">Ir</button>
+	  <button id="irapagina" type="button" class="btn-alto" style="display:none;">Ir</button>
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -191,6 +191,17 @@
         <input type="text" id="tuwhatsapp" placeholder="" value="" 
 		    maxlength="15" />
       </div>
+	  <div class="field">
+        <label for="tunombre">Nombre</label>
+        <input type="text" id="tunombre" placeholder="" value="" 
+		    maxlength="20" />
+      </div>
+	  <div class="field">
+        <label for="tullave">Nueva clave</label>
+        <input type="password" id="tullave" placeholder="" value="" 
+		    maxlength="20" />
+      </div>
+	  
 	  <br>
 	  <div class="field">
 	    Quieres vers&iacute;culo?<input type="checkbox" name="quieresversiculo" 
@@ -218,9 +229,9 @@
       </div>
 	  
       <!-- Botón para ejecutar tu código -->
-      <button id="subir" type="button">Guardar</button>
+      <button id="subir" type="button" style="display:none;">Guardar</button>
 
-      <pre id="resultado"></pre>
+      <!--<pre id="resultado"></pre>-->
     </div>
 	<br>
 	<div class="field">
@@ -264,13 +275,14 @@
     return btoa(binary);
   }
   
-  function simpleStringHash(str) {//1234
+  function simpleStringHash(str) {//123
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
       hash |= 0; // Convert to 32bit integer
     }
+	console.log("hash:"+hash);
     return hash;
   } 
   
@@ -282,7 +294,7 @@
     return filename.substring(lastDotIndex + 1);
   }
   
-  
+  // not used
   async function getFileSha(path, token) {
       const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
 
@@ -307,6 +319,8 @@
       }
     }
     
+	
+	// to check
 	function validateInput(){
 		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
 		  const inputLlave = document.getElementById('llave');
@@ -315,7 +329,8 @@
 			alert("LLave invalida.");
 			return false;
 		  }
-	      if ( simpleStringHash(inputLlave2)!= 49683 && inputLlave2.length < 100 ){
+	      if ( //simpleStringHash(inputLlave2)!= 49683 && 
+		        inputLlave2.length > 100 || inputLlave2.length < 3 ){
 			alert("Segunda llave invalida.");
 			return false;
 		  }
@@ -340,8 +355,6 @@
 			const FILE_NAME = "prop" + filenamepart + ".txt";
 			
 			gistId = getGistId(FILE_NAME);
-			//const url = `https://api.github.com/gists/${gistId}`;
-
 
 			  const url = `https://api.github.com/gists/${gistId}`;
 			  console.log("ghubt:"+ghubt);
@@ -423,6 +436,9 @@
 		document.getElementById('listaspotify').value="";
 		document.getElementById('tuwhatsapp').value="";
 		document.getElementById('tuinstagram').value="";
+		document.getElementById('tunombre').value="";
+		document.getElementById('tullave').value="";
+		
 		document.getElementById('llave2').value="";
 		document.getElementById('linkpublicidad').value="";
 		document.getElementById('nombrepublicidad').value="";
@@ -434,6 +450,7 @@
 	
 	  let llavee = document.getElementById("llave");
 
+      // event listener
 	  llavee.addEventListener("blur", () => {
 		
 		if (llavee.value.length == "11" && llavee.value.startsWith("c") 
@@ -472,15 +489,15 @@
 		document.getElementById('quieresversiculo').checked=true;
 
 		document.getElementById("imagenes").value =
-	         "https://i.imgur.com/Ty1npbJ.jpg" +
-			   "\nhttps://i.imgur.com/cej3jvO.jpg" +
-	           "\nhttps://i.imgur.com/bWmEopR.jpg"
+	         "https://i.imgur.com/ZYbySOV.jpg" +
+			   "\nhttps://i.imgur.com/2RBU19s.jpg" +
+	           "\nhttps://i.imgur.com/uVFofUl.jpg"
                //"\nhttps://i.imgur.com/E7T8pTv.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"
 	});
 	
-	
+	// to do
 	document.getElementById("irapagina").addEventListener("click", async () => {	
 		const thekey = document.getElementById("llave").value.slice(1,-1);
 		if ( ! validateInput() ) {
@@ -508,13 +525,13 @@
 				  ,"https://i.imgur.com");
 			  console.log("urlimagen2:"+urlimagen);
 			  document.getElementById('urlimagen').value=urlimagen;
-		});
+	});
 
 
-		// para leer el gist pero antes de tener el token 
-		document.getElementById("consultarprops").addEventListener("click", async () => {  
+	// para leer el gist pero antes de tener el token 
+	document.getElementById("consultarprops").addEventListener("click", async () => {  
 			try {
-			
+			    //toDo
 			    if ( ! validateInput() ) {
 					console.log("Error de entrada");
 					return;
@@ -532,6 +549,22 @@
 								
 						let jsonData = await leerJsonDeGist();
 						//console.log( "jsonData:" + JSON.stringify(jsonData) );
+						
+						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
+						// 1122  ,  2233 def
+						
+						if (llave2hash != "1508448" 
+						    && llave2hash != jsonData.clave ){
+							alert("Invalid input.");
+							document.getElementById("subir").style.display = "none";
+							document.getElementById("irapagina").style.display = "none";
+							return;	
+						}else{
+						    //document.getElementById("subir").style.visibility = "visible";
+						    document.getElementById("subir").style.display = "inline-block";
+							document.getElementById("irapagina").style.display = "inline-block";
+							
+						}
 						
 						if ( jsonData.versiculo == "si" ){
 							document.getElementById("quieresversiculo").checked = true;
@@ -563,6 +596,12 @@
 						    document.getElementById("tuwhatsapp").value = "";
 						}
 						
+						if ( jsonData.nombre != "" && jsonData.nombre != "no"){
+							document.getElementById("tunombre").value = jsonData.nombre;
+						}else{
+						    document.getElementById("tunombre").value = "";
+						}
+						
 						if ( jsonData.linkpublicidad != "" && jsonData.linkpublicidad != "no"){
 							document.getElementById("linkpublicidad").value = jsonData.linkpublicidad;
 						}else{
@@ -590,17 +629,17 @@
 			  console.error(error);
 			  alert("Error inesperado al consultar el archivo.");
 			}
-		});			
+	});			
 
 
-		//para subir gist  
-		document.getElementById("subir").addEventListener("click", async () => {  
+	//para subir gist  
+	document.getElementById("subir").addEventListener("click", async () => {  
 			try {
 				if ( ! validateInput() ) {
-					console.log("error de entrada");
+					console.log("Error de entrada");
 					return;
 				}
-				
+				//toDo
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
 				if ( document.getElementById("quieresversiculo").checked ) {
@@ -613,22 +652,25 @@
 				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
 				console.log("imagesToUpdate:"+imagesToUpdate);
 				
+				let laclave = document.getElementById("tullave").value;
+				if (laclave == ""){
+					laclave = "1539232";
+				}else{
+					laclave = simpleStringHash(laclave);
+				}
+				
      			const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
 				  whatsapp: document.getElementById("tuwhatsapp").value,
+				  nombre: document.getElementById("tunombre").value,
+				  clave: laclave,
+				  
 				  versiculo: quiereVersiculo,
 				  numerosuerte: quiereNumeroSuerte,
 				  spotify:  document.getElementById("listaspotify").value ,
 				  linkpublicidad: document.getElementById("linkpublicidad").value,
 				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
-				  images: imagesToUpdate /*[
-						"https://i.imgur.com/cej3jvO.jpg",
-						"https://i.imgur.com/1FgFHds.jpg",
-						"https://i.imgur.com/bWmEopR.jpg",
-						"https://i.imgur.com/E7T8pTv.jpg",
-						 "https://i.imgur.com/HA1h36w.jpg",
-						"https://i.imgur.com/HA1h36w.jpg"						
-				  ]*/
+				  images: imagesToUpdate 
 	 			};	
 				//console.log( "newGist:" + JSON.stringify(newGist) );
 				
@@ -662,7 +704,7 @@
 			  console.error(error);
 			  alert("Error inesperado al actualizar el archivo.");
 			}
-		});
+	});
 			
       //function procesarImagen() {
       /*document.getElementById("subir").addEventListener("click", async () => {
@@ -735,9 +777,9 @@
 			
 				  console.log('Token recibido2:', ghubt);
 	
-				  const pathInRepo = palabra + `/tem`+mySelectElement+`.`+newExtension;// 11121443  toDo
+				  const pathInRepo = palabra + `/tem`+mySelectElement+`.`+newExtension;// 11121443  
 				  
-				  const sha = await getFileSha(pathInRepo, ghubt);
+				  const sha = await getFileSh(pathInRepo, ghubt);
 	
 				  // Leemos el archivo como ArrayBuffer
 				  const arrayBuffer = await file.arrayBuffer();
