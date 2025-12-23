@@ -138,7 +138,7 @@
       <div class="field">
         <label for="llave">Tu c&oacute;digo</label>
         <input type="text" id="llave" placeholder="" maxlength="20"
-           value="1112"		/>
+           value="111211"		/>
       </div>
 
       <!-- Campo para escribir la clave -->
@@ -274,6 +274,9 @@
     }
     return btoa(binary);
   }
+
+	const defaultKey = "1539232";//2
+	const mainKeyy = "1691068";//1   1508448,   1691068
   
   function simpleStringHash(str) {//123
     let hash = 0;
@@ -282,7 +285,7 @@
       hash = (hash << 5) - hash + char;
       hash |= 0; // Convert to 32bit integer
     }
-	console.log("hash:"+hash);
+	//console.log("hash: z9"+hash+"r5");
     return hash;
   } 
   
@@ -530,6 +533,7 @@
 
 	// para leer el gist pero antes de tener el token 
 	document.getElementById("consultarprops").addEventListener("click", async () => {  
+	        
 			try {
 			    //toDo
 			    if ( ! validateInput() ) {
@@ -551,11 +555,11 @@
 						//console.log( "jsonData:" + JSON.stringify(jsonData) );
 						
 						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
-						// 1122  ,  2233 def
+						// 233 def
 						
-						if (llave2hash != "1508448" 
+						if (llave2hash != mainKeyy 
 						    && llave2hash != jsonData.clave ){
-							alert("Invalid input.");
+							alert("Valor incorrecto.");
 							document.getElementById("subir").style.display = "none";
 							document.getElementById("irapagina").style.display = "none";
 							return;	
@@ -634,8 +638,9 @@
 
 	//para subir gist  
 	document.getElementById("subir").addEventListener("click", async () => {  
+			
 			try {
-				if ( ! validateInput() ) {
+				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
 					console.log("Error de entrada");
 					return;
 				}
@@ -654,7 +659,7 @@
 				
 				let laclave = document.getElementById("tullave").value;
 				if (laclave == ""){
-					laclave = "1539232";
+					laclave = defaultKey;
 				}else{
 					laclave = simpleStringHash(laclave);
 				}
