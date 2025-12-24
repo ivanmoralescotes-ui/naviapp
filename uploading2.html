@@ -137,7 +137,7 @@
       <!-- Campo para escribir la llave -->
       <div class="field">
         <label for="llave">Tu c&oacute;digo</label>
-        <input type="text" id="llave" placeholder="" maxlength="20"
+        <input type="text" id="llave" placeholder="" maxlength="85"
            value="111211"		/>
       </div>
 
@@ -461,6 +461,16 @@
 			console.log("to process the key");
 			
 			llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
+		}
+	  });
+	  
+	  let linkValue = document.getElementById("linkpublicidad");
+	  linkValue.addEventListener("blur", () => {
+		
+		if ( linkValue.value == "    " ){
+			console.log("to process a key");
+			
+			linkValue.value="javascript:void(0);";
 		}
 	  });
 		
