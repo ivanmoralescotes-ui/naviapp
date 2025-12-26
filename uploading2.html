@@ -262,6 +262,12 @@
   
   <script>
     
+	  const params = new URLSearchParams(window.location.search);
+      const urlCode = params.get('cd');
+	  if (urlCode != null && urlCode != ""){
+		document.getElementById('llave').value = urlCode;
+	  }
+	
 	  let ghubt = "";
 	
 	  const OWNER = "ivanmoralescotes-ui";
