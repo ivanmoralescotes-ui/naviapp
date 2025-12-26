@@ -259,7 +259,9 @@
     const verseLinkEl2 = document.getElementById("verse-link2");
     const verseLinkEl3 = document.getElementById("verse-link3");
     const verseTextEl  = document.getElementById("verse-text");
+	
     const quoteTextEl  = document.getElementById("quote-text");
+	
     //const bloodTextEl  = document.getElementById("blood-text");
 	const lucknumberTextEl  = document.getElementById("lucknumber-text");
 	const verseLinkEl4 = document.getElementById("verse-link4");
@@ -280,107 +282,127 @@
 	const thefilename ="prop" + penultima + ".txt";
 	thegist = getGistId(thefilename);
 	
-	
-    fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/'+thegist+'/raw/'+thefilename)
-     .then(r => r.text())
-     .then(r2 => {
-   	        console.log("the object:"+r2);
-			const props =JSON.parse(r2);
-		    const mostrarVersiculo = props.versiculo;
-			const mostrarNumeroSuerte = props.numerosuerte;	
-			const theinstagram = props.instagram;
-			const thewhatsapp = props.whatsapp;
-			const thespotify = props.spotify;
-			const thepublicidad = props.linkpublicidad;
-			const nombrepublicidad = props.nombrepublicidad;
-			const theimages = props.images;
-			let imagesList = props.images ;//[];
-			if (theimages != null && theimages.length > 0){
-				//imagesList = theimages.split(",");
-				console.log("first image:"+imagesList[0]);
-			
-			    let cuentaImagen = 1;
+	async function startAll(){
+		await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/'+thegist+'/raw/'+thefilename)
+		 .then(r => r.text())
+		 .then(r2 => {
+				console.log("the object:"+r2);
+				const props =JSON.parse(r2);
+				const mostrarVersiculo = props.versiculo;
+				const mostrarMotivacional = props.motivacional;
+				const mostrarNumeroSuerte = props.numerosuerte;	
+				const theinstagram = props.instagram;
+				const thewhatsapp = props.whatsapp;
+				const thespotify = props.spotify;
+				const thepublicidad = props.linkpublicidad;
+				const nombrepublicidad = props.nombrepublicidad;
+				const theimages = props.images;
+				let imagesList = props.images ;//[];
 				
-				// para cada imagen de la lista del gist
-				for (const unaimagen of imagesList) { ////a
-				    console.log("iimagen "+unaimagen);
+				if (theimages != null && theimages.length > 0){
+					//imagesList = theimages.split(",");
+					console.log("first image:"+imagesList[0]);
+				
+					let cuentaImagen = 1;
+					
+					// para cada imagen de la lista del gist
+					for (const unaimagen of imagesList) { ////a
+						console.log("iimagen "+unaimagen);
 
-				    if (unaimagen != "" && unaimagen.length > 4){				  
+						if (unaimagen != "" && unaimagen.length > 4){				  
 
-						const imgg = new Image();
-						imgg.src = unaimagen;
+							const imgg = new Image();
+							imgg.src = unaimagen;
 
-					  //si hay otro elemento en slides para ser reemplazado por lo del gist
-					  if (slides.length > cuentaImagen){   // 3 > 3 
-						console.log("cambiando imagen");	
-						slides[cuentaImagen] = 
-							{ type: "image", file: unaimagen };
-						
-					  }else{
-						console.log("agregando imagen");
-						slides.push(  { type: "image", file: unaimagen }  );
-					  }
-					  cuentaImagen = cuentaImagen + 1;
+						  //si hay otro elemento en slides para ser reemplazado por lo del gist
+						  if (slides.length > cuentaImagen){   // 3 > 3 
+							console.log("cambiando imagen");	
+							slides[cuentaImagen] = 
+								{ type: "image", file: unaimagen };
+							
+						  }else{
+							console.log("agregando imagen");
+							slides.push(  { type: "image", file: unaimagen }  );
+						  }
+						  cuentaImagen = cuentaImagen + 1;
+						}
 					}
+					
 				}
 				
-			}
-			
-			//console.log("mostrarVersiculo:"+mostrarVersiculo);
- 	     	if (mostrarVersiculo == "si") {
-			  verseTextEl.style.display = 'block';
-			} else {
-			  verseTextEl.style.display = 'none';
-			}
-			
-			// if mostrarInstagram
-			if (theinstagram != "" && theinstagram != "no" ) {
-			  verseLinkEl2.style.display = 'block';
-			  verseLink2 = theinstagram;
-			} else {
-			  verseLinkEl2.style.display = 'none';
-			}
-			
-			// if mostrarWhatsapp
-			if (thewhatsapp != "" && thewhatsapp != "no") {
-			  verseLinkEl3.style.display = 'block';
-			  verseLink3 = "https://wa.me/" + thewhatsapp;
-			} else {
-			  verseLinkEl3.style.display = 'none';
-			}
-			
-			// if mostrarSpotify
-			if (thespotify != "" && thespotify != "no") {
-			  verseLinkEl.style.display = 'block';
-			  verseLink = "https://open.spotify.com/playlist/" + thespotify;
-			} else {
-			  verseLinkEl.style.display = 'none';
-			}
-			
-			// if mostrarNumeroSuerte
-			if (mostrarNumeroSuerte == "si") {
-			  lucknumberTextEl.style.display = 'block';
-			} else {
-			  lucknumberTextEl.style.display = 'none';
-			}
-			
-			// if mostrarPublicidad
-			if (thepublicidad != "" && thepublicidad != "no"){
-				verseLinkEl4.style.display = 'block';
-				verseLink4 = thepublicidad;
-			}else{
-				verseLinkEl4.style.display = 'none';
-			}
-			
-	        if (nombrepublicidad != "" && nombrepublicidad != "no"){
-				verseLinkEl4.innerHTML  = "<i>"+nombrepublicidad+"</i>";				
-			}else{
-				verseLinkEl4.innerHTML = 'Ad';
-			}	
-			
-        });
+				if (mostrarVersiculo != "si" && mostrarMotivacional != "si"
+					 && (theinstagram == "" || theinstagram == "no")
+					 && (thewhatsapp == "" || thewhatsapp == "no")
+					 && (thespotify == "" || thespotify == "no")
+					 && mostrarNumeroSuerte != "si"
+					 && (thepublicidad == "" || thepublicidad == "no")
+					 
+				   ){
+					console.log("nohtml");
+					slides.shift();
+				}
+				
+				//console.log("mostrarVersiculo:"+mostrarVersiculo);
+				if (mostrarVersiculo == "si") {
+				  verseTextEl.style.display = 'block';
+				} else {
+				  verseTextEl.style.display = 'none';
+				}
+				
+				if (mostrarMotivacional == "si") {
+				  quoteTextEl.style.display = 'block';
+				} else {
+				  quoteTextEl.style.display = 'none';
+				}
+				
+				// if mostrarInstagram
+				if (theinstagram != "" && theinstagram != "no" ) {
+				  verseLinkEl2.style.display = 'block';
+				  verseLink2 = theinstagram;
+				} else {
+				  verseLinkEl2.style.display = 'none';
+				}
+				
+				// if mostrarWhatsapp
+				if (thewhatsapp != "" && thewhatsapp != "no") {
+				  verseLinkEl3.style.display = 'block';
+				  verseLink3 = "https://wa.me/" + thewhatsapp;
+				} else {
+				  verseLinkEl3.style.display = 'none';
+				}
+				
+				// if mostrarSpotify
+				if (thespotify != "" && thespotify != "no") {
+				  verseLinkEl.style.display = 'block';
+				  verseLink = "https://open.spotify.com/playlist/" + thespotify;
+				} else {
+				  verseLinkEl.style.display = 'none';
+				}
+				
+				// if mostrarNumeroSuerte
+				if (mostrarNumeroSuerte == "si") {
+				  lucknumberTextEl.style.display = 'block';
+				} else {
+				  lucknumberTextEl.style.display = 'none';
+				}
+				
+				// if mostrarPublicidad
+				if (thepublicidad != "" && thepublicidad != "no"){
+					verseLinkEl4.style.display = 'block';
+					verseLink4 = thepublicidad;
+				}else{
+					verseLinkEl4.style.display = 'none';
+				}
+				
+				if (nombrepublicidad != "" && nombrepublicidad != "no"){
+					verseLinkEl4.innerHTML  = "<i>"+nombrepublicidad+"</i>";				
+				}else{
+					verseLinkEl4.innerHTML = 'Ad';
+				}	
+				
+			});
 
-    
+		}
 
 
     
@@ -413,6 +435,7 @@
       // Esperamos un poco para que la salida no sea brusca
       setTimeout(() => {
         if (slide.type === "image") {
+		  console.log ("it is image");
           // cuando cargue la imagen, la mostramos con fade-in
           imgElement.onload = () => {
             imgElement.classList.add("show");
@@ -421,6 +444,7 @@
           imgElement.alt = slide.file;
 
         } else if (slide.type === "html") {
+		  console.log ("it is not image");
           verseLinkEl.href  = verseLink;
           verseLinkEl2.href = verseLink2;
           verseLinkEl3.href = verseLink3;
@@ -437,29 +461,34 @@
 
           htmlElement.classList.add("show");
         }
-      }, 300); // pequeño delay para que el fade-out se sienta más suave. 200
+      }, 500); // pequeño delay para que el fade-out se sienta más suave. 200
     }
 
 	
 
-    function initSlideshow() {
+    async function initSlideshow() {
+	
+	
       if (slides.length === 0) {
         showMessage("No hay slides configurados.");
         return;
       }
-
+      console.log("starting");
+	  await startAll();
       showSlide(currentIndex);
        	  
       setInterval(() => {
         currentIndex = (currentIndex + 1) % slides.length;
 		console.log("currentIndex"+currentIndex);
-        /*if (currentIndex == 0){
+		
+        showSlide(currentIndex);
+		/*if (currentIndex == 0){
 	      displayTime=10000;
 		  console.log("displayTime"+displayTime);
 	    }else{
 	      displayTime=5000;
 	    }*/
-        showSlide(currentIndex);
+        
       }, displayTime);
     }
 

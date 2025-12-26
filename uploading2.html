@@ -212,7 +212,11 @@
 	    Quieres n&uacute;mero de suerte?<input type="checkbox" name="quieresnumerosuerte" 
 		       value="value1" id="quieresnumerosuerte">		   
       </div>
-	  
+	  <br>
+	  <div class="field">
+	    Quieres mensaje motivacional?<input type="checkbox" name="quieresmotivacional" 
+		       id="quieresmotivacional">		   
+      </div>
 	  <div class="field">
 	    <label for="linkpublicidad">Link adicional</label>
         <input type="text" id="linkpublicidad" placeholder="" value="" />
@@ -328,7 +332,7 @@
 		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
 		  const inputLlave = document.getElementById('llave');
 
-		  if ( inputLlave.value.substring(0,1) != "c" && inputLlave.value.length < 100 ){
+		  if ( inputLlave.value.substring(0,1) != "c" || inputLlave.value.length > 100 ){
 			alert("LLave invalida.");
 			return false;
 		  }
@@ -448,7 +452,8 @@
 		
 		document.getElementById('quieresversiculo').checked=false;
 		document.getElementById('quieresnumerosuerte').checked=false;
-		
+		document.getElementById('quieresmotivacional').checked=false;
+				
     });
 	
 	  let llavee = document.getElementById("llave");
@@ -499,7 +504,7 @@
 	
 	document.getElementById("defaultimages").addEventListener("click", async () => {	
 
-		document.getElementById('quieresversiculo').checked=true;
+		//document.getElementById('quieresversiculo').checked=true;
 
 		document.getElementById("imagenes").value =
 	         "https://i.imgur.com/ZYbySOV.jpg" +
@@ -586,6 +591,12 @@
 						    document.getElementById("quieresversiculo").checked = false;
 						}
 						
+						if ( jsonData.motivacional == "si" ){
+							document.getElementById("quieresmotivacional").checked = true;
+						}else{
+						    document.getElementById("quieresmotivacional").checked = false;
+						}						
+						
 						if ( jsonData.numerosuerte == "si" ){
 							document.getElementById("quieresnumerosuerte").checked = true;
 						}else{
@@ -651,18 +662,23 @@
 			
 			try {
 				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
-					console.log("Error de entrada");
+					console.log("Error de entrada.");
 					return;
 				}
 				//toDo
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
+				let quieresMotivacional = "no";
 				if ( document.getElementById("quieresversiculo").checked ) {
 					quiereVersiculo = "si";
 				}
 			    if ( document.getElementById("quieresnumerosuerte").checked ) {
 					quiereNumeroSuerte = "si";
 				}
+				if ( document.getElementById("quieresmotivacional").checked ) {
+					quieresMotivacional = "si";
+				}
+				
 				
 				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
 				console.log("imagesToUpdate:"+imagesToUpdate);
