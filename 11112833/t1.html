@@ -83,16 +83,52 @@
       padding: 8px 14px;
       border-radius: 8px;
       font-size: 14px;
+      z-index: 9999;
     }
 
     /* Clave: lo oculto NO captura clics */
     #slide-img, #slide-video, #slide-html { pointer-events: none; }
     #slide-img.show, #slide-video.show, #slide-html.show { pointer-events: auto; }
 
+    /* ====== NUEVO: controles next/prev ====== */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      border-radius: 999px;
+      width: 52px;
+      height: 52px;
+      font-size: 26px;
+      cursor: pointer;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      z-index: 9000; /* por encima del video/html */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-btn:hover { background: rgba(0,0,0,0.75); }
+
+    #btn-prev { left: 14px; }
+    #btn-next { right: 14px; }
+
+    /* Para que en mobile no tapen demasiado */
     @media (max-width: 768px) {
       #slide-html-inner { max-width: 95%; }
       #slide-html a { font-size: 1.6rem; }
       #slide-html p { font-size: 1.5rem; line-height: 1.4; }
+
+      .nav-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+      }
+      #btn-prev { left: 10px; }
+      #btn-next { right: 10px; }
     }
   </style>
 </head>
@@ -101,7 +137,6 @@
   <div id="slideshow">
     <img id="slide-img" src="" alt="Imagen" />
 
-    <!-- Quité autoplay/loop para que ended funcione y para que no pause el slideshow sin que tú le des play -->
     <video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>
       <source src="temm.mp4" type="video/mp4" />
       Tu navegador no soporta la etiqueta <code>video</code>.
@@ -125,6 +160,10 @@
         <a id="verse-link4" href="#" rel="noopener noreferrer"><i>Ad</i></a>
       </div>
     </div>
+
+    <!-- ====== NUEVO: botones ====== -->
+    <button id="btn-prev" class="nav-btn" aria-label="Anterior">◀</button>
+    <button id="btn-next" class="nav-btn" aria-label="Siguiente">▶</button>
   </div>
 
   <div id="message" style="display:none;"></div>
@@ -157,6 +196,10 @@
 
     const messageBox   = document.getElementById("message");
 
+    // ====== NUEVO: botones ======
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+
     let currentIndex = 0;
     const displayTime = getDisplayTime(); // tu función (ej 7000)
     let slideshowTimer = null;
@@ -165,7 +208,7 @@
     function startSlideshow() {
       stopSlideshow();
       slideshowTimer = setInterval(() => {
-        nextSlide();
+        nextSlide(false); // auto
       }, displayTime);
     }
 
@@ -176,12 +219,47 @@
       }
     }
 
-    function nextSlide() {
+    function nextSlide(isManual = true) {
       if (!slides.length) return;
       currentIndex = (currentIndex + 1) % slides.length;
       console.log("currentIndex:", currentIndex);
-      showSlide(currentIndex);
+      showSlide(currentIndex, isManual);
     }
+
+    function prevSlide(isManual = true) {
+      if (!slides.length) return;
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      console.log("currentIndex:", currentIndex);
+      showSlide(currentIndex, isManual);
+    }
+
+    // ====== NUEVO: navegación manual ======
+    function goNextManual() {
+      // Si está reproduciendo video, lo paras y reseteas (para que no quede sonando)
+      videoElement.pause();
+      videoElement.currentTime = 0;
+
+      nextSlide(true);
+      // reinicia el timer para que no cambie de inmediato después del click
+      startSlideshow();
+    }
+
+    function goPrevManual() {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+
+      prevSlide(true);
+      startSlideshow();
+    }
+
+    btnNext.addEventListener("click", goNextManual);
+    btnPrev.addEventListener("click", goPrevManual);
+
+    // Teclado: flechas
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") goNextManual();
+      if (e.key === "ArrowLeft") goPrevManual();
+    });
 
     // Pausa slideshow cuando el video se reproduce
     videoElement.addEventListener("play", () => {
@@ -191,7 +269,7 @@
     // Reanuda y pasa al siguiente slide cuando termina el video
     videoElement.addEventListener("ended", () => {
       startSlideshow();
-      nextSlide();
+      nextSlide(false);
     });
 
     function showMessage(text) {
@@ -245,7 +323,6 @@
                   const imgg = new Image();
                   imgg.src = unaimagen;
                 } else if (unaimagen.toLowerCase().endsWith("mp4")) {
-                  // (esto ya está bien así)
                   theType = "video";
                   console.log("a videoo");
                 }
@@ -311,8 +388,8 @@
         });
     }
 
-    // ----------------- Mostrar slides (con pausa de video al cambiar) -----------------
-    function showSlide(index) {
+    // ----------------- Mostrar slides -----------------
+    function showSlide(index, isManual) {
       if (!slides.length) {
         showMessage("No hay slides configurados.");
         return;
@@ -325,12 +402,11 @@
       htmlElement.classList.remove("show");
       videoElement.classList.remove("show");
 
-      // Detén y resetea video al cambiar de slide (CLAVE)
+      // Detén y resetea video al cambiar de slide
       videoElement.pause();
       videoElement.currentTime = 0;
 
       // Si NO es video, asegúrate de que el slideshow esté corriendo
-      // (por si venías de un video que lo pausó)
       if (slide.type !== "video") startSlideshow();
 
       setTimeout(() => {
@@ -350,9 +426,6 @@
 
           videoSource.src = slide.file;
           videoElement.load();
-
-          // No autoplay: el usuario le da play con el control.
-          // Cuando le dé play, el listener "play" pausará el slideshow.
 
         } else if (slide.type === "html") {
           console.log("it is html");
@@ -385,9 +458,8 @@
       await startAll();
 
       currentIndex = 0;
-      showSlide(currentIndex);
+      showSlide(currentIndex, false);
 
-      // Arranca el timer normal (se pausa cuando el usuario reproduce el video)
       startSlideshow();
     }
 
