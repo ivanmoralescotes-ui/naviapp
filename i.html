@@ -13,14 +13,18 @@
     console.log("min is "+parteMinutoActual);
     // Aquí decides qué imagen usar según la hora
     let rutaImagen = "./11111111/error.jpg";
-    const op1 = "t1.html";//tem.jpg
-    const op2 = "t3.html";//tem2.jpg,temm.mp4
+    const op1 = "t1";//tem.jpg
+    const op2 = "t3";//tem2.jpg,temm.mp4 html
 	
-	const params = new URLSearchParams(window.location.search);
+	//console.log("href:", window.location.href);
+    //console.log("search:", window.location.search);
+    //console.log("hash:", window.location.hash);
 
-    const f = params.get('f');
+	const params2 = new URLSearchParams(window.location.search);
+
+    const f = params2.get('f');
 	//f will be used and decoded 
-    console.log('Val f:', f);
+    console.log('Val f:' + f);
 	
 	var folder = "11111111";
 	//alert("f "+f);
@@ -49,7 +53,7 @@
     }
 
     // Redirección
-    window.location.href = rutaImagen;
+    window.location.href = rutaImagen + "?cd=" + f;
     // Si prefieres reemplazar el historial:
     // window.location.replace(rutaImagen);
   </script>

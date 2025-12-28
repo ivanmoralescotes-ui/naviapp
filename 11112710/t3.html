@@ -176,6 +176,9 @@
     let lucknumberText  = "Número de suerte: ";
     let verseLink4 = "#";
 
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get('cd');
+	  
     let slides = [
       { type: "html" }
     ];
@@ -468,52 +471,93 @@
 	// Tu función secreta que quieres ejecutar
 	function miFuncionS() {
 		//alert("¡Función activada!");
-		const thekey = "cWMTExMjExOTc=I";
-		window.open("https://navi111.netlify.app/uploading2?cd=" + thekey, "_blank");
+		const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
+		window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
 	}
 
-let presionLarga = false;
-let toqueArriba = false;
 
-// Detectar presión larga en el centro
-document.addEventListener("touchstart", function (e) {
-  const touch = e.touches[0];
-  const mitadPantalla = window.innerWidth / 2;
-  
-  if (Math.abs(touch.clientX - mitadPantalla) < 50) {
-    // Si toca en la mitad horizontal, esperamos la presión larga
-    tiempoPresionado = setTimeout(function () {
-      presionLarga = true;
-    }, 1000); // 1 segundo de presión larga
+// 2) Config
+const timeoutMs = 1200; // tiempo máximo para completar la secuencia
+const moveTolerancePx = 18; // tolerancia para que no cuente un scroll como tap
+
+let step = 0; // 0: espera arriba1, 1: arriba2, 2: abajo1, 3: abajo2
+let timerId = null;
+
+let startX = 0;
+let startY = 0;
+
+function resetSequence() {
+  step = 0;
+  if (timerId) clearTimeout(timerId);
+  timerId = null;
+}
+
+function armTimeout() {
+  if (timerId) clearTimeout(timerId);
+  timerId = setTimeout(resetSequence, timeoutMs);
+}
+
+function getZone(touch) {
+  const y = touch.clientY;
+  const h = window.innerHeight;
+
+  if (y < h / 3) return "top";
+  if (y > (2 * h) / 3) return "bottom";
+  return "middle";
+}
+
+function advanceIfMatches(zone) {
+  // Patrón: top, top, bottom, bottom
+  const expected =
+    step === 0 || step === 1 ? "top" :
+    step === 2 || step === 3 ? "bottom" :
+    null;
+
+  if (zone !== expected) {
+    // Si falló, reinicia. Si justo tocó "top", puede arrancar de una vez.
+    resetSequence();
+    if (zone === "top") {
+      step = 1;      // cuenta como el primer "top"
+      armTimeout();
+    }
+    return;
   }
-});
 
-document.addEventListener("touchend", function () {
-  clearTimeout(tiempoPresionado);
-});
+  // Coincidió
+  step += 1;
+  armTimeout();
 
-document.addEventListener("touchstart", function (e) {
-  const touch = e.touches[0];
-  const unTercioPantalla = window.innerHeight / 3;
-
-  if (presionLarga && touch.clientY < unTercioPantalla) {
-    // Si ya se hizo la presión larga y el toque es en el tercio superior
-    toqueArriba = true;
-  }
-});
-
-document.addEventListener("touchstart", function (e) {
-  const touch = e.touches[0];
-  const dosTercioPantalla = (window.innerHeight / 3) * 2;
-  
-  if (toqueArriba && touch.clientY > dosTercioPantalla) {
-    // Si ya se hizo el toque arriba y ahora el toque es en el tercio inferior
+  if (step === 4) {
+    resetSequence();
     miFuncionS();
-    // Reseteamos para que no se active de nuevo hasta repetir la secuencia
-    presionLarga = false;
-    toqueArriba = false;
   }
-});
+}
+
+// Guardamos punto inicial (para filtrar swipes/scroll)
+document.addEventListener("touchstart", (e) => {
+  if (!e.touches || e.touches.length !== 1) return;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+}, { passive: true });
+
+// Contamos el "tap" al soltar, si no se movió mucho
+document.addEventListener("touchend", (e) => {
+  const touch = e.changedTouches && e.changedTouches[0];
+  if (!touch) return;
+
+  const dx = Math.abs(touch.clientX - startX);
+  const dy = Math.abs(touch.clientY - startY);
+  if (dx > moveTolerancePx || dy > moveTolerancePx) return; // fue swipe/scroll
+
+  const zone = getZone(touch);
+  if (zone === "middle") return; // ignoramos el centro (opcional)
+
+  advanceIfMatches(zone);
+}, { passive: true });
+
+// Por si el navegador cancela el gesto (scroll fuerte, etc.)
+document.addEventListener("touchcancel", resetSequence, { passive: true });
+
 
 
   </script>
