@@ -253,9 +253,9 @@
 		<button id="usarimagen" type="button" class="btn-alto">Use</button>
 		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
     </div>
+	<br>
 	<div><center><a href="https://imgur.com/" target="_blank">imgur</a></center></div>
 	<div><br><br><center>573006291217</center></div>
-
 	
   </div>
 
@@ -509,7 +509,8 @@
 		const  urlImagenAUsar = document.getElementById("urlimagen").value; 
 		if ( document.getElementById("urlimagen").value == "" 
 		          || !urlImagenAUsar.includes("http")
-                  || !urlImagenAUsar.toLowerCase().includes(".j")				  
+                  || !  (urlImagenAUsar.toLowerCase().includes(".j") 
+					     || urlImagenAUsar.toLowerCase().includes(".mp4")  )				  
 		   ){
 			 alert("Invalid url");
 		     return;
@@ -721,6 +722,7 @@
 				  whatsapp: document.getElementById("tuwhatsapp").value,
 				  nombre: document.getElementById("tunombre").value,
 				  clave: laclave,
+				  motivacional: quieresMotivacional,
 				  
 				  versiculo: quiereVersiculo,
 				  numerosuerte: quiereNumeroSuerte,
