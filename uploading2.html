@@ -177,7 +177,7 @@
 	  
 	  <div class="field">
         <label for="listaspotify">Spotify List</label>
-        <input type="text" id="listaspotify" placeholder="" title="ejemplo: 6zV9uAXv1YVor3H3m5PAej" maxlength="30" />
+        <input type="text" id="listaspotify" placeholder="" title="ejemplo: 6zV9uAXv1YVor3H3m5PAej" maxlength="120" />
       </div>
 	  
 	  <div class="field">
@@ -462,9 +462,12 @@
 				
     });
 	
-	  let llavee = document.getElementById("llave");
+	  
 
-      // event listener
+
+      // Event listeners
+	  
+	  let llavee = document.getElementById("llave");
 	  llavee.addEventListener("blur", () => {
 		
 		if (llavee.value.length == "11" && llavee.value.startsWith("c") 
@@ -478,12 +481,28 @@
 	  let linkValue = document.getElementById("linkpublicidad");
 	  linkValue.addEventListener("blur", () => {
 		
-		if ( linkValue.value == "    " ){
+		if ( linkValue.value == "    "  || linkValue.value == "   "){
 			console.log("to process a key");
 			
 			linkValue.value="javascript:void(0);";
 		}
 	  });
+	  
+	  let spotifyValue = document.getElementById("listaspotify");
+	  spotifyValue.addEventListener("blur", () => {		
+		if ( spotifyValue.value == "default" ){
+			spotifyValue.value="6zV9uAXv1YVor3H3m5PAej";
+		}
+	  });
+	  
+	  let instagramValue = document.getElementById("tuinstagram");
+	  instagramValue.addEventListener("blur", () => {		
+		if ( instagramValue.value == "default" ){
+			instagramValue.value="https://www.instagram.com/";
+		}
+	  });
+	  
+	////////////////////////////////////////////////////////
 		
 	document.getElementById("usarimagen").addEventListener("click", async () => {
 		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));

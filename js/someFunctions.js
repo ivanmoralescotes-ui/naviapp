@@ -306,6 +306,6 @@ function getGistId(filename){
 
 function getDisplayTime(){
 	
-	return 7000; // 7000
+	return 5000; // 7000
 }
 
