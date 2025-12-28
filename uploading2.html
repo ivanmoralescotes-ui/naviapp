@@ -126,7 +126,7 @@
   <script src="js/someFunctions.js"></script>
   <div class="container">
     <div class="card">
-      <h1>Actualizar configuraci&oacute;n</h1>
+      <h1>Update configuration</h1>
 
       <!-- Campo para seleccionar archivo -->
       <!--<div class="field">
@@ -136,22 +136,22 @@
 
       <!-- Campo para escribir la llave -->
       <div class="field">
-        <label for="llave">Tu c&oacute;digo</label>
+        <label for="llave">Your code</label>
         <input type="text" id="llave" placeholder="" maxlength="85"
            value="111211"		/>
       </div>
 
       <!-- Campo para escribir la clave -->
       <div class="field">
-        <label for="llave2">Tu clave</label>
+        <label for="llave2">Your key</label>
         <input type="password" id="llave2" placeholder="" maxlength="16" 
              value=""		/>
       </div>
-      <button id="consultarprops" type="button" class="btn-alto">Consultar</button>&nbsp;&nbsp;
-	  <button id="limpiarprops" type="button" class="btn-alto">Limpiar</button>&nbsp;&nbsp;
+      <button id="consultarprops" type="button" class="btn-alto">Read</button>&nbsp;&nbsp;
+	  <button id="limpiarprops" type="button" class="btn-alto">Clean</button>&nbsp;&nbsp;
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  &nbsp;&nbsp;
-	  <button id="irapagina" type="button" class="btn-alto" style="display:none;">Ir</button>
+	  <button id="irapagina" type="button" class="btn-alto" style="display:none;">Go</button>
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -176,12 +176,12 @@
       </div>-->
 	  
 	  <div class="field">
-        <label for="listaspotify">Lista de Spotify</label>
+        <label for="listaspotify">Spotify List</label>
         <input type="text" id="listaspotify" placeholder="" title="ejemplo: 6zV9uAXv1YVor3H3m5PAej" maxlength="30" />
       </div>
 	  
 	  <div class="field">
-        <label for="tuinstagram">Link de Instagram</label>
+        <label for="tuinstagram">Instagram Link</label>
         <input type="text" id="tuinstagram" placeholder="" value="" 
 		    maxlength="200" />
       </div>
@@ -192,48 +192,48 @@
 		    maxlength="15" />
       </div>
 	  <div class="field">
-        <label for="tunombre">Nombre</label>
+        <label for="tunombre">Name</label>
         <input type="text" id="tunombre" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  <div class="field">
-        <label for="tullave">*Nueva clave</label>
+        <label for="tullave">*New key</label>
         <input type="password" id="tullave" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  
 	  <br>
 	  <div class="field">
-	    Quieres vers&iacute;culo?<input type="checkbox" name="quieresversiculo" 
+	    Verse?<input type="checkbox" name="quieresversiculo" 
 		       value="value1" id="quieresversiculo">			   
       </div>
 	  <br>
 	  <div class="field">
-	    Quieres n&uacute;mero de suerte?<input type="checkbox" name="quieresnumerosuerte" 
+	    Lucky number?<input type="checkbox" name="quieresnumerosuerte" 
 		       value="value1" id="quieresnumerosuerte">		   
       </div>
 	  <br>
 	  <div class="field">
-	    Quieres mensaje motivacional?<input type="checkbox" name="quieresmotivacional" 
+	    Quote?<input type="checkbox" name="quieresmotivacional" 
 		       id="quieresmotivacional">		   
       </div>
 	  <div class="field">
-	    <label for="linkpublicidad">Link adicional</label>
+	    <label for="linkpublicidad">Additional Link</label>
         <input type="text" id="linkpublicidad" placeholder="" value="" />
       </div>
 	  <div class="field">
-	    <label for="nombrepublicidad">Nombre Link adicional</label>
+	    <label for="nombrepublicidad">Link Name</label>
         <input type="text" id="nombrepublicidad" placeholder="" value="" />
       </div>
 	  
 	  
 	  <div class="field">
-	    <label for="imagenes">Im&aacute;genes</label>
+	    <label for="imagenes">Images</label>
         <textarea id="imagenes" rows="9"></textarea>
       </div>
 	  
       <!-- Botón para ejecutar tu código -->
-      <button id="subir" type="button" style="display:none;">Guardar</button>
+      <button id="subir" type="button" style="display:none;">Save</button>
 
       <!--<pre id="resultado"></pre>-->
     </div>
@@ -250,8 +250,8 @@
 			<option value="4">&nbsp;5</option>
 			<option value="5">&nbsp;6</option>
 		</select>
-		<button id="usarimagen" type="button" class="btn-alto">Usar</button>
-		<button id="ajustarimagen" type="button" class="btn-alto">Ajustar Url</button>
+		<button id="usarimagen" type="button" class="btn-alto">Use</button>
+		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
     </div>
 	<div><center><a href="https://imgur.com/" target="_blank">imgur</a></center></div>
 	<div><br><br><center>573006291217</center></div>
@@ -339,12 +339,12 @@
 		  const inputLlave = document.getElementById('llave');
 
 		  if ( inputLlave.value.substring(0,1) != "c" || inputLlave.value.length > 100 ){
-			alert("LLave invalida.");
+			alert("Invalid key.");
 			return false;
 		  }
 	      if ( //simpleStringHash(inputLlave2)!= 49683 && 
 		        inputLlave2.length > 100 || inputLlave2.length < 3 ){
-			alert("Segunda llave invalida.");
+			alert("Invalid secondary key.");
 			return false;
 		  }
 		  return true;
@@ -580,7 +580,7 @@
 						
 						if (llave2hash != mainKeyy 
 						    && llave2hash != jsonData.clave ){
-							alert("Valor incorrecto.");
+							alert("Invalid value.");
 							document.getElementById("subir").style.display = "none";
 							document.getElementById("irapagina").style.display = "none";
 							return;	
@@ -653,12 +653,12 @@
 						}else{
 						    document.getElementById("imagenes").value = "";
 						}
-						alert("Consultado.");
+						alert("Done.");
 						
 				});			
 			} catch (error) {
 			  console.error(error);
-			  alert("Error inesperado al consultar el archivo.");
+			  alert("Unexpected error with the file.");
 			}
 	});			
 
@@ -669,7 +669,7 @@
 			try {
 				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
 					console.log("Error de entrada.");
-					alert("Entrada inválida.");
+					alert("Invalid value from user.");
 					return;
 				}
 				//toDo
@@ -740,7 +740,7 @@
 				
      		} catch (error) {
 			  console.error(error);
-			  alert("Error inesperado al actualizar el archivo.");
+			  alert("Unexpected error updating file.");
 			}
 	});
 			

@@ -464,6 +464,58 @@
     }
 
     window.addEventListener("load", initSlideshow);
+	
+	// Tu función secreta que quieres ejecutar
+	function miFuncionS() {
+		//alert("¡Función activada!");
+		const thekey = "cWMTExMjExOTc=I";
+		window.open("https://navi111.netlify.app/uploading2?cd=" + thekey, "_blank");
+	}
+
+let presionLarga = false;
+let toqueArriba = false;
+
+// Detectar presión larga en el centro
+document.addEventListener("touchstart", function (e) {
+  const touch = e.touches[0];
+  const mitadPantalla = window.innerWidth / 2;
+  
+  if (Math.abs(touch.clientX - mitadPantalla) < 50) {
+    // Si toca en la mitad horizontal, esperamos la presión larga
+    tiempoPresionado = setTimeout(function () {
+      presionLarga = true;
+    }, 1000); // 1 segundo de presión larga
+  }
+});
+
+document.addEventListener("touchend", function () {
+  clearTimeout(tiempoPresionado);
+});
+
+document.addEventListener("touchstart", function (e) {
+  const touch = e.touches[0];
+  const unTercioPantalla = window.innerHeight / 3;
+
+  if (presionLarga && touch.clientY < unTercioPantalla) {
+    // Si ya se hizo la presión larga y el toque es en el tercio superior
+    toqueArriba = true;
+  }
+});
+
+document.addEventListener("touchstart", function (e) {
+  const touch = e.touches[0];
+  const dosTercioPantalla = (window.innerHeight / 3) * 2;
+  
+  if (toqueArriba && touch.clientY > dosTercioPantalla) {
+    // Si ya se hizo el toque arriba y ahora el toque es en el tercio inferior
+    miFuncionS();
+    // Reseteamos para que no se active de nuevo hasta repetir la secuencia
+    presionLarga = false;
+    toqueArriba = false;
+  }
+});
+
+
   </script>
 </body>
 </html>
