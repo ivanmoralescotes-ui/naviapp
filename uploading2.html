@@ -126,7 +126,7 @@
   <script src="js/someFunctions.js"></script>
   <div class="container">
     <div class="card">
-      <h1>Update configuration</h1>
+      <h1>Updating page (with <a href="https://imgur.com/" target="_blank">imgur</a>)</h1>
 
       <!-- Campo para seleccionar archivo -->
       <!--<div class="field">
@@ -199,6 +199,11 @@
 	  <div class="field">
         <label for="tullave">*New key</label>
         <input type="password" id="tullave" placeholder="" value="" 
+		    maxlength="20" />
+      </div>
+	  <div class="field">
+        <label for="confirmatullave">*Confirm new key</label>
+        <input type="password" id="confirmatullave" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  
@@ -692,6 +697,14 @@
 					alert("Invalid value from user.");
 					return;
 				}
+				
+				if ( document.getElementById("tullave").value !=  
+						document.getElementById("confirmatullave").value) {
+					console.log("Error de entrada...");
+					alert("Invalid values from user.");
+					return;
+				}
+				
 				//toDo
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
