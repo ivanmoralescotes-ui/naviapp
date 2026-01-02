@@ -192,9 +192,19 @@
 		    maxlength="15" />
       </div>
 	  <div class="field">
-        <label for="tunombre">Name</label>
-        <input type="text" id="tunombre" placeholder="" value="" 
-		    maxlength="20" />
+        <label for="tuspalabras">Words</label>
+        <input type="text" id="tuspalabras" placeholder="" value="" 
+		    maxlength="150" />
+      </div>
+	  
+	  
+	  <div class="field">
+	    <label for="linkpublicidad">Additional Link</label>
+        <input type="text" id="linkpublicidad" placeholder="" value="" />
+      </div>
+	  <div class="field">
+	    <label for="nombrepublicidad">Link Name</label>
+        <input type="text" id="nombrepublicidad" placeholder="" value="" />
       </div>
 	  <div class="field">
         <label for="tullave">*New key</label>
@@ -204,6 +214,11 @@
 	  <div class="field">
         <label for="confirmatullave">*Confirm new key</label>
         <input type="password" id="confirmatullave" placeholder="" value="" 
+		    maxlength="20" />
+      </div>
+	  <div class="field">
+        <label for="tunombre">Name</label>
+        <input type="text" id="tunombre" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  
@@ -222,14 +237,7 @@
 	    Quote?<input type="checkbox" name="quieresmotivacional" 
 		       id="quieresmotivacional">		   
       </div>
-	  <div class="field">
-	    <label for="linkpublicidad">Additional Link</label>
-        <input type="text" id="linkpublicidad" placeholder="" value="" />
-      </div>
-	  <div class="field">
-	    <label for="nombrepublicidad">Link Name</label>
-        <input type="text" id="nombrepublicidad" placeholder="" value="" />
-      </div>
+	  
 	  
 	  
 	  <div class="field">
@@ -259,8 +267,8 @@
 		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
     </div>
 	<br>
-	<div><center><a href="https://imgur.com/" target="_blank">imgur</a></center></div>
-	<div><br><br><center>573006291217</center></div>
+	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
+	<div><br><br><center>573113068430</center></div>
 	
   </div>
 
@@ -456,6 +464,7 @@
 		document.getElementById('tuinstagram').value="";
 		document.getElementById('tunombre').value="";
 		document.getElementById('tullave').value="";
+		document.getElementById('tuspalabras').value="";
 		
 		document.getElementById('llave2').value="";
 		document.getElementById('linkpublicidad').value="";
@@ -504,6 +513,14 @@
 	  instagramValue.addEventListener("blur", () => {		
 		if ( instagramValue.value == "default" ){
 			instagramValue.value="https://www.instagram.com/";
+		}
+	  });
+	  
+	  let tullaveValue = document.getElementById("tullave");
+	  tullaveValue.addEventListener("blur", () => {		
+		if ( tullaveValue.value == "   " ){
+			tullaveValue.value=document.getElementById("llave2").value;
+			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 		}
 	  });
 	  
@@ -670,6 +687,12 @@
 						    document.getElementById("nombrepublicidad").value = "";
 						}
 						
+						if ( jsonData.palabras && jsonData.palabras !="" 
+						        && jsonData.palabras != "no" ){
+							document.getElementById("tuspalabras").value = jsonData.palabras;
+						}else{
+						    document.getElementById("tuspalabras").value = "";
+						}
 						
 						if ( jsonData.images != null && jsonData.images.length > 0){
 						
@@ -678,6 +701,9 @@
 						}else{
 						    document.getElementById("imagenes").value = "";
 						}
+						
+						document.getElementById("tullave").value =""
+						document.getElementById("confirmatullave").value =""
 						alert("Done.");
 						
 				});			
@@ -742,7 +768,8 @@
 				  spotify:  document.getElementById("listaspotify").value ,
 				  linkpublicidad: document.getElementById("linkpublicidad").value,
 				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
-				  images: imagesToUpdate 
+				  images: imagesToUpdate ,
+				  palabras: document.getElementById("tuspalabras").value
 	 			};	
 				//console.log( "newGist:" + JSON.stringify(newGist) );
 				
