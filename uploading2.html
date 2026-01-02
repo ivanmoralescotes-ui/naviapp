@@ -265,6 +265,7 @@
 		</select>
 		<button id="usarimagen" type="button" class="btn-alto">Use</button>
 		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
+		<button id="ajustarmp4" type="button" class="btn-alto">Mp4</button>
     </div>
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
@@ -489,7 +490,13 @@
 			console.log("to process the key");
 			
 			llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
+		} else if ( llavee.value.endsWith("???") ) {
+		
+		    alert("k: " //+ llavee.value.slice(2, -5)+ "__"
+			      + atob( llavee.value.slice(2, -5) ).slice(3)  );
+		    llavee.value = llavee.value.slice(0,-3);
 		}
+		
 	  });
 	  
 	  let linkValue = document.getElementById("linkpublicidad");
@@ -592,7 +599,23 @@
 			  console.log("urlimagen2:"+urlimagen);
 			  document.getElementById('urlimagen').value=urlimagen;
 	});
-
+	
+	document.getElementById("ajustarmp4").addEventListener("click", async () => {
+			  let urlimagen = document.getElementById('urlimagen').value;
+			  console.log("urlimagen :"+urlimagen);
+			  
+			  if ( urlimagen.toLowerCase().slice(-4) != ".mp4" 
+				  ){
+				   
+				 urlimagen = urlimagen + ".mp4";
+			  }
+			  
+			  urlimagen = urlimagen.replaceAll("https://imgur.com"
+				  ,"https://i.imgur.com");
+			  console.log("urlimagen2 :"+urlimagen);
+			  document.getElementById('urlimagen').value=urlimagen;
+	});
+	
 
 	// para leer el gist pero antes de tener el token 
 	document.getElementById("consultarprops").addEventListener("click", async () => {  
