@@ -352,7 +352,7 @@
               && (thespotify == "" || thespotify == "no")
               && mostrarNumeroSuerte != "si"
               && (thepublicidad == "" || thepublicidad == "no")
-			  && (thewords == "" || thewords == "no")
+			  && (!thewords || thewords == "" || thewords == "no")
 			  ) {
             console.log("nohtml");
             slides.shift();
