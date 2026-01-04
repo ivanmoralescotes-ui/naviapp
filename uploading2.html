@@ -266,6 +266,7 @@
 		<button id="usarimagen" type="button" class="btn-alto">Use</button>
 		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
 		<button id="ajustarmp4" type="button" class="btn-alto">Mp4</button>
+		<button id="iraunaimagen" type="button" class="btn-alto">Go</button>
     </div>
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
@@ -563,8 +564,8 @@
 
 		document.getElementById("imagenes").value =
 	         "https://i.imgur.com/ZYbySOV.jpg" +
-			   "\nhttps://i.imgur.com/2RBU19s.jpg" +
-	           "\nhttps://i.imgur.com/uVFofUl.jpg"
+			   "\nhttps://i.imgur.com/2RBU19s.jpg" 
+	           //"\nhttps://i.imgur.com/uVFofUl.jpg"
                //"\nhttps://i.imgur.com/E7T8pTv.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"
@@ -600,20 +601,23 @@
 			  document.getElementById('urlimagen').value=urlimagen;
 	});
 	
-	document.getElementById("ajustarmp4").addEventListener("click", async () => {
+	document.getElementById("iraunaimagen").addEventListener("click", async () => {
 			  let urlimagen = document.getElementById('urlimagen').value;
-			  console.log("urlimagen :"+urlimagen);
-			  
-			  if ( urlimagen.toLowerCase().slice(-4) != ".mp4" 
-				  ){
-				   
-				 urlimagen = urlimagen + ".mp4";
-			  }
-			  
-			  urlimagen = urlimagen.replaceAll("https://imgur.com"
-				  ,"https://i.imgur.com");
-			  console.log("urlimagen2 :"+urlimagen);
-			  document.getElementById('urlimagen').value=urlimagen;
+			  console.log("iraunaimagen ");
+		      
+             let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
+			 const indexOfImage = document.getElementById('imagenPorAjustar').value;
+			 
+			 console.log("currentImages.length"+currentImages.length);
+			 
+			 if (currentImages.length > indexOfImage){
+			 
+				const theimagee = currentImages[indexOfImage];
+				window.open(theimagee, "_blank");	
+				
+			 }else{
+				alert("Invalid number for that list");
+			 }
 	});
 	
 
