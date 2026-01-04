@@ -156,6 +156,9 @@
 
         <p id="yourwords-text">Aquí van las palabras.</p>
         <br>
+		
+		<p id="aiwords-text">Aquí va ia.</p>
+        <br>
 
         <p id="lucknumber-text">Aquí va el numero.</p>
         <br>
@@ -200,6 +203,7 @@
     const quoteTextEl  = document.getElementById("quote-text");
     const lucknumberTextEl  = document.getElementById("lucknumber-text");
     const yourwords = document.getElementById("yourwords-text");
+	const aiwords = document.getElementById("aiwords-text");
 	
     const messageBox   = document.getElementById("message");
 
@@ -293,30 +297,34 @@
     const thefilename ="prop" + penultima + ".txt";
     thegist = getGistId(thefilename);
 
-    async function startAll() {
-      await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename)
-        .then(r => r.text())
-        .then(r2 => {
-          console.log("the object:" + r2);
-          const props = JSON.parse(r2);
+	async function startAll() {
+	  //const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/${thegist}/raw/${thefilename}');
+	  
+	  const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
+	  const r2 = await r.text();
+	  console.log("the object:" + r2);
 
-          const mostrarVersiculo = props.versiculo;
-          const mostrarMotivacional = props.motivacional;
-          const mostrarNumeroSuerte = props.numerosuerte;
+	  const props = JSON.parse(r2);
 
-          const theinstagram = props.instagram;
-          const thewhatsapp = props.whatsapp;
-          const thespotify = props.spotify;
+	  const mostrarVersiculo = props.versiculo;
+	  const mostrarMotivacional = props.motivacional;
+	  const mostrarNumeroSuerte = props.numerosuerte;
 
-          const thewords = props.palabras;
-		  
-          const thepublicidad = props.linkpublicidad;
-          const nombrepublicidad = props.nombrepublicidad;
+	  const theinstagram = props.instagram;
+	  const thewhatsapp = props.whatsapp;
+	  const thespotify = props.spotify;
 
-          const theimages = props.images;
-          let imagesList = props.images;
+	  const thewords = props.palabras;
+	  const theai1 = props.ia1;
 
-          if (theimages != null && theimages.length > 0) {
+	  const thepublicidad = props.linkpublicidad;
+	  const nombrepublicidad = props.nombrepublicidad;
+
+	  const theimages = props.images;
+	  let imagesList = props.images;
+
+	  // ... (aquí dejas tu bloque de images tal cual)
+	  if (theimages != null && theimages.length > 0) {
             console.log("first image:" + imagesList[0]);
 
             let cuentaImagen = 1;
@@ -353,58 +361,88 @@
               && mostrarNumeroSuerte != "si"
               && (thepublicidad == "" || thepublicidad == "no")
 			  && (!thewords || thewords == "" || thewords == "no")
+			  && (!theai1 || theai1 != "si")
 			  ) {
             console.log("nohtml");
             slides.shift();
           }
 
-          verseTextEl.style.display = (mostrarVersiculo == "si") ? "block" : "none";
-          quoteTextEl.style.display = (mostrarMotivacional == "si") ? "block" : "none";
+	  verseTextEl.style.display = (mostrarVersiculo == "si") ? "block" : "none";
+	  quoteTextEl.style.display = (mostrarMotivacional == "si") ? "block" : "none";
 
-          if (theinstagram != "" && theinstagram != "no") {
-            verseLinkEl2.style.display = "block";
-            verseLink2 = theinstagram;
-          } else {
-            verseLinkEl2.style.display = "none";
-          }
+	  // ... (aquí dejas el resto igual)
+      if (theinstagram != "" && theinstagram != "no") { 
+	        verseLinkEl2.style.display = "block"; 
+		    verseLink2 = theinstagram; 
+	  } else { 
+	        verseLinkEl2.style.display = "none"; 
+	  } if (thewhatsapp != "" && thewhatsapp != "no") { 
+	        verseLinkEl3.style.display = "block"; 
+			verseLink3 = "https://wa.me/" + thewhatsapp; 
+	  } else { 
+	        verseLinkEl3.style.display = "none"; 
+      } 
+	  
+	  if (thespotify != "" && thespotify != "no") { verseLinkEl.style.display = "block"; 
+	     verseLink = "https://open.spotify.com/playlist/" + thespotify; 
+	  } else { verseLinkEl.style.display = "none"; } 
+	  
+	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
+	     yourwords.textContent = thewords; } else { yourwords.style.display = "none"; } 
+		 
+	  if (theai1 == "si") {
+		aiwords.style.display = "block";
+		const aiquote = await obtainAi1Text();
+		aiwords.textContent = String(aiquote);
+	  } else {
+		aiwords.style.display = "none";
+	  }
+	  
+	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
+	  if (thepublicidad != "" && thepublicidad != "no") { 
+	     verseLinkEl4.style.display = "block"; verseLink4 = thepublicidad; 
+	  } else { 
+	     verseLinkEl4.style.display = "none"; 
+	  } 
+		 
+	  if (nombrepublicidad != "" && nombrepublicidad != "no") { 
+	     verseLinkEl4.innerHTML = "<i>" + nombrepublicidad + "</i>"; 
+	  } else { 
+	     verseLinkEl4.innerHTML = "Ad"; 
+	  
+	  } 
+	}
+	//);
+	  
+  //}
+    
+	
+	async function obtainAi1Text(){
+	    let ai1text = "0";
+		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11";
 
-          if (thewhatsapp != "" && thewhatsapp != "no") {
-            verseLinkEl3.style.display = "block";
-            verseLink3 = "https://wa.me/" + thewhatsapp;
-          } else {
-            verseLinkEl3.style.display = "none";
-          }
+        const user = "web";
+        const pass = "0000";
+        const basic = btoa(`${user}:${pass}`); // base64
 
-          if (thespotify != "" && thespotify != "no") {
-            verseLinkEl.style.display = "block";
-            verseLink = "https://open.spotify.com/playlist/" + thespotify;
-          } else {
-            verseLinkEl.style.display = "none";
-          }
-		  
-		  if (thewords != "" && thewords != "no") {
-            yourwords.style.display = "block";
-            yourwords.textContent = thewords;
-          } else {
-            yourwords.style.display = "none";
-          }
+		const res = await fetch(url, {
+		  method: "GET",
+		  headers: {
+			"Authorization": `Basic ${basic}`,
+			"Accept": "application/json",
+		  },
+		});
 
-          lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none";
+		if (!res.ok) {
+		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+		}
 
-          if (thepublicidad != "" && thepublicidad != "no") {
-            verseLinkEl4.style.display = "block";
-            verseLink4 = thepublicidad;
-          } else {
-            verseLinkEl4.style.display = "none";
-          }
-
-          if (nombrepublicidad != "" && nombrepublicidad != "no") {
-            verseLinkEl4.innerHTML = "<i>" + nombrepublicidad + "</i>";
-          } else {
-            verseLinkEl4.innerHTML = "Ad";
-          }
-        });
-    }
+		const data = await res.json();
+		console.log(data);
+        ai1text = data.output;
+				
+		return ai1text;
+	}
 
     // ----------------- Mostrar slides -----------------
     function showSlide(index, isManual) {

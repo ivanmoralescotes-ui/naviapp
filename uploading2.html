@@ -237,7 +237,10 @@
 	    Quote?<input type="checkbox" name="quieresmotivacional" 
 		       id="quieresmotivacional">		   
       </div>
-	  
+	  <div class="field">
+	    AI?<input type="checkbox" name="quieresia" 
+		       id="quieresia">		   
+      </div>
 	  
 	  
 	  <div class="field">
@@ -475,6 +478,7 @@
 		document.getElementById('quieresversiculo').checked=false;
 		document.getElementById('quieresnumerosuerte').checked=false;
 		document.getElementById('quieresmotivacional').checked=false;
+		document.getElementById('quieresia').checked=false;
 				
     });
 	
@@ -670,6 +674,12 @@
 							document.getElementById("quieresmotivacional").checked = true;
 						}else{
 						    document.getElementById("quieresmotivacional").checked = false;
+						}
+
+						if ( jsonData.ia1 == "si" ){
+							document.getElementById("quieresia").checked = true;
+						}else{
+						    document.getElementById("quieresia").checked = false;
 						}						
 						
 						if ( jsonData.numerosuerte == "si" ){
@@ -762,6 +772,7 @@
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
 				let quieresMotivacional = "no";
+				let quieresIa = "no";
 				if ( document.getElementById("quieresversiculo").checked ) {
 					quiereVersiculo = "si";
 				}
@@ -771,7 +782,9 @@
 				if ( document.getElementById("quieresmotivacional").checked ) {
 					quieresMotivacional = "si";
 				}
-				
+				if ( document.getElementById("quieresia").checked ) {
+					quieresIa = "si";
+				}
 				
 				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
 				console.log("imagesToUpdate:"+imagesToUpdate);
@@ -789,6 +802,7 @@
 				  nombre: document.getElementById("tunombre").value,
 				  clave: laclave,
 				  motivacional: quieresMotivacional,
+				  ia1: quieresIa,
 				  
 				  versiculo: quiereVersiculo,
 				  numerosuerte: quiereNumeroSuerte,
