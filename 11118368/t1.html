@@ -138,7 +138,7 @@
     <img id="slide-img" src="" alt="Imagen" />
 
     <video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>
-      <source src="temm.mp4" type="video/mp4" />
+      <source src="../temm.mp4" type="video/mp4" />
       Tu navegador no soporta la etiqueta <code>video</code>.
     </video>
 
@@ -183,7 +183,16 @@
     let verseLink4 = "#";
 
     const params = new URLSearchParams(window.location.search);
-    const urlCode = params.get('cd');
+    let urlCode = ""; //params.get('cd');
+	  
+	const aurl = new URL(window.location.href);    
+	//console.log("aurl"+aurl);  
+	const partss = aurl.pathname.split("/").filter(Boolean);
+    const numeroo = partss[0]; // "11121197"
+	//console.log("numeroo"+numeroo);
+	urlCode = "W" + btoa(numeroo) + "i";
+	
+    //console.log("k: " + urlCode);
 	  
     let slides = [
       { type: "html" }
