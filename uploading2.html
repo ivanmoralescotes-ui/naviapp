@@ -624,6 +624,17 @@
 			 }
 	});
 	
+	document.getElementById("ajustarmp4").addEventListener("click", async () => {
+	          let urlimagen = document.getElementById('urlimagen').value;
+	          console.log("urlimagen  :"+urlimagen);
+			  if ( urlimagen.toLowerCase().slice(-4) != ".mp4" 	  ){
+				 urlimagen = urlimagen + ".mp4";
+			  }
+			  urlimagen = urlimagen.replaceAll("https://imgur.com"
+				  ,"https://i.imgur.com");
+			  console.log("urlimagen2 :"+urlimagen);
+			  document.getElementById('urlimagen').value=urlimagen;
+	});
 
 	// para leer el gist pero antes de tener el token 
 	document.getElementById("consultarprops").addEventListener("click", async () => {  
