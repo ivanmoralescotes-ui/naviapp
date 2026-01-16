@@ -160,6 +160,9 @@
 		<p id="aiwords-text">Aquí va ia.</p>
         <br>
 
+        <p id="ai2words-text">Aquí va ia2.</p>
+        <br>
+		
         <p id="lucknumber-text">Aquí va el numero.</p>
         <br>
 
@@ -181,6 +184,66 @@
     let verseLink3 = "https://wa.me/573113068431";
     let lucknumberText  = "Número de suerte: ";
     let verseLink4 = "#";
+	let segundosslide = 0;
+	let displayTime =  7000; //getDisplayTime(); // tu función (ej 7000)
+	
+	async function initSlideshow() {
+      if (slides.length === 0) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+
+      console.log("starting");
+      await startAll();
+	  
+	  const ss = Number(segundosslide);
+      displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 7) * 1000;
+	  //console.log("displaytimee");
+	  console.log({   segundosslide, displayTime, slidesLen: slides.length });
+
+	  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
+	  
+	  //console.log("displayTime(ms):", displayTime);
+
+      currentIndex = 0;
+      showSlide(currentIndex, false);
+      startSlideshow();
+    }
+	
+	// ----------------- Slideshow control -----------------
+    function startSlideshow() {
+      stopSlideshow();
+      slideshowTimer = setInterval(() => {
+        nextSlide(false); // auto
+      }, displayTime);
+    }
+
+    function stopSlideshow() {
+      if (slideshowTimer) {
+        clearInterval(slideshowTimer);
+        slideshowTimer = null;
+      }
+    }
+
+    function nextSlide(isManual = true) {
+      if (!slides.length) return;
+      currentIndex = (currentIndex + 1) % slides.length;
+      console.log("currentIndex:", currentIndex);
+      showSlide(currentIndex, isManual);
+    }
+
+    window.addEventListener("load", initSlideshow);
+	//initSlideshow();
+	
+	
+	const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// 2. Use it inside an async function
+async function delayedTask() {
+    console.log("Starting...");    
+    await sleep(2000); // Sleep for 2000 milliseconds (2 seconds)    
+    console.log("Done after 2 seconds!");
+}
+//delayedTask();
 
     const params = new URLSearchParams(window.location.search);
     let urlCode = ""; //params.get('cd');
@@ -213,6 +276,7 @@
     const lucknumberTextEl  = document.getElementById("lucknumber-text");
     const yourwords = document.getElementById("yourwords-text");
 	const aiwords = document.getElementById("aiwords-text");
+	const ai2words = document.getElementById("ai2words-text");
 	
     const messageBox   = document.getElementById("message");
 
@@ -221,30 +285,16 @@
     const btnNext = document.getElementById("btn-next");
 
     let currentIndex = 0;
-    const displayTime = getDisplayTime(); // tu función (ej 7000)
-    let slideshowTimer = null;
-
-    // ----------------- Slideshow control -----------------
-    function startSlideshow() {
-      stopSlideshow();
-      slideshowTimer = setInterval(() => {
-        nextSlide(false); // auto
-      }, displayTime);
-    }
-
-    function stopSlideshow() {
-      if (slideshowTimer) {
-        clearInterval(slideshowTimer);
-        slideshowTimer = null;
-      }
-    }
-
-    function nextSlide(isManual = true) {
-      if (!slides.length) return;
-      currentIndex = (currentIndex + 1) % slides.length;
-      console.log("currentIndex:", currentIndex);
-      showSlide(currentIndex, isManual);
-    }
+    
+	let slideshowTimer = null;
+	
+	//if (segundosslide != 0){
+		//displayTime = segundosslide;
+		//console.log("displayTime: " + displayTime);
+	//}else{
+	    //console.log("segundosslide no esta listo");
+	//}   
+ 
 
     function prevSlide(isManual = true) {
       if (!slides.length) return;
@@ -305,6 +355,8 @@
     let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
     const thefilename ="prop" + penultima + ".txt";
     thegist = getGistId(thefilename);
+	
+	let isEnglish = "no";
 
 	async function startAll() {
 	  //const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/${thegist}/raw/${thefilename}');
@@ -325,12 +377,24 @@
 
 	  const thewords = props.palabras;
 	  const theai1 = props.ia1;
+	  const theai2 = props.ia2;
+	  isEnglish = props.isEnglish;
 
 	  const thepublicidad = props.linkpublicidad;
 	  const nombrepublicidad = props.nombrepublicidad;
 
 	  const theimages = props.images;
 	  let imagesList = props.images;
+	  
+	  /*if (props.segundosslide){
+		segundosslide = parseInt(props.segundosslide, 10);
+		console.log("segundosslide:" + segundosslide);
+	  }*/
+	  
+	  if (props.segundosslide != null) {
+        segundosslide = Number(props.segundosslide);
+		console.log("segundosslide:" + segundosslide);
+      }
 
 	  // ... (aquí dejas tu bloque de images tal cual)
 	  if (theimages != null && theimages.length > 0) {
@@ -371,6 +435,7 @@
               && (thepublicidad == "" || thepublicidad == "no")
 			  && (!thewords || thewords == "" || thewords == "no")
 			  && (!theai1 || theai1 != "si")
+			  && (!theai2 || theai2 != "si")
 			  ) {
             console.log("nohtml");
             slides.shift();
@@ -405,6 +470,13 @@
 		aiwords.textContent = String(aiquote);
 	  } else {
 		aiwords.style.display = "none";
+	  }
+	  if (theai2 == "si") {
+		ai2words.style.display = "block";
+		const ai2quote = await obtainAi2Text();
+		ai2words.textContent = String(ai2quote);
+	  } else {
+		ai2words.style.display = "none";
 	  }
 	  
 	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
@@ -452,6 +524,33 @@
 				
 		return ai1text;
 	}
+	
+	async function obtainAi2Text(){
+	    let ai2text = "0";
+		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11";
+
+        const user = "web";
+        const pass = "0000";
+        const basic = btoa(`${user}:${pass}`); // base64
+
+		const res = await fetch(url, {
+		  method: "GET",
+		  headers: {
+			"Authorization": `Basic ${basic}`,
+			"Accept": "application/json",
+		  },
+		});
+
+		if (!res.ok) {
+		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+		}
+
+		const data = await res.json();
+		console.log(data);
+        ai2text = data.output;
+				
+		return ai2text;
+	}
 
     // ----------------- Mostrar slides -----------------
     function showSlide(index, isManual) {
@@ -472,7 +571,7 @@
       videoElement.currentTime = 0;
 
       // Si NO es video, asegúrate de que el slideshow esté corriendo
-      if (slide.type !== "video") startSlideshow();
+      //if (slide.type !== "video") startSlideshow();
 
       setTimeout(() => {
         if (slide.type === "image") {
@@ -500,10 +599,19 @@
           verseLinkEl3.href = verseLink3;
           verseLinkEl4.href = verseLink4;
 
+          //quotesEnglish
+
           const quoteNumber = getRandomNumber(0, (quotes.length - 1));
           const versiculoNumber = getRandomNumber(0, (versiculos.length - 1));
 
-          quoteTextEl.textContent = quotes[quoteNumber];
+		  if (isEnglish == "si"){
+		      console.log("english");
+		      const quoteEnglishNumber = getRandomNumber(0, (quotesEnglish.length - 1));
+			  quoteTextEl.textContent = quotesEnglish[quoteEnglishNumber];              
+	      }else{
+		      quoteTextEl.textContent = quotes[quoteNumber];
+		  }
+		  
           verseTextEl.textContent = versiculos[versiculoNumber];
 
           lucknumberTextEl.textContent = lucknumberText + obtenerNumeroAleatorio();
@@ -513,22 +621,7 @@
       }, 500);
     }
 
-    async function initSlideshow() {
-      if (slides.length === 0) {
-        showMessage("No hay slides configurados.");
-        return;
-      }
-
-      console.log("starting");
-      await startAll();
-
-      currentIndex = 0;
-      showSlide(currentIndex, false);
-
-      startSlideshow();
-    }
-
-    window.addEventListener("load", initSlideshow);
+    
 	
 	// Tu función secreta que quieres ejecutar
 	function miFuncionS() {

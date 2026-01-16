@@ -241,7 +241,25 @@
 	    AI?<input type="checkbox" name="quieresia" 
 		       id="quieresia">		   
       </div>
+	  <div class="field">
+	    AI2?<input type="checkbox" name="quieresia2" 
+		       id="quieresia2">		   
+      </div>
+	  <div class="field">
+	    English?<input type="checkbox" name="esingles" 
+		       id="esingles">		   
+      </div>
 	  
+	  <div class="field">
+	     Seconds
+	     <select id="segundosslide">
+			<option value="5">&nbsp;5</option>
+			<option value="8">&nbsp;8</option>
+			<option value="11">&nbsp;11</option>
+			<option value="14">&nbsp;14</option>
+			<option value="30">&nbsp;30</option>
+		 </select>
+	  </div>
 	  
 	  <div class="field">
 	    <label for="imagenes">Images</label>
@@ -265,9 +283,12 @@
 			<option value="3">&nbsp;4</option>
 			<option value="4">&nbsp;5</option>
 			<option value="5">&nbsp;6</option>
+			<option value="6">&nbsp;7</option>
+			<option value="7">&nbsp;8</option>
+			<option value="8">&nbsp;9</option>
 		</select>
 		<button id="usarimagen" type="button" class="btn-alto">Use</button>
-		<button id="ajustarimagen" type="button" class="btn-alto">Fix Url</button>
+		<button id="ajustarimagen" type="button" class="btn-alto">Jpg</button>
 		<button id="ajustarmp4" type="button" class="btn-alto">Mp4</button>
 		<button id="iraunaimagen" type="button" class="btn-alto">Go</button>
     </div>
@@ -286,8 +307,10 @@
 		document.getElementById('llave').value = urlCode;
 	  }
 	
+	  const isLocal = false;
 	  let ghubt = "";
-	
+	  let theTimestamp = "?";
+	  	
 	  const OWNER = "ivanmoralescotes-ui";
 	  const REPO = "naviapp";
 	  const BRANCH = "main"; // 
@@ -479,7 +502,8 @@
 		document.getElementById('quieresnumerosuerte').checked=false;
 		document.getElementById('quieresmotivacional').checked=false;
 		document.getElementById('quieresia').checked=false;
-				
+		document.getElementById('esingles').checked=false;
+		document.getElementById('quieresia2').checked=false;		
     });
 	
 	  
@@ -530,11 +554,20 @@
 	  
 	  let tullaveValue = document.getElementById("tullave");
 	  tullaveValue.addEventListener("blur", () => {		
-		if ( tullaveValue.value == "   " ){
+		if ( tullaveValue.value == "   " ||  tullaveValue.value == "  "){
 			tullaveValue.value=document.getElementById("llave2").value;
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 		}
 	  });
+	  
+	  let tunombreElement = document.getElementById("tunombre");
+	  tunombreElement.addEventListener("blur", () => {		
+		if ( tunombreElement.value.endsWith("tt") ){
+			alert ("t " + theTimestamp);			
+		}
+	  });
+	  
+	  
 	  
 	////////////////////////////////////////////////////////
 		
@@ -582,8 +615,14 @@
 			console.log("Error de entrada..");
 			return;
 		}
-		
-		window.open("https://navi111.netlify.app/i.html?f=" + thekey, "_blank");
+
+		if (isLocal){
+		   window.open("http://localhost:3000/i.html?f=" + thekey , "_blank");
+		   // http://localhost:3000/i.html?f=11121197
+		}else{
+			window.open("https://navi111.netlify.app/i.html?f=" + thekey , "_blank");
+		}
+
 		console.log("ir a");
 	});
 	
@@ -687,11 +726,17 @@
 						    document.getElementById("quieresmotivacional").checked = false;
 						}
 
-						if ( jsonData.ia1 == "si" ){
+						if ( jsonData.ia1 && jsonData.ia1 == "si" ){
 							document.getElementById("quieresia").checked = true;
 						}else{
 						    document.getElementById("quieresia").checked = false;
-						}						
+						}	
+
+						if ( jsonData.ia2 && jsonData.ia2 == "si" ){
+							document.getElementById("quieresia2").checked = true;
+						}else{
+						    document.getElementById("quieresia2").checked = false;
+						}	
 						
 						if ( jsonData.numerosuerte == "si" ){
 							document.getElementById("quieresnumerosuerte").checked = true;
@@ -750,6 +795,23 @@
 						    document.getElementById("imagenes").value = "";
 						}
 						
+						if ( jsonData.esingles && jsonData.esingles =="si" ){
+							document.getElementById("esingles").checked = true;
+						}else{
+						    document.getElementById("esingles").checked = false;
+						}
+						
+						if ( jsonData.segundosslide && jsonData.segundosslide !="" ){
+							document.getElementById("segundosslide").value = jsonData.segundosslide;
+						}else{
+						    document.getElementById("segundosslide").value = "8";
+						}
+						
+						if (jsonData.lastupdate){
+						   console.log("upd" + jsonData.lastupdate);
+						   theTimestamp = jsonData.lastupdate ;
+						}
+						
 						document.getElementById("tullave").value =""
 						document.getElementById("confirmatullave").value =""
 						alert("Done.");
@@ -784,6 +846,9 @@
 				let quiereNumeroSuerte = "no";
 				let quieresMotivacional = "no";
 				let quieresIa = "no";
+				let quieresIa2 = "no";
+				let esIngles = "no";
+				
 				if ( document.getElementById("quieresversiculo").checked ) {
 					quiereVersiculo = "si";
 				}
@@ -795,6 +860,12 @@
 				}
 				if ( document.getElementById("quieresia").checked ) {
 					quieresIa = "si";
+				}
+				if ( document.getElementById("quieresia2").checked ) {
+					quieresIa2 = "si";
+				}
+				if ( document.getElementById("esingles").checked ) {
+					esIngles = "si";
 				}
 				
 				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
@@ -814,6 +885,7 @@
 				  clave: laclave,
 				  motivacional: quieresMotivacional,
 				  ia1: quieresIa,
+				  ia2: quieresIa2,
 				  
 				  versiculo: quiereVersiculo,
 				  numerosuerte: quiereNumeroSuerte,
@@ -821,7 +893,10 @@
 				  linkpublicidad: document.getElementById("linkpublicidad").value,
 				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
 				  images: imagesToUpdate ,
-				  palabras: document.getElementById("tuspalabras").value
+				  palabras: document.getElementById("tuspalabras").value,
+				  lastupdate: new Date(),
+				  isEnglish: esIngles,
+				  segundosslide: document.getElementById("segundosslide").value
 	 			};	
 				//console.log( "newGist:" + JSON.stringify(newGist) );
 				
