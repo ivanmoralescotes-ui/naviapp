@@ -237,18 +237,26 @@
 	    Quote?<input type="checkbox" name="quieresmotivacional" 
 		       id="quieresmotivacional">		   
       </div>
-	  <div class="field">
+	  <!--<div class="field">
 	    AI?<input type="checkbox" name="quieresia" 
 		       id="quieresia">		   
-      </div>
-	  <div class="field">
-	    AI2?<input type="checkbox" name="quieresia2" 
-		       id="quieresia2">		   
-      </div>
+      </div>-->
+	  
 	  <div class="field">
 	    English?<input type="checkbox" name="esingles" 
 		       id="esingles">		   
       </div>
+	  
+	  <div class="field">
+	     AI
+	     <select id="tipoia">
+		    <option value=""></option>
+			<option value="new">&nbsp;new</option>
+			<option value="controv">&nbsp;controv</option>
+			<option value="joke">&nbsp;joke</option>
+			
+		 </select>
+	  </div>
 	  
 	  <div class="field">
 	     Seconds
@@ -294,13 +302,14 @@
     </div>
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
+	<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>
 	<div><br><br><center>573113068430</center></div>
 	
   </div>
 
   
   <script>
-    
+      console.log("c11121197");
 	  const params = new URLSearchParams(window.location.search);
       const urlCode = params.get('cd');
 	  if (urlCode != null && urlCode != ""){
@@ -501,9 +510,11 @@
 		document.getElementById('quieresversiculo').checked=false;
 		document.getElementById('quieresnumerosuerte').checked=false;
 		document.getElementById('quieresmotivacional').checked=false;
-		document.getElementById('quieresia').checked=false;
+		//document.getElementById('quieresia').checked=false;
 		document.getElementById('esingles').checked=false;
-		document.getElementById('quieresia2').checked=false;		
+		//document.getElementById('quieresia2').checked=false;
+		document.getElementById('tipoia').value="";
+		
     });
 	
 	  
@@ -515,7 +526,7 @@
 	  llavee.addEventListener("blur", () => {
 		
 		if (llavee.value.length == "11" && llavee.value.startsWith("c") 
-		        && llavee.value.endsWith("88") ){
+		        && llavee.value.endsWith("??") ){
 			console.log("to process the key");
 			
 			llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
@@ -726,17 +737,23 @@
 						    document.getElementById("quieresmotivacional").checked = false;
 						}
 
-						if ( jsonData.ia1 && jsonData.ia1 == "si" ){
+						/*if ( jsonData.ia1 && jsonData.ia1 == "si" ){
 							document.getElementById("quieresia").checked = true;
 						}else{
 						    document.getElementById("quieresia").checked = false;
-						}	
+						}*/	
 
-						if ( jsonData.ia2 && jsonData.ia2 == "si" ){
+						/*if ( jsonData.ia2 && jsonData.ia2 == "si" ){
 							document.getElementById("quieresia2").checked = true;
 						}else{
 						    document.getElementById("quieresia2").checked = false;
-						}	
+						}*/
+
+						if (jsonData.tipoIa && jsonData.tipoIa != ""){
+							document.getElementById("tipoia").value = jsonData.tipoIa;
+						}else{
+						    document.getElementById("tipoia").value ="";
+						}
 						
 						if ( jsonData.numerosuerte == "si" ){
 							document.getElementById("quieresnumerosuerte").checked = true;
@@ -845,8 +862,8 @@
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
 				let quieresMotivacional = "no";
-				let quieresIa = "no";
-				let quieresIa2 = "no";
+				//let quieresIa = "no";
+				//let quieresIa2 = "no";
 				let esIngles = "no";
 				
 				if ( document.getElementById("quieresversiculo").checked ) {
@@ -858,12 +875,12 @@
 				if ( document.getElementById("quieresmotivacional").checked ) {
 					quieresMotivacional = "si";
 				}
-				if ( document.getElementById("quieresia").checked ) {
+				/*if ( document.getElementById("quieresia").checked ) {
 					quieresIa = "si";
-				}
-				if ( document.getElementById("quieresia2").checked ) {
+				}*/
+				/*if ( document.getElementById("quieresia2").checked ) {
 					quieresIa2 = "si";
-				}
+				}*/
 				if ( document.getElementById("esingles").checked ) {
 					esIngles = "si";
 				}
@@ -884,8 +901,8 @@
 				  nombre: document.getElementById("tunombre").value,
 				  clave: laclave,
 				  motivacional: quieresMotivacional,
-				  ia1: quieresIa,
-				  ia2: quieresIa2,
+				  				  
+				  tipoIa: document.getElementById("tipoia").value,
 				  
 				  versiculo: quiereVersiculo,
 				  numerosuerte: quiereNumeroSuerte,

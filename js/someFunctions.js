@@ -1,4 +1,5 @@
-
+(() => {
+	
 const gists = new Map([
   ["prop11111111.txt", "e1a872f457ed67a62b48e3c215433972"],
   ["prop11121197.txt", "b10ff3e6d9a8dd1d680d62c6d964590b"],
@@ -424,35 +425,41 @@ const quotesEnglish = [
 
 	];
 	   
-function obtenerVersiculo(){	
+window.quotes = quotes;
+window.versiculos = versiculos;
+window.quotesEnglish = quotesEnglish;
+window.gists = gists;	   
+	   
+window.obtenerVersiculo = function obtenerVersiculo(){	
 	const versiculoNumber = getRandomNumber(0,(versiculos.length-1) );
 	return versiculos[versiculoNumber];
 }
 
-function obtenerFrase(){
+window.obtenerFrase = function obtenerFrase(){
 	const quoteNumber = getRandomNumber(0,(quotes.length-1) );
 	return quotes[quoteNumber];
 }
 
-function obtenerNumeroAleatorio(){
+window.obtenerNumeroAleatorio = function obtenerNumeroAleatorio(){
 	return getRandomNumber(0,36);
 }
 
-function getRandomNumber(min, max) {
+window.getRandomNumber = function getRandomNumber(min, max) {
 	  min = Math.ceil(min);
 	  max = Math.floor(max);
 	  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getGistId(filename){
+window.getGistId = function getGistId(filename){
 	//return gists.get(filename);
 	//return "b10ff3e6d9a8dd1d680d62c6d964590b";
 	//return "83a00849e0ed5206d2e76774e0dee1ae";
 	return "ca5fa1cae5a1ace7396fe1b01d54b900";
 }
 
-function getDisplayTime(){
+window.getDisplayTime = function getDisplayTime(){
 	
 	return 6000; // 7000
 }
 
+})();
