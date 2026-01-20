@@ -251,9 +251,10 @@
 	     AI
 	     <select id="tipoia">
 		    <option value=""></option>
-			<option value="new">&nbsp;new</option>
+			<option value="news">&nbsp;news</option>
 			<option value="controv">&nbsp;controv</option>
 			<option value="joke">&nbsp;joke</option>
+			<option value="tipo4">&nbsp;tipo4</option>
 			
 		 </select>
 	  </div>
@@ -262,7 +263,7 @@
 	     Seconds
 	     <select id="segundosslide">
 			<option value="5">&nbsp;5</option>
-			<option value="8">&nbsp;8</option>
+			<option value="8" selected="selected" >&nbsp;8</option>
 			<option value="11">&nbsp;11</option>
 			<option value="14">&nbsp;14</option>
 			<option value="30">&nbsp;30</option>
@@ -302,6 +303,9 @@
     </div>
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
+	<br>
+	<div><center><a href="https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" target="_blank">qface</a></center></div>
+	
 	<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>
 	<div><br><br><center>573113068430</center></div>
 	
@@ -459,6 +463,20 @@
 			  return jsonData;
 	}
 
+	function borrarFila(texto, filaABorrar) {
+	  const filas = texto.split('\n');
+
+	  // filaABorrar es 1, 2, 3... (no 0)
+	  const indice = filaABorrar;
+
+	  if (indice < 0 || indice >= filas.length) {
+		return texto; // fuera de rango, no hace nada
+	  }
+
+	  filas.splice(indice, 1);
+
+	  return filas.join('\n');
+	}
 
     async function  subirJsonEnGist(theGist, theObject, theFileName){
 	     
@@ -501,6 +519,8 @@
 		document.getElementById('tuinstagram').value="";
 		document.getElementById('tunombre').value="";
 		document.getElementById('tullave').value="";
+		document.getElementById('confirmatullave').value="";
+		
 		document.getElementById('tuspalabras').value="";
 		
 		document.getElementById('llave2').value="";
@@ -583,18 +603,27 @@
 	////////////////////////////////////////////////////////
 		
 	document.getElementById("usarimagen").addEventListener("click", async () => {
+	
 		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
-		const  urlImagenAUsar = document.getElementById("urlimagen").value; 
-		if ( document.getElementById("urlimagen").value == "" 
-		          || !urlImagenAUsar.includes("http")
+		const  urlImagenAUsar = document.getElementById("urlimagen").value;
+		const indexOfImage = document.getElementById('imagenPorAjustar').value;
+		
+		if (urlImagenAUsar == ""){
+			
+			document.getElementById('imagenes').value = borrarFila(document.getElementById('imagenes').value, indexOfImage);
+			console.log("deleting line");
+			return;
+		}
+		
+		
+		if ( !urlImagenAUsar.includes("http")
                   || !  (urlImagenAUsar.toLowerCase().includes(".j") 
 					     || urlImagenAUsar.toLowerCase().includes(".mp4")  )				  
 		   ){
 			 alert("Invalid url");
 		     return;
 		}
-		
-		const indexOfImage = document.getElementById('imagenPorAjustar').value;
+				
 		
 		if (currentImages.length > indexOfImage){
 			currentImages[indexOfImage] = document.getElementById("urlimagen").value;

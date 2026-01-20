@@ -157,8 +157,8 @@
         <p id="yourwords-text">Aquí van las palabras.</p>
         <br>
 		
-		<p id="aiwords-text">Aquí va ia.</p>
-        <br>
+		<!--<p id="aiwords-text">Aquí va ia.</p>
+        <br>-->
 
         <p id="ai2words-text">Aquí va ia2.</p>
         <br>
@@ -198,7 +198,8 @@
 	  
 	  const ss = Number(segundosslide);
       displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 7) * 1000;
-	  console.log({ segundosslide, displayTime, slidesLen: slides.length });
+	  //console.log("displaytimee");
+	  console.log({   segundosslide, displayTime, slidesLen: slides.length });
 
 	  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
 	  
@@ -274,7 +275,7 @@ async function delayedTask() {
     const quoteTextEl  = document.getElementById("quote-text");
     const lucknumberTextEl  = document.getElementById("lucknumber-text");
     const yourwords = document.getElementById("yourwords-text");
-	const aiwords = document.getElementById("aiwords-text");
+	//const aiwords = document.getElementById("aiwords-text");
 	const ai2words = document.getElementById("ai2words-text");
 	
     const messageBox   = document.getElementById("message");
@@ -376,7 +377,9 @@ async function delayedTask() {
 
 	  const thewords = props.palabras;
 	  const theai1 = props.ia1;
-	  const theai2 = props.ia2;
+	  //const theai2 = props.ia2;
+	  const tipoia = props.tipoIa;
+	 
 	  isEnglish = props.isEnglish;
 
 	  const thepublicidad = props.linkpublicidad;
@@ -434,7 +437,8 @@ async function delayedTask() {
               && (thepublicidad == "" || thepublicidad == "no")
 			  && (!thewords || thewords == "" || thewords == "no")
 			  && (!theai1 || theai1 != "si")
-			  && (!theai2 || theai2 != "si")
+			  //&& (!theai2 || theai2 != "si")
+			  && (!tipoia || tipoia == "")
 			  ) {
             console.log("nohtml");
             slides.shift();
@@ -463,20 +467,28 @@ async function delayedTask() {
 	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
 	     yourwords.textContent = thewords; } else { yourwords.style.display = "none"; } 
 		 
-	  if (theai1 == "si") {
+	  /*if (theai1 == "si") {
 		aiwords.style.display = "block";
 		const aiquote = await obtainAi1Text();
 		aiwords.textContent = String(aiquote);
 	  } else {
 		aiwords.style.display = "none";
-	  }
-	  if (theai2 == "si") {
+	  }*/
+	  /*if (theai2 == "si") {
 		ai2words.style.display = "block";
 		const ai2quote = await obtainAi2Text();
 		ai2words.textContent = String(ai2quote);
 	  } else {
 		ai2words.style.display = "none";
+	  }*/
+	  if (tipoia != "") {
+		ai2words.style.display = "block";
+		const ai2quote = await obtainAi2Text(tipoia);
+		ai2words.textContent = String(ai2quote);
+	  } else {
+		ai2words.style.display = "none";
 	  }
+	  
 	  
 	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
 	  if (thepublicidad != "" && thepublicidad != "no") { 
@@ -497,9 +509,9 @@ async function delayedTask() {
   //}
     
 	
-	async function obtainAi1Text(){
+	/*async function obtainAi1Text(){
 	    let ai1text = "0";
-		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11";
+		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/new1";
 
         const user = "web";
         const pass = "0000";
@@ -522,11 +534,14 @@ async function delayedTask() {
         ai1text = data.output;
 				
 		return ai1text;
-	}
+	}*/
 	
-	async function obtainAi2Text(){
+	async function obtainAi2Text(tipoia2){
 	    let ai2text = "0";
-		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11";
+		
+		//const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/" + "contro2";
+		  //controlversial		  
+        const url="https://ivanmorales.app.n8n.cloud/webhook/5b747ca1-9205-4d49-8440-789694d367b7/readquote11/"+tipoia2;//contro2
 
         const user = "web";
         const pass = "0000";
