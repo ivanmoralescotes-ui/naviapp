@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slideshow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: system-ui, sans-serif;
+    }
+
+    #slideshow {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #slide-img, #slide-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+      display: block;
+      position: absolute;
+      inset: 0;
+    }
+
+    #slide-html {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: min(6vh, 32px);
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+      color: #fff;
+    }
+
+    #slide-html-inner {
+      max-width: 700px;
+      width: 100%;
+      margin: 0.4rem 0;
+    }
+
+    #slide-html a {
+      color: #00c3ff;
+      text-decoration: none;
+      font-size: clamp(1.1rem, 2.4vh, 1.6rem);
+      display: block;
+      margin-bottom: 8px;
+    }
+    #slide-html a:hover { text-decoration: underline; }
+
+    #slide-html p {
+      margin-top: 10px;
+      font-size: clamp(1.1rem, 2.3vh, 1.5rem);
+      line-height: 1.5;
+    }
+
+    #slide-img.show, #slide-video.show, #slide-html.show { opacity: 1; }
+
+    #message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 9999;
+    }
+
+    /* Clave: lo oculto NO captura clics */
+    #slide-img, #slide-video, #slide-html { pointer-events: none; }
+    #slide-img.show, #slide-video.show, #slide-html.show { pointer-events: auto; }
+
+    /* ====== NUEVO: controles next/prev ====== */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      border-radius: 999px;
+      width: 52px;
+      height: 52px;
+      font-size: 26px;
+      cursor: pointer;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      z-index: 9000; /* por encima del video/html */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-btn:hover { background: rgba(0,0,0,0.75); }
+
+    #btn-prev { left: 14px; }
+    #btn-next { right: 14px; }
+
+    /* Para que en mobile no tapen demasiado */
+    @media (max-width: 768px) {
+      #slide-html-inner { max-width: 95%; }
+      #slide-html a { font-size: 1.6rem; }
+      #slide-html p { font-size: 1.5rem; line-height: 1.4; }
+
+      .nav-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+      }
+      #btn-prev { left: 10px; }
+      #btn-next { right: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="slideshow">
+    <img id="slide-img" src="" alt="Imagen" />
+
+    <video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>
+      <source src="../temm.mp4" type="video/mp4" />
+      Tu navegador no soporta la etiqueta <code>video</code>.
+    </video>
+
+    <div id="slide-html">
+      <div id="slide-html-inner">
+        <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+        <br>
+
+        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">Spotify</a><br>
+        <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">Whatsapp</a><br>
+
+        <p id="quote-text">Aquí va la frase.</p>
+        <br>
+
+        <p id="yourwords-text">Aquí van las palabras.</p>
+        <br>
+		
+		<!--<p id="aiwords-text">Aquí va ia.</p>
+        <br>-->
+
+        <p id="ai2words-text">Aquí va ia2.</p>
+        <br>
+		
+        <p id="lucknumber-text">Aquí va el numero.</p>
+        <br>
+
+        <a id="verse-link4" href="#" rel="noopener noreferrer"><i>Ad</i></a>
+      </div>
+    </div>
+
+    <!-- ====== NUEVO: botones ====== -->
+    <button id="btn-prev" class="nav-btn" aria-label="Anterior">◀</button>
+    <button id="btn-next" class="nav-btn" aria-label="Siguiente">▶</button>
+  </div>
+
+  <div id="message" style="display:none;"></div>
+
+  <script src="../js/someFunctions.js"></script>
+  <script>
+    let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
+    let verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+    let verseLink3 = "https://wa.me/573113068431";
+    let lucknumberText  = "Número de suerte: ";
+    let verseLink4 = "#";
+	let segundosslide = 0;
+	let displayTime =  7000; //getDisplayTime(); // tu función (ej 7000)
+	
+	async function initSlideshow() {
+      if (slides.length === 0) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+
+      console.log("starting");
+      await startAll();
+	  
+	  const ss = Number(segundosslide);
+      displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 7) * 1000;
+	  //console.log("displaytimee");
+	  console.log({   segundosslide, displayTime, slidesLen: slides.length });
+
+	  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
+	  
+	  //console.log("displayTime(ms):", displayTime);
+
+      currentIndex = 0;
+      showSlide(currentIndex, false);
+      startSlideshow();
+    }
+	
+	// ----------------- Slideshow control -----------------
+    function startSlideshow() {
+      stopSlideshow();
+      slideshowTimer = setInterval(() => {
+        nextSlide(false); // auto
+      }, displayTime);
+    }
+
+    function stopSlideshow() {
+      if (slideshowTimer) {
+        clearInterval(slideshowTimer);
+        slideshowTimer = null;
+      }
+    }
+
+    function nextSlide(isManual = true) {
+      if (!slides.length) return;
+      currentIndex = (currentIndex + 1) % slides.length;
+      console.log("currentIndex:", currentIndex);
+      showSlide(currentIndex, isManual);
+    }
+
+    window.addEventListener("load", initSlideshow);
+	//initSlideshow();
+	
+	
+	const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// 2. Use it inside an async function
+async function delayedTask() {
+    console.log("Starting...");    
+    await sleep(2000); // Sleep for 2000 milliseconds (2 seconds)    
+    console.log("Done after 2 seconds!");
+}
+//delayedTask();
+
+    const params = new URLSearchParams(window.location.search);
+    let urlCode = ""; //params.get('cd');
+	  
+	const aurl = new URL(window.location.href);    
+	//console.log("aurl"+aurl);  
+	const partss = aurl.pathname.split("/").filter(Boolean);
+    const numeroo = partss[0]; // "11121197"
+	//console.log("numeroo"+numeroo);
+	urlCode = "W" + btoa(numeroo) + "i";
+	
+    //console.log("k: " + urlCode);
+	  
+    let slides = [
+      { type: "html" }
+    ];
+
+    const imgElement   = document.getElementById("slide-img");
+    const videoElement = document.getElementById("slide-video");
+    const videoSource  = videoElement.querySelector("source");
+    const htmlElement  = document.getElementById("slide-html");
+
+    const verseLinkEl  = document.getElementById("verse-link");
+    const verseLinkEl2 = document.getElementById("verse-link2");
+    const verseLinkEl3 = document.getElementById("verse-link3");
+    const verseLinkEl4 = document.getElementById("verse-link4");
+
+    const verseTextEl  = document.getElementById("verse-text");
+    const quoteTextEl  = document.getElementById("quote-text");
+    const lucknumberTextEl  = document.getElementById("lucknumber-text");
+    const yourwords = document.getElementById("yourwords-text");
+	//const aiwords = document.getElementById("aiwords-text");
+	const ai2words = document.getElementById("ai2words-text");
+	
+    const messageBox   = document.getElementById("message");
+
+    // ====== NUEVO: botones ======
+    const btnPrev = document.getElementById("btn-prev");
+    const btnNext = document.getElementById("btn-next");
+
+    let currentIndex = 0;
+    
+	let slideshowTimer = null;
+	
+	//if (segundosslide != 0){
+		//displayTime = segundosslide;
+		//console.log("displayTime: " + displayTime);
+	//}else{
+	    //console.log("segundosslide no esta listo");
+	//}   
+ 
+
+    function prevSlide(isManual = true) {
+      if (!slides.length) return;
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      console.log("currentIndex:", currentIndex);
+      showSlide(currentIndex, isManual);
+    }
+
+    // ====== NUEVO: navegación manual ======
+    function goNextManual() {
+      // Si está reproduciendo video, lo paras y reseteas (para que no quede sonando)
+      videoElement.pause();
+      videoElement.currentTime = 0;
+
+      nextSlide(true);
+      // reinicia el timer para que no cambie de inmediato después del click
+      startSlideshow();
+    }
+
+    function goPrevManual() {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+
+      prevSlide(true);
+      startSlideshow();
+    }
+
+    btnNext.addEventListener("click", goNextManual);
+    btnPrev.addEventListener("click", goPrevManual);
+
+    // Teclado: flechas
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") goNextManual();
+      if (e.key === "ArrowLeft") goPrevManual();
+    });
+
+    // Pausa slideshow cuando el video se reproduce
+    videoElement.addEventListener("play", () => {
+      stopSlideshow();
+    });
+
+    // Reanuda y pasa al siguiente slide cuando termina el video
+    videoElement.addEventListener("ended", () => {
+      startSlideshow();
+      nextSlide(false);
+    });
+
+    function showMessage(text) {
+      messageBox.textContent = text;
+      messageBox.style.display = "block";
+    }
+
+    // ----------------- Tu lógica existente (startAll) -----------------
+    const parts = location.pathname.split("/").filter(p => p !== "");
+    const penultima = parts[parts.length - 2];
+    console.log("penultima:" + penultima);
+
+    let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
+    const thefilename ="prop" + penultima + ".txt";
+    thegist = getGistId(thefilename);
+	
+	let isEnglish = "no";
+
+	async function startAll() {
+	  //const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/${thegist}/raw/${thefilename}');
+	  
+	  const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
+	  const r2 = await r.text();
+	  console.log("the object:" + r2);
+
+	  const props = JSON.parse(r2);
+
+	  const mostrarVersiculo = props.versiculo;
+	  const mostrarMotivacional = props.motivacional;
+	  const mostrarNumeroSuerte = props.numerosuerte;
+
+	  const theinstagram = props.instagram;
+	  const thewhatsapp = props.whatsapp;
+	  const thespotify = props.spotify;
+
+	  const thewords = props.palabras;
+	  const theai1 = props.ia1;
+	  //const theai2 = props.ia2;
+	  const tipoia = props.tipoIa;
+	 
+	  isEnglish = props.isEnglish;
+
+	  const thepublicidad = props.linkpublicidad;
+	  const nombrepublicidad = props.nombrepublicidad;
+
+	  const theimages = props.images;
+	  let imagesList = props.images;
+	  
+	  /*if (props.segundosslide){
+		segundosslide = parseInt(props.segundosslide, 10);
+		console.log("segundosslide:" + segundosslide);
+	  }*/
+	  
+	  if (props.segundosslide != null) {
+        segundosslide = Number(props.segundosslide);
+		console.log("segundosslide:" + segundosslide);
+      }
+
+	  // ... (aquí dejas tu bloque de images tal cual)
+	  if (theimages != null && theimages.length > 0) {
+            console.log("first image:" + imagesList[0]);
+
+            let cuentaImagen = 1;
+
+            for (const unaimagen of imagesList) {
+              console.log("iimagen " + unaimagen);
+
+              if (unaimagen != "" && unaimagen.length > 4) {
+                let theType = "image";
+
+                if (unaimagen.toLowerCase().endsWith("jpg") ||
+                    unaimagen.toLowerCase().endsWith("jpeg")) {
+                  const imgg = new Image();
+                  imgg.src = unaimagen;
+                } else if (unaimagen.toLowerCase().endsWith("mp4")) {
+                  theType = "video";
+                  console.log("a videoo");
+                }
+
+                if (slides.length > cuentaImagen) {
+                  slides[cuentaImagen] = { type: theType, file: unaimagen };
+                } else {
+                  slides.push({ type: theType, file: unaimagen });
+                }
+                cuentaImagen++;
+              }
+            }
+          }
+
+          if (mostrarVersiculo != "si" && mostrarMotivacional != "si"
+              && (theinstagram == "" || theinstagram == "no")
+              && (thewhatsapp == "" || thewhatsapp == "no")
+              && (thespotify == "" || thespotify == "no")
+              && mostrarNumeroSuerte != "si"
+              && (thepublicidad == "" || thepublicidad == "no")
+			  && (!thewords || thewords == "" || thewords == "no")
+			  && (!theai1 || theai1 != "si")
+			  //&& (!theai2 || theai2 != "si")
+			  && (!tipoia || tipoia == "")
+			  ) {
+            console.log("nohtml");
+            slides.shift();
+          }
+
+	  verseTextEl.style.display = (mostrarVersiculo == "si") ? "block" : "none";
+	  quoteTextEl.style.display = (mostrarMotivacional == "si") ? "block" : "none";
+
+	  // ... (aquí dejas el resto igual)
+      if (theinstagram != "" && theinstagram != "no") { 
+	        verseLinkEl2.style.display = "block"; 
+		    verseLink2 = theinstagram; 
+	  } else { 
+	        verseLinkEl2.style.display = "none"; 
+	  } if (thewhatsapp != "" && thewhatsapp != "no") { 
+	        verseLinkEl3.style.display = "block"; 
+			verseLink3 = "https://wa.me/" + thewhatsapp; 
+	  } else { 
+	        verseLinkEl3.style.display = "none"; 
+      } 
+	  
+	  if (thespotify != "" && thespotify != "no") { verseLinkEl.style.display = "block"; 
+	     verseLink = "https://open.spotify.com/playlist/" + thespotify; 
+	  } else { verseLinkEl.style.display = "none"; } 
+	  
+	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
+	     yourwords.textContent = thewords; } else { yourwords.style.display = "none"; } 
+		 
+	  /*if (theai1 == "si") {
+		aiwords.style.display = "block";
+		const aiquote = await obtainAi1Text();
+		aiwords.textContent = String(aiquote);
+	  } else {
+		aiwords.style.display = "none";
+	  }*/
+	  /*if (theai2 == "si") {
+		ai2words.style.display = "block";
+		const ai2quote = await obtainAi2Text();
+		ai2words.textContent = String(ai2quote);
+	  } else {
+		ai2words.style.display = "none";
+	  }*/
+	  if (tipoia != "") {
+		ai2words.style.display = "block";
+		const ai2quote = await obtainAi2Text(tipoia);
+		ai2words.textContent = String(ai2quote);
+	  } else {
+		ai2words.style.display = "none";
+	  }
+	  
+	  
+	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
+	  if (thepublicidad != "" && thepublicidad != "no") { 
+	     verseLinkEl4.style.display = "block"; verseLink4 = thepublicidad; 
+	  } else { 
+	     verseLinkEl4.style.display = "none"; 
+	  } 
+		 
+	  if (nombrepublicidad != "" && nombrepublicidad != "no") { 
+	     verseLinkEl4.innerHTML = "<i>" + nombrepublicidad + "</i>"; 
+	  } else { 
+	     verseLinkEl4.innerHTML = "Ad"; 
+	  
+	  } 
+	}
+	//);
+	  
+  //}
+    
+	
+	/*async function obtainAi1Text(){
+	    let ai1text = "0";
+		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/new1";
+
+        const user = "web";
+        const pass = "0000";
+        const basic = btoa(`${user}:${pass}`); // base64
+
+		const res = await fetch(url, {
+		  method: "GET",
+		  headers: {
+			"Authorization": `Basic ${basic}`,
+			"Accept": "application/json",
+		  },
+		});
+
+		if (!res.ok) {
+		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+		}
+
+		const data = await res.json();
+		console.log(data);
+        ai1text = data.output;
+				
+		return ai1text;
+	}*/
+	
+	async function obtainAi2Text(tipoia2){
+	    let ai2text = "0";
+		
+		//const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/" + "contro2";
+		  //controlversial		  
+        const url="https://ivanmorales.app.n8n.cloud/webhook/5b747ca1-9205-4d49-8440-789694d367b7/readquote11/"+tipoia2;//contro2
+
+        const user = "web";
+        const pass = "0000";
+        const basic = btoa(`${user}:${pass}`); // base64
+
+		const res = await fetch(url, {
+		  method: "GET",
+		  headers: {
+			"Authorization": `Basic ${basic}`,
+			"Accept": "application/json",
+		  },
+		});
+
+		if (!res.ok) {
+		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
+		}
+
+		const data = await res.json();
+		console.log(data);
+        ai2text = data.output;
+				
+		return ai2text;
+	}
+
+    // ----------------- Mostrar slides -----------------
+    function showSlide(index, isManual) {
+      if (!slides.length) {
+        showMessage("No hay slides configurados.");
+        return;
+      }
+
+      const slide = slides[index];
+
+      // Oculta todo (fade-out)
+      imgElement.classList.remove("show");
+      htmlElement.classList.remove("show");
+      videoElement.classList.remove("show");
+
+      // Detén y resetea video al cambiar de slide
+      videoElement.pause();
+      videoElement.currentTime = 0;
+
+      // Si NO es video, asegúrate de que el slideshow esté corriendo
+      //if (slide.type !== "video") startSlideshow();
+
+      setTimeout(() => {
+        if (slide.type === "image") {
+          console.log("it is image");
+
+          imgElement.onload = () => imgElement.classList.add("show");
+          imgElement.src = slide.file;
+          imgElement.alt = slide.file;
+
+        } else if (slide.type === "video") {
+          console.log("it is video");
+
+          videoElement.addEventListener("loadeddata", () => {
+            videoElement.classList.add("show");
+          }, { once: true });
+
+          videoSource.src = slide.file;
+          videoElement.load();
+
+        } else if (slide.type === "html") {
+          console.log("it is html");
+
+          verseLinkEl.href  = verseLink;
+          verseLinkEl2.href = verseLink2;
+          verseLinkEl3.href = verseLink3;
+          verseLinkEl4.href = verseLink4;
+
+          //quotesEnglish
+
+          const quoteNumber = getRandomNumber(0, (quotes.length - 1));
+          const versiculoNumber = getRandomNumber(0, (versiculos.length - 1));
+
+		  if (isEnglish == "si"){
+		      console.log("english");
+		      const quoteEnglishNumber = getRandomNumber(0, (quotesEnglish.length - 1));
+			  quoteTextEl.textContent = quotesEnglish[quoteEnglishNumber];              
+	      }else{
+		      quoteTextEl.textContent = quotes[quoteNumber];
+		  }
+		  
+          verseTextEl.textContent = versiculos[versiculoNumber];
+
+          lucknumberTextEl.textContent = lucknumberText + obtenerNumeroAleatorio();
+
+          htmlElement.classList.add("show");
+        }
+      }, 500);
+    }
+
+    
+	
+	// Tu función secreta que quieres ejecutar
+	function miFuncionS() {
+		//alert("¡Función activada!");
+		const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
+		window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
+	}
+
+
+// 2) Config
+const timeoutMs = 1200; // tiempo máximo para completar la secuencia
+const moveTolerancePx = 18; // tolerancia para que no cuente un scroll como tap
+
+let step = 0; // 0: espera arriba1, 1: arriba2, 2: abajo1, 3: abajo2
+let timerId = null;
+
+let startX = 0;
+let startY = 0;
+
+function resetSequence() {
+  step = 0;
+  if (timerId) clearTimeout(timerId);
+  timerId = null;
+}
+
+function armTimeout() {
+  if (timerId) clearTimeout(timerId);
+  timerId = setTimeout(resetSequence, timeoutMs);
+}
+
+function getZone(touch) {
+  const y = touch.clientY;
+  const h = window.innerHeight;
+
+  if (y < h / 3) return "top";
+  if (y > (2 * h) / 3) return "bottom";
+  return "middle";
+}
+
+function advanceIfMatches(zone) {
+  // Patrón: top, top, bottom, bottom
+  const expected =
+    step === 0 || step === 1 ? "top" :
+    step === 2 || step === 3 ? "bottom" :
+    null;
+
+  if (zone !== expected) {
+    // Si falló, reinicia. Si justo tocó "top", puede arrancar de una vez.
+    resetSequence();
+    if (zone === "top") {
+      step = 1;      // cuenta como el primer "top"
+      armTimeout();
+    }
+    return;
+  }
+
+  // Coincidió
+  step += 1;
+  armTimeout();
+
+  if (step === 4) {
+    resetSequence();
+    miFuncionS();
+  }
+}
+
+// Guardamos punto inicial (para filtrar swipes/scroll)
+document.addEventListener("touchstart", (e) => {
+  if (!e.touches || e.touches.length !== 1) return;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+}, { passive: true });
+
+// Contamos el "tap" al soltar, si no se movió mucho
+document.addEventListener("touchend", (e) => {
+  const touch = e.changedTouches && e.changedTouches[0];
+  if (!touch) return;
+
+  const dx = Math.abs(touch.clientX - startX);
+  const dy = Math.abs(touch.clientY - startY);
+  if (dx > moveTolerancePx || dy > moveTolerancePx) return; // fue swipe/scroll
+
+  const zone = getZone(touch);
+  if (zone === "middle") return; // ignoramos el centro (opcional)
+
+  advanceIfMatches(zone);
+}, { passive: true });
+
+// Por si el navegador cancela el gesto (scroll fuerte, etc.)
+document.addEventListener("touchcancel", resetSequence, { passive: true });
+
+
+
+  </script>
+</body>
+</html>
