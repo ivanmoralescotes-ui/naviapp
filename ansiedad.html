@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>notApplicable</title>
+  <title>eBooks</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -61,19 +61,67 @@
   </style>
 
   <script type="text/javascript">
-    
+    // Mantiene tu widget original de WhatsApp
+    window.onload = function(){
+      (function(d, script) {
+        script = d.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        //script.src = 'https://w.app/widget-v1/75pMZC.js';
+		//script.src = 'https://w.app/widget-v1/B2TvXY.js';
+		script.src = 'https://w.app/widget-v1/XUPrM9.js';
+        d.getElementsByTagName('head')[0].appendChild(script);
+      }(document));
+    };
   </script>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card center">
+      <!-- Respetando el ORDEN y manteniendo todo centrado -->
       <div class="sp-1">
-        <span class="pill">This page is not for you... Trust me.</span>
+        <span class="pill">eBook para frenar tu ansiedad</span>
       </div>
-      
+
+      <div class="sp-2 headline">Hola. Este eBook te explicará como disminuir tu ansiedad y tener frecuentemente pensamientos saludables y positivos.</div>
+
+      <div class="sp-2">
+        <img src="twoo.png" alt="e-book" class="media" width="342" height="342">
+      </div>
+
+      <div class="sp-3 lead">Si quieres más información sobre como este eBook te dará mas tranquilidad minimizando la ansiedad y llenándote de positivismo puedes ver este corto video:</div>
+
+      <div class="sp-2">
+        <video class="media" controls preload="metadata">
+          <source src="sr2b.mp4" type="video/mp4">
+          <source src="movie.ogg" type="video/ogg">
+          Tu navegador no soporta el video.
+        </video>
+      </div>
+
+      <div class="sp-3 lead">Si estás interesado puedes contactarnos con un click acá:</div>
+
+      <div class="sp-2">
+        <a class="ws" href="https://w.app/bestbooks" target="_blank" rel="noopener">
+          <img src="ws2.png" alt="Botón para chatear por WhatsApp">
+        </a>
+      </div>
+
+      <div class="sp-3 lead">O si prefieres escanea este QR para contactarnos:</div>
+
+      <div class="sp-2">
+        <img src="ebook2.png" alt="Código QR para contacto" class="qr" width="342" height="342">
+      </div>
+
+      <div class="sp-3">Esperamos que disfrutes y aproveches el eBook porque el poder de disminuir la ansiedad y aumentar tu tranquilidad está en tus manos.&#128522;</div>
+
+      <div class="sp-3">
+        <footer>© <span id="y"></span> · Información educativa</footer>
+      </div>
     </div>
   </div>
-  
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
