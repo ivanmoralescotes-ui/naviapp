@@ -144,29 +144,29 @@
 
     <div id="slide-html">
       <div id="slide-html-inner">
-        <p id="verse-text">Aquí va el versículo de la Biblia.</p>
+        <p id="verse-text" style="display: none;" >Aquí va el versículo de la Biblia.</p>
         <br>
 
-        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer">Spotify</a><br>
-        <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
-        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer">Whatsapp</a><br>
+        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Spotify</a><br>
+        <a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Instagram</a>
+        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Whatsapp</a><br>
 
-        <p id="quote-text">Aquí va la frase.</p>
+        <p id="quote-text" style="display: none;" >Aquí va la frase.</p>
         <br>
 
-        <p id="yourwords-text">Aquí van las palabras.</p>
+        <p id="yourwords-text" style="display: none;" >Aquí van las palabras.</p>
         <br>
 		
 		<!--<p id="aiwords-text">Aquí va ia.</p>
         <br>-->
 
-        <p id="ai2words-text">Aquí va ia2.</p>
+        <p id="ai2words-text" style="display: none;" >Aquí va ia2.</p>
         <br>
 		
         <p id="lucknumber-text">Aquí va el numero.</p>
         <br>
 
-        <a id="verse-link4" href="#" rel="noopener noreferrer"><i>Ad</i></a>
+        <a id="verse-link4" href="#" rel="noopener noreferrer" style="display: none;" ><i>Ad</i></a>
       </div>
     </div>
 
@@ -197,7 +197,7 @@
       await startAll();
 	  
 	  const ss = Number(segundosslide);
-      displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 7) * 1000;
+      displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
 	  //console.log("displaytimee");
 	  console.log({   segundosslide, displayTime, slidesLen: slides.length });
 
@@ -364,6 +364,10 @@ async function delayedTask() {
 	  const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
 	  const r2 = await r.text();
 	  console.log("the object:" + r2);
+	  if ( !r2 || r2 == "" || r2.includes("404") ){
+			console.log("invalid json object");
+			return;
+	  }
 
 	  const props = JSON.parse(r2);
 
@@ -481,7 +485,7 @@ async function delayedTask() {
 	  } else {
 		ai2words.style.display = "none";
 	  }*/
-	  if (tipoia != "") {
+	  if (tipoia && tipoia != "") {
 		ai2words.style.display = "block";
 		const ai2quote = await obtainAi2Text(tipoia);
 		ai2words.textContent = String(ai2quote);
