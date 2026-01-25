@@ -178,6 +178,7 @@
   <div id="message" style="display:none;"></div>
 
   <script src="../js/someFunctions.js"></script>
+
   <script>
     let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
     let verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
@@ -351,25 +352,34 @@ async function delayedTask() {
     const parts = location.pathname.split("/").filter(p => p !== "");
     const penultima = parts[parts.length - 2];
     console.log("penultima:" + penultima);
+    let isEnglish = "no";
+
+
 
     let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
     const thefilename ="prop" + penultima + ".txt";
-    thegist = getGistId(thefilename);
+    thegist = getGistId(thefilename); //toDo: delete
 	
-	let isEnglish = "no";
-
+	
+    // * Para iniciar todo 
 	async function startAll() {
-	  //const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/${thegist}/raw/${thefilename}');
-	  
-	  const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
-	  const r2 = await r.text();
-	  console.log("the object:" + r2);
-	  if ( !r2 || r2 == "" || r2.includes("404") ){
+	  const isFire = true; 
+	  let props = null;
+	  	  
+	  if ( !isFire ){	
+		
+		const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
+		const r2 = await r.text();
+		console.log("the object:" + r2);
+		if ( !r2 || r2 == "" || r2.includes("404") ){
 			console.log("invalid json object");
 			return;
+		}
+		props = JSON.parse(r2);
+      }else{
+	    props = consultarPorId( "prop" + penultima );
 	  }
 
-	  const props = JSON.parse(r2);
 
 	  const mostrarVersiculo = props.versiculo;
 	  const mostrarMotivacional = props.motivacional;
@@ -381,7 +391,7 @@ async function delayedTask() {
 
 	  const thewords = props.palabras;
 	  const theai1 = props.ia1;
-	  //const theai2 = props.ia2;
+	  
 	  const tipoia = props.tipoIa;
 	 
 	  isEnglish = props.isEnglish;
@@ -391,12 +401,7 @@ async function delayedTask() {
 
 	  const theimages = props.images;
 	  let imagesList = props.images;
-	  
-	  /*if (props.segundosslide){
-		segundosslide = parseInt(props.segundosslide, 10);
-		console.log("segundosslide:" + segundosslide);
-	  }*/
-	  
+	  	  	  
 	  if (props.segundosslide != null) {
         segundosslide = Number(props.segundosslide);
 		console.log("segundosslide:" + segundosslide);
@@ -441,7 +446,7 @@ async function delayedTask() {
               && (thepublicidad == "" || thepublicidad == "no")
 			  && (!thewords || thewords == "" || thewords == "no")
 			  && (!theai1 || theai1 != "si")
-			  //&& (!theai2 || theai2 != "si")
+		
 			  && (!tipoia || tipoia == "")
 			  ) {
             console.log("nohtml");
@@ -471,20 +476,6 @@ async function delayedTask() {
 	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
 	     yourwords.textContent = thewords; } else { yourwords.style.display = "none"; } 
 		 
-	  /*if (theai1 == "si") {
-		aiwords.style.display = "block";
-		const aiquote = await obtainAi1Text();
-		aiwords.textContent = String(aiquote);
-	  } else {
-		aiwords.style.display = "none";
-	  }*/
-	  /*if (theai2 == "si") {
-		ai2words.style.display = "block";
-		const ai2quote = await obtainAi2Text();
-		ai2words.textContent = String(ai2quote);
-	  } else {
-		ai2words.style.display = "none";
-	  }*/
 	  if (tipoia && tipoia != "") {
 		ai2words.style.display = "block";
 		const ai2quote = await obtainAi2Text(tipoia);
@@ -492,8 +483,7 @@ async function delayedTask() {
 	  } else {
 		ai2words.style.display = "none";
 	  }
-	  
-	  
+		  
 	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
 	  if (thepublicidad != "" && thepublicidad != "no") { 
 	     verseLinkEl4.style.display = "block"; verseLink4 = thepublicidad; 
@@ -508,9 +498,7 @@ async function delayedTask() {
 	  
 	  } 
 	}
-	//);
-	  
-  //}
+	 
     
 	
 	/*async function obtainAi1Text(){

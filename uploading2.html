@@ -122,6 +122,9 @@
 <body>
 
   <script src="../js/someFunctions.js"></script>
+  
+  
+  
   <!-- for the local environment:-->
   <script src="js/someFunctions.js"></script>
   <div class="container">
@@ -147,7 +150,10 @@
         <input type="password" id="llave2" placeholder="" maxlength="16" 
              value=""		/>
       </div>
-      <button id="consultarprops" type="button" class="btn-alto">Read</button>&nbsp;&nbsp;
+      <button id="consultarprops" type="button" class="btn-alto" style="display:none;" >Read</button>&nbsp;&nbsp;
+	  <button id="consultarpropsFire" type="button" class="btn-alto">Read</button>&nbsp;&nbsp;
+	  
+	  
 	  <button id="limpiarprops" type="button" class="btn-alto">Clean</button>&nbsp;&nbsp;
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  &nbsp;&nbsp;
@@ -276,7 +282,8 @@
       </div>
 	  
       <!-- Botón para ejecutar tu código -->
-      <button id="subir" type="button" style="display:none;">Save</button>
+      <button id="exsubir" type="button" style="display:none;">Save</button>
+	  <button id="subir" type="button">Save</button>
 
       <!--<pre id="resultado"></pre>-->
     </div>
@@ -307,13 +314,29 @@
 	<div><center><a href="https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" target="_blank">qface</a></center></div>
 	
 	<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>
+	<div><center><a href="https://scanqr.org/#scan" target="_blank">scan</a></center></div>
+	
 	<div><br><br><center>573113068430</center></div>
 	<div><center><a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a></center></div>
 	
   </div>
 
   
-  <script>
+  <script type="module">
+    import { obtenerDatos } from "./js/functionss.js";
+	import { obtenerFila } from "./js/functionss.js";
+	import { actualizarCampo } from "./js/functionss.js";
+	import { upsertConId } from "./js/functionss.js";
+	import { insertMany } from "./js/functionss.js";
+    import { consultarPorId } from "./js/functionss.js";
+	
+	consultarPorId("prop11111726");
+	//obtenerDatos();
+	//obtenerFila("prop11111357");//c11111357??   c11111726??
+	//upsertConId("prop11111603","abc","def","wW");
+    //insertMany();
+	
+  
       console.log("c11121197");
 	  const params = new URLSearchParams(window.location.search);
       const urlCode = params.get('cd');
@@ -327,69 +350,70 @@
 	  	
 	  const OWNER = "ivanmoralescotes-ui";
 	  const REPO = "naviapp";
-	  const BRANCH = "main"; // 
+	  const BRANCH = "main"; //
+
+      const defaultKey = "1539232";//2
+	  const mainKeyy = "1691068";//1   1508448,   1691068	  
 		
-	// Convierte ArrayBuffer a base64 (lo que exige la API de GitHub)
-  function arrayBufferToBase64(buffer) {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-  }
-
-	const defaultKey = "1539232";//2
-	const mainKeyy = "1691068";//1   1508448,   1691068
+	  // Convierte ArrayBuffer a base64 (lo que exige la API de GitHub)
+	  function arrayBufferToBase64(buffer) {
+		let binary = "";
+		const bytes = new Uint8Array(buffer);
+		const len = bytes.byteLength;
+		for (let i = 0; i < len; i++) {
+		  binary += String.fromCharCode(bytes[i]);
+		}
+		return btoa(binary);
+	  }
+	
   
-  function simpleStringHash(str) {//123
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash |= 0; // Convert to 32bit integer
-    }
-	//console.log("hash: z9"+hash+"r5");
-    return hash;
-  } 
+	  function simpleStringHash(str) {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+		  const char = str.charCodeAt(i);
+		  hash = (hash << 5) - hash + char;
+		  hash |= 0; // Convert to 32bit integer
+		}
+		//console.log("hash: z9"+hash+"r5");
+		return hash;
+	  } 
   
-  function getFileExtension(filename) {
-    const lastDotIndex = filename.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      return ''; // No extension found
-    }
-    return filename.substring(lastDotIndex + 1);
-  }
-  
-  // not used
-  async function getFileSha(path, token) {
-      const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
+	  function getFileExtension(filename) {
+		const lastDotIndex = filename.lastIndexOf('.');
+		if (lastDotIndex === -1) {
+		  return ''; // No extension found
+		}
+		return filename.substring(lastDotIndex + 1);
+	  }
+	  
+	  // not used
+	  async function getFileSha(path, token) {
+		  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`;
 
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/vnd.github+json"
-        }
-      });
+		  const res = await fetch(url, {
+			method: "GET",
+			headers: {
+			  "Authorization": `Bearer ${token}`,
+			  "Accept": "application/vnd.github+json"
+			}
+		  });
 
-      if (res.status === 200) {
-        const data = await res.json();
-        return data.sha; // sha real del archivo actual
-      } else if (res.status === 404) {
-        // No existe el archivo, devolvemos null
-        return null;
-      } else {
-        const text = await res.text();
-        console.error("Error al obtener sha:", text);
-        throw new Error("No se pudo obtener el sha del archivo");
+		  if (res.status === 200) {
+			const data = await res.json();
+			return data.sha; // sha real del archivo actual
+		  } else if (res.status === 404) {
+			// No existe el archivo, devolvemos null
+			return null;
+		  } else {
+			const text = await res.text();
+			console.error("Error al obtener sha:", text);
+			throw new Error("No se pudo obtener el sha del archivo");
+		  }
       }
-    }
     
 	
-	// to check
-	function validateInput(){
+	  // to check
+	  function validateInput(){
 		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
 		  const inputLlave = document.getElementById('llave');
 
@@ -397,40 +421,142 @@
 			alert("Invalid key.");
 			return false;
 		  }
-	      if ( //simpleStringHash(inputLlave2)!= 49683 && 
-		        inputLlave2.length > 100 || inputLlave2.length < 3 ){
+		  if ( //simpleStringHash(inputLlave2)!= 49683 && 
+				inputLlave2.length > 100 || inputLlave2.length < 3 ){
 			alert("Invalid secondary key.");
 			return false;
 		  }
 		  return true;
-	}
+	  }
+ 	  console.log("startt");
+	
+      function borrarFila(texto, filaABorrar) {
+	    const filas = texto.split('\n');
+
+	    // filaABorrar es 1, 2, 3... (no 0)
+	    const indice = filaABorrar;
+
+	    if (indice < 0 || indice >= filas.length) {
+		  return texto; // fuera de rango, no hace nada
+	    }
+
+	    filas.splice(indice, 1);
+	    return filas.join('\n');
+	  }
+
+
+
+	  // * Para subir gist
+      async function  subirJsonEnGist(theGist, theObject, theFileName,  theTokenn){	     
+		const url = `https://api.github.com/gists/${theGist}`;
+	    console.log("theTokenn:" + theTokenn + ".url:" + url);
+		const response = await fetch(url, {
+				method: 'PATCH',
+				headers: {
+				  'Accept': 'application/vnd.github+json',
+				  'Authorization': `Bearer ${theTokenn}`,
+				  "X-GitHub-Api-Version": "2022-11-28",
+				  "Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					  //"testing", 
+					  
+					  files: {
+						[theFileName]: { content: JSON.stringify(theObject,null,2) }, // filename debe ser el nombre ACTUAL
+					  },
+					} , null, 2)
+			  
+			  });
+
+			  if (!response.ok) {
+				console.error('Error al actualizar el Gist:', response.status, response.statusText);
+				return null;
+			  }
+			  const data = await response.json();
+			  console.log("response when updating: " + JSON.stringify(data) );	
+			  return data;
+	  }
+	  
+	  // * Para subir el json
+      async function  subirJsonEnFire(theObject, theFileName){	     
+		//const url = `https://api.github.com/gists/${theGist}`;
+	    //console.log("theTokenn:" + theTokenn + ".url:" + url);
+		//const response = await fetch(url, {
+		//		method: 'PATCH',
+		//		headers: {
+		//		  'Accept': 'application/vnd.github+json',
+		//		  'Authorization': `Bearer ${theTokenn}`,
+		//		  "X-GitHub-Api-Version": "2022-11-28",
+		//		  "Content-Type": "application/json"
+		//		},
+		//		body: JSON.stringify({
+		//			  files: {
+		//				[theFileName]: { content: JSON.stringify(theObject,null,2) },//filename debe ser nombreactual
+		//			  },
+		//			} , null, 2)	  
+		//	  });
+			
+		upsertConId("prop"+theFileName, theObject.nombre, theObject.whatsapp, theObject.instagram,
+           theObject.tipoIa,theObject.lastupdate,theObject.isEnglish,theObject.segundosslide,theObject.palabras,theObject.clave,"",
+	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images);
+		   
+		/*const newGist = {
+				  instagram: document.getElementById("tuinstagram").value,
+				  whatsapp: document.getElementById("tuwhatsapp").value,
+				  nombre: document.getElementById("tunombre").value,
+				  clave: laclave,
+				  motivacional: quieresMotivacional,
+				  				  
+				  tipoIa: document.getElementById("tipoia").value,
+				  
+				  versiculo: quiereVersiculo,
+				  numerosuerte: quiereNumeroSuerte,
+				  spotify:  document.getElementById("listaspotify").value ,
+				  linkpublicidad: document.getElementById("linkpublicidad").value,
+				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
+				  images: imagesToUpdate ,
+				  palabras: document.getElementById("tuspalabras").value,
+				  lastupdate: new Date(),
+				  isEnglish: esIngles,
+				  segundosslide: document.getElementById("segundosslide").value
+	 			};*/		   
+		   
+
+   		//if (!response.ok) {
+		//if (  error  ){ //toDo
+			//console.error('Error al actualizar el json');
+			//return null;
+		//}
 		
-	
-	console.log("startt");
-	
-	// para leer gist ya teniendo el token
-	async function leerJsonDeGist() {
+		//const data = "";//await response.json();		
+		//console.log("response when updating: " + JSON.stringify(data) );	
+		//return data;
+		
+	  }
+
+
+      // * Para leer gist ya teniendo el token
+	  async function leerJsonDeGist( theKeyFromUser ,  theToken ) {
 	
 			let gistId= ''; //ivanmoralescotes-ui   b10ff3e6d9a8dd1d680d62c6d964590b
 			//72b4874243e1613ba3dd8b9eb9d8e9d9
 			
-			const keyFromUser =  (document.getElementById("llave").value).slice(2, -1);
-			console.log("keyFromUser:"+keyFromUser);
-			const filenamepart = atob( keyFromUser ); //11121197
+			console.log("theKeyFromUser:"+theKeyFromUser);
+			const filenamepart = atob( theKeyFromUser ); //11121197
 			console.log("filenamepart:"+filenamepart);
 
-			//let token = ghubt;
+			//let token = ;
 			const FILE_NAME = "prop" + filenamepart + ".txt";
 			
 			gistId = getGistId(FILE_NAME);
 
 			  const url = `https://api.github.com/gists/${gistId}`;
-			  console.log("ghubt:"+ghubt);
+			  console.log("theToken:"+theToken);
 			  const response = await fetch(url, {
 				method: 'GET',
 				headers: {
 				  'Accept': 'application/vnd.github+json',
-				  'Authorization': `Bearer ${ghubt}`  // tambi¨¦n puede ser `token ${TOKEN}`
+				  'Authorization': `Bearer ${theToken}`  // tambi¨¦n puede ser `token ${TOKEN}`
 				}
 			  });
 
@@ -462,194 +588,191 @@
 
 			  console.log('JSON leido desde Gist:', jsonData);
 			  return jsonData;
-	}
-
-	function borrarFila(texto, filaABorrar) {
-	  const filas = texto.split('\n');
-
-	  // filaABorrar es 1, 2, 3... (no 0)
-	  const indice = filaABorrar;
-
-	  if (indice < 0 || indice >= filas.length) {
-		return texto; // fuera de rango, no hace nada
 	  }
+	  
+	  
+	  async function leerJsonDeFire( theKeyFromUser ,  theToken ) {	
+			let gistId= '';			
+			console.log("theKeyFromUser:"+theKeyFromUser);
+			const filenamepart = atob( theKeyFromUser ); //11121197
+			console.log("filenamepart:"+filenamepart);
 
-	  filas.splice(indice, 1);
+			const FILE_NAME = "prop" + filenamepart + ".txt";//cWMTExMTE3MjY=i
+					
+			let jsonText = await consultarPorId( "prop" + filenamepart );
+			console.log("jsonText :"+jsonText);
+			// Parsear el JSON
+			let jsonData;
+			try {
+				jsonData = jsonText; //JSON.parse(jsonText);
+			} catch (e) {
+				console.error('Error parseando el JSON:', e);
+				return null;
+			}
+			console.log('JSON leido desde Gist:', jsonData);
+			return jsonData;
+			
+			/*
+			gistId = getGistId(FILE_NAME);
 
-	  return filas.join('\n');
-	}
-
-    async function  subirJsonEnGist(theGist, theObject, theFileName){
-	     
-		const url = `https://api.github.com/gists/${theGist}`;
-	    console.log("ghubt:" + ghubt + ".url:" + url);
-		const response = await fetch(url, {
-				method: 'PATCH',
+			  const url = `https://api.github.com/gists/${gistId}`;
+			  console.log("theToken:"+theToken);
+			  const response = await fetch(url, {
+				method: 'GET',
 				headers: {
 				  'Accept': 'application/vnd.github+json',
-				  'Authorization': `Bearer ${ghubt}`,
-				  "X-GitHub-Api-Version": "2022-11-28",
-				  "Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					  //"testing", 
-					  
-					  files: {
-						[theFileName]: { content: JSON.stringify(theObject,null,2) }, // filename debe ser el nombre ACTUAL
-					  },
-					} , null, 2)
-			  
+				  'Authorization': `Bearer ${theToken}`  
+				}
 			  });
 
 			  if (!response.ok) {
-				console.error('Error al actualizar el Gist:', response.status, response.statusText);
+				console.error('Error al leer el Gist:', response.status, response.statusText);
 				return null;
 			  }
 
 			  const data = await response.json();
-			  console.log("response when updating: " + JSON.stringify(data) );	
-			  return data;
-	}
+			  const file = data.files[FILE_NAME];
+			  if (!file) {
+				console.error('No encontro archivo "${FILE_NAME}" en el Gist');
+				return null;
+			  }*/
 
-
-    document.getElementById("limpiarprops").addEventListener("click", async () => {
-		document.getElementById('urlimagen').value="";
-		document.getElementById('imagenes').value="";
-		document.getElementById('listaspotify').value="";
-		document.getElementById('tuwhatsapp').value="";
-		document.getElementById('tuinstagram').value="";
-		document.getElementById('tunombre').value="";
-		document.getElementById('tullave').value="";
-		document.getElementById('confirmatullave').value="";
-		
-		document.getElementById('tuspalabras').value="";
-		
-		document.getElementById('llave2').value="";
-		document.getElementById('linkpublicidad').value="";
-		document.getElementById('nombrepublicidad').value="";
-		
-		document.getElementById('quieresversiculo').checked=false;
-		document.getElementById('quieresnumerosuerte').checked=false;
-		document.getElementById('quieresmotivacional').checked=false;
-		//document.getElementById('quieresia').checked=false;
-		document.getElementById('esingles').checked=false;
-		//document.getElementById('quieresia2').checked=false;
-		document.getElementById('tipoia').value="";
-		
-    });
-	
-	  
-
-
-      // Event listeners
-	  
-	  let llavee = document.getElementById("llave");
-	  llavee.addEventListener("blur", () => {
-		
-		if (llavee.value.length == "11" && llavee.value.startsWith("c") 
-		        && llavee.value.endsWith("??") ){
-			console.log("to process the key");
-			
-			llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
-		} else if ( llavee.value.endsWith("???") ) {
-		
-		    alert("k: " //+ llavee.value.slice(2, -5)+ "__"
-			      + atob( llavee.value.slice(2, -5) ).slice(3)  );
-		    llavee.value = llavee.value.slice(0,-3);
-		}else if ( llavee.value.endsWith("..") && !llavee.value.endsWith("...") ) {
-		    navigator.clipboard.writeText(
-			  "https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-2 ) )
-			  .then(() => {
-				alert("Copied.");
-				llavee.value = llavee.value.slice(0,-2);
-			  })
-			  .catch(err => {
-				console.error("Error al copiar:", err);
-			  });
-		}else if ( llavee.value.endsWith("...") ) {
-		    alert("https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-3 ) );
-			llavee.value = llavee.value.slice(0,-3);
-		}else if ( llavee.value.endsWith("--") ) {
-		    
-			navigator.clipboard.writeText(
-			       llavee.value.slice( 1,-2 ).replace("=","-") )
-			  .then(() => {
-				alert("Copied.");
-				llavee.value = llavee.value.slice(0,-2);
-			  })
-			  .catch(err => {
-				console.error("Error al copiar:", err);
-			  });
+			  // El contenido del archivo viene como texto
+			  //const jsonText = file.content;
 			  
-		}
-		
-	  });
+	  }
 	  
-	  let linkValue = document.getElementById("linkpublicidad");
-	  linkValue.addEventListener("blur", () => {
-		
-		if ( linkValue.value == "    "  || linkValue.value == "   "){
-			console.log("to process a key");
+
+        // Event listeners
+	  
+        document.getElementById("limpiarprops").addEventListener("click", async () => {
+			document.getElementById('urlimagen').value="";
+			document.getElementById('imagenes').value="";
+			document.getElementById('listaspotify').value="";
+			document.getElementById('tuwhatsapp').value="";
+			document.getElementById('tuinstagram').value="";
+			document.getElementById('tunombre').value="";
+			document.getElementById('tullave').value="";
+			document.getElementById('confirmatullave').value="";
 			
-			linkValue.value="javascript:void(0);";
-		}
-	  });
+			document.getElementById('tuspalabras').value="";
+			
+			document.getElementById('llave2').value="";
+			document.getElementById('linkpublicidad').value="";
+			document.getElementById('nombrepublicidad').value="";
+			
+			document.getElementById('quieresversiculo').checked=false;
+			document.getElementById('quieresnumerosuerte').checked=false;
+			document.getElementById('quieresmotivacional').checked=false;
+			//document.getElementById('quieresia').checked=false;
+			document.getElementById('esingles').checked=false;
+			//document.getElementById('quieresia2').checked=false;
+			document.getElementById('tipoia').value="";
+		
+        });
+	        
 	  
-	  let spotifyValue = document.getElementById("listaspotify");
-	  spotifyValue.addEventListener("blur", () => {		
-		if ( spotifyValue.value == "default" ){
-			spotifyValue.value="6zV9uAXv1YVor3H3m5PAej";
-		}
-	  });
+	    let llavee = document.getElementById("llave");
+	    llavee.addEventListener("blur", () => {
+		
+			if (llavee.value.length == "11" && llavee.value.startsWith("c") 
+					&& llavee.value.endsWith("??") ){
+				console.log("to process the key");
+				
+				llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
+			} else if ( llavee.value.endsWith("???") ) {
+			
+				alert("k: " //+ llavee.value.slice(2, -5)+ "__"
+					  + atob( llavee.value.slice(2, -5) ).slice(3)  );
+				llavee.value = llavee.value.slice(0,-3);
+			}else if ( llavee.value.endsWith("..") && !llavee.value.endsWith("...") ) {
+				navigator.clipboard.writeText(
+				  "https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-2 ) )
+				  .then(() => {
+					alert("Copied.");
+					llavee.value = llavee.value.slice(0,-2);
+				  })
+				  .catch(err => {
+					console.error("Error al copiar:", err);
+				  });
+			}else if ( llavee.value.endsWith("...") ) {
+				alert("https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-3 ) );
+				llavee.value = llavee.value.slice(0,-3);
+			}else if ( llavee.value.endsWith("--") ) {
+				
+				navigator.clipboard.writeText(
+					   llavee.value.slice( 1,-2 ).replace("=","-") )
+				  .then(() => {
+					alert("Copied.");
+					llavee.value = llavee.value.slice(0,-2);
+				  })
+				  .catch(err => {
+					console.error("Error al copiar:", err);
+				  });
+				  
+			}
+		
+	    });
 	  
-	  let instagramValue = document.getElementById("tuinstagram");
-	  instagramValue.addEventListener("blur", () => {		
-		if ( instagramValue.value == "default" ){
+	    let linkValue = document.getElementById("linkpublicidad");
+	    linkValue.addEventListener("blur", () => {
+		
+		  if ( linkValue.value == "    "  || linkValue.value == "   "){
+		   	  console.log("to process a key");
+			
+			  linkValue.value="javascript:void(0);";
+		  }
+	    });
+	  
+	    let spotifyValue = document.getElementById("listaspotify");
+	    spotifyValue.addEventListener("blur", () => {		
+		  if ( spotifyValue.value == "default" ){
+		 	spotifyValue.value="6zV9uAXv1YVor3H3m5PAej";
+		  }
+	    });
+	  
+	    let instagramValue = document.getElementById("tuinstagram");
+	    instagramValue.addEventListener("blur", () => {		
+		  if ( instagramValue.value == "default" ){
 			instagramValue.value="https://www.instagram.com/";
-		}
-	  });
+		  }
+	    });
 	  
-	  let tullaveValue = document.getElementById("tullave");
-	  tullaveValue.addEventListener("blur", () => {		
-		if ( tullaveValue.value == "   " ||  tullaveValue.value == "  "){
+	    let tullaveValue = document.getElementById("tullave");
+	    tullaveValue.addEventListener("blur", () => {		
+		  if ( tullaveValue.value == "   " ||  tullaveValue.value == "  "){
 			tullaveValue.value=document.getElementById("llave2").value;
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
-		}
-	  });
+		  }
+	    });
 	  
-	  let tunombreElement = document.getElementById("tunombre");
-	  tunombreElement.addEventListener("blur", () => {		
-		if ( tunombreElement.value.endsWith("tt") ){
+	    let tunombreElement = document.getElementById("tunombre");
+	    tunombreElement.addEventListener("blur", () => {		
+		  if ( tunombreElement.value.endsWith("tt") ){
 			alert ("t " + theTimestamp);			
-		}
-	  });
-	  
-	  
+		  }
+	    });
+	  	  
 	  
 	////////////////////////////////////////////////////////
 		
-	document.getElementById("usarimagen").addEventListener("click", async () => {
-	
+	document.getElementById("usarimagen").addEventListener("click", async () => {	
 		let currentImages = document.getElementById('imagenes').value.split((/\r?\n/));
 		const  urlImagenAUsar = document.getElementById("urlimagen").value;
 		const indexOfImage = document.getElementById('imagenPorAjustar').value;
 		
-		if (urlImagenAUsar == ""){
-			
+		if (urlImagenAUsar == ""){			
 			document.getElementById('imagenes').value = borrarFila(document.getElementById('imagenes').value, indexOfImage);
 			console.log("deleting line");
 			return;
-		}
-		
-		
+		}			
 		if ( !urlImagenAUsar.includes("http")
                   || !  (urlImagenAUsar.toLowerCase().includes(".j") 
 					     || urlImagenAUsar.toLowerCase().includes(".mp4")  )				  
 		   ){
 			 alert("Invalid url");
 		     return;
-		}
-				
+		}				
 		
 		if (currentImages.length > indexOfImage){
 			currentImages[indexOfImage] = document.getElementById("urlimagen").value;
@@ -664,10 +787,9 @@
 	document.getElementById("defaultimages").addEventListener("click", async () => {	
 
 		//document.getElementById('quieresversiculo').checked=true;
-
 		document.getElementById("imagenes").value =
 	         "https://i.imgur.com/ZYbySOV.jpg" +
-			   "\nhttps://i.imgur.com/2RBU19s.jpg" 
+			   "\nhttps://i.imgur.com/n9LNBpb.jpg" 
 	           //"\nhttps://i.imgur.com/uVFofUl.jpg"
                //"\nhttps://i.imgur.com/E7T8pTv.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"+
@@ -681,26 +803,22 @@
 			console.log("Error de entrada..");
 			return;
 		}
-
 		if (isLocal){
 		   window.open("http://localhost:3000/i.html?f=" + thekey , "_blank");
 		   // http://localhost:3000/i.html?f=11121197
 		}else{
 			window.open("https://navi111.netlify.app/i.html?f=" + thekey , "_blank");
 		}
-
 		console.log("ir a");
 	});
-	
-	
+		
 	document.getElementById("ajustarimagen").addEventListener("click", async () => {
 			  let urlimagen = document.getElementById('urlimagen').value;
 			  console.log("urlimagen:"+urlimagen);
 			  
 			  if ( urlimagen.toLowerCase().slice(-4) != ".jpg" && 
 				   urlimagen.toLowerCase().slice(-4) != ".jpeg"
-				  ){
-				   
+				  ){				   
 				 urlimagen = urlimagen + ".jpg";
 			  }
 			  
@@ -719,11 +837,9 @@
 			 
 			 console.log("currentImages.length"+currentImages.length);
 			 
-			 if (currentImages.length > indexOfImage){
-			 
+			 if (currentImages.length > indexOfImage){			 
 				const theimagee = currentImages[indexOfImage];
-				window.open(theimagee, "_blank");	
-				
+				window.open(theimagee, "_blank");				
 			 }else{
 				alert("Invalid number for that list");
 			 }
@@ -741,9 +857,9 @@
 			  document.getElementById('urlimagen').value=urlimagen;
 	});
 
-	// para leer el gist pero antes de tener el token 
-	document.getElementById("consultarprops").addEventListener("click", async () => {  
-	        
+
+	// * Para leer el gist pero antes de tener el token 
+	document.getElementById("consultarprops").addEventListener("click", async () => { 	        
 			try {
 			    //toDo
 			    if ( ! validateInput() ) {
@@ -761,7 +877,7 @@
 						//console.log('Token recibido:', data.token);						
 						ghubt=data.token;
 								
-						let jsonData = await leerJsonDeGist();
+						let jsonData = await leerJsonDeGist( (document.getElementById("llave").value).slice(2, -1) , ghubt );
 						//console.log( "jsonData:" + JSON.stringify(jsonData) );
 						
 						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
@@ -771,13 +887,14 @@
 						    && llave2hash != jsonData.clave ){
 							alert("Invalid value.");
 							document.getElementById("subir").style.display = "none";
+							//document.getElementById("subirFire").style.display = "none";
 							document.getElementById("irapagina").style.display = "none";
 							return;	
 						}else{
 						    //document.getElementById("subir").style.visibility = "visible";
 						    document.getElementById("subir").style.display = "inline-block";
-							document.getElementById("irapagina").style.display = "inline-block";
-							
+							//document.getElementById("subirFire").style.display = "inline-block";
+							document.getElementById("irapagina").style.display = "inline-block";							
 						}
 						
 						if ( jsonData.versiculo == "si" ){
@@ -797,13 +914,7 @@
 						}else{
 						    document.getElementById("quieresia").checked = false;
 						}*/	
-
-						/*if ( jsonData.ia2 && jsonData.ia2 == "si" ){
-							document.getElementById("quieresia2").checked = true;
-						}else{
-						    document.getElementById("quieresia2").checked = false;
-						}*/
-
+						
 						if (jsonData.tipoIa && jsonData.tipoIa != ""){
 							document.getElementById("tipoia").value = jsonData.tipoIa;
 						}else{
@@ -893,32 +1004,166 @@
 			  console.error(error);
 			  alert("Unexpected error with the file.");
 			}
-	});			
+	});	
 
 
-	//para subir gist  
-	document.getElementById("subir").addEventListener("click", async () => {  
+
+	// * Para leer el elemento de firebase pero antes de 
+	document.getElementById("consultarpropsFire").addEventListener("click", async () => { 	        
+			try {
+			    if ( ! validateInput() ) {
+					console.log("Error de entrada");
+					return;
+				}
+										
+				//const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheTokenFire";
+				//  /.netlify/functions/getTheToken				
+				//fetch(tokenurl)
+					//.then(response => response.json())
+					//.then(async (data) => {
+						//ghubt=data.token;
+							
+												
+						let jsonData = await leerJsonDeFire( (document.getElementById("llave").value).slice(2, -1) , ghubt );
+						
+						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
+						
+						if (llave2hash != mainKeyy 
+						    && llave2hash != jsonData.clave ){
+							alert("Invalid value.");
+							document.getElementById("subir").style.display = "none";
+							//document.getElementById("subirFire").style.display = "none";
+							document.getElementById("irapagina").style.display = "none";
+							return;	
+						}else{
+						    document.getElementById("subir").style.display = "inline-block";
+							//document.getElementById("subirFire").style.display = "inline-block";
+							document.getElementById("irapagina").style.display = "inline-block";							
+						}
+						
+						if ( jsonData.versiculo == "si" ){
+							document.getElementById("quieresversiculo").checked = true;
+						}else{
+						    document.getElementById("quieresversiculo").checked = false;
+						}
+						
+						if ( jsonData.motivacional == "si" ){
+							document.getElementById("quieresmotivacional").checked = true;
+						}else{
+						    document.getElementById("quieresmotivacional").checked = false;
+						}				
+						
+						if (jsonData.tipoIa && jsonData.tipoIa != ""){
+							document.getElementById("tipoia").value = jsonData.tipoIa;
+						}else{
+						    document.getElementById("tipoia").value ="";
+						}
+						
+						if ( jsonData.numerosuerte == "si" ){
+							document.getElementById("quieresnumerosuerte").checked = true;
+						}else{
+						    document.getElementById("quieresnumerosuerte").checked = false;
+						}
+						
+						if ( jsonData.spotify != "" && jsonData.spotify != "no"){
+							document.getElementById("listaspotify").value = jsonData.spotify;
+						}else{
+						    document.getElementById("listaspotify").value = "";
+						}
+						
+						if ( jsonData.instagram != "" && jsonData.instagram != "no"){
+							document.getElementById("tuinstagram").value = jsonData.instagram;
+						}else{
+						    document.getElementById("tuinstagram").value = "";
+						}
+						
+						if ( jsonData.whatsapp != "" && jsonData.whatsapp != "no"){
+							document.getElementById("tuwhatsapp").value = jsonData.whatsapp;
+						}else{
+						    document.getElementById("tuwhatsapp").value = "";
+						}
+						
+						if ( jsonData.nombre != "" && jsonData.nombre != "no"){
+							document.getElementById("tunombre").value = jsonData.nombre;
+						}else{
+						    document.getElementById("tunombre").value = "";
+						}
+						
+						if ( jsonData.linkpublicidad != "" && jsonData.linkpublicidad != "no"){
+							document.getElementById("linkpublicidad").value = jsonData.linkpublicidad;
+						}else{
+						    document.getElementById("linkpublicidad").value = "";
+						}
+						
+						if ( jsonData.nombrepublicidad != "" && jsonData.nombrepublicidad != "no"){
+							document.getElementById("nombrepublicidad").value = jsonData.nombrepublicidad;
+						}else{
+						    document.getElementById("nombrepublicidad").value = "";
+						}
+						
+						if ( jsonData.palabras && jsonData.palabras !="" 
+						        && jsonData.palabras != "no" ){
+							document.getElementById("tuspalabras").value = jsonData.palabras;
+						}else{
+						    document.getElementById("tuspalabras").value = "";
+						}
+						
+						if ( jsonData.images != null && jsonData.images.length > 0){
+						
+							document.getElementById("imagenes").value = jsonData.images.join("\n");
+						}else{
+						    document.getElementById("imagenes").value = "";
+						}
+						
+						if ( jsonData.esingles && jsonData.esingles =="si" ){
+							document.getElementById("esingles").checked = true;
+						}else{
+						    document.getElementById("esingles").checked = false;
+						}
+						
+						if ( jsonData.segundosslide && jsonData.segundosslide !="" ){
+							document.getElementById("segundosslide").value = jsonData.segundosslide;
+						}else{
+						    document.getElementById("segundosslide").value = "8";
+						}
+						
+						if (jsonData.lastupdate){
+						   console.log("upd" + jsonData.lastupdate);
+						   theTimestamp = jsonData.lastupdate ;
+						}
+						
+						document.getElementById("tullave").value =""
+						document.getElementById("confirmatullave").value =""
+						alert("Done.");
+						
+				//});			
+			} catch (error) {
+			  console.error(error);
+			  alert("Unexpected error with the query.");
+			}
+	});	
+
+
+	// * Para subir gist  
+	/*document.getElementById("subir").addEventListener("click", async () => {  
 			
 			try {
 				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
 					console.log("Error de entrada.");
 					alert("Invalid value from user.");
 					return;
-				}
-				
+				}				
 				if ( document.getElementById("tullave").value !=  
 						document.getElementById("confirmatullave").value) {
 					console.log("Error de entrada...");
 					alert("Invalid values from user.");
 					return;
-				}
-				
+				}				
 				//toDo
 			    let quiereVersiculo = "no";
 				let quiereNumeroSuerte = "no";
 				let quieresMotivacional = "no";
 				//let quieresIa = "no";
-				//let quieresIa2 = "no";
 				let esIngles = "no";
 				
 				if ( document.getElementById("quieresversiculo").checked ) {
@@ -930,12 +1175,7 @@
 				if ( document.getElementById("quieresmotivacional").checked ) {
 					quieresMotivacional = "si";
 				}
-				/*if ( document.getElementById("quieresia").checked ) {
-					quieresIa = "si";
-				}*/
-				/*if ( document.getElementById("quieresia2").checked ) {
-					quieresIa2 = "si";
-				}*/
+				
 				if ( document.getElementById("esingles").checked ) {
 					esIngles = "si";
 				}
@@ -980,9 +1220,7 @@
 		        const FILE_NAME2 = "prop" + filenamepart2 + ".txt";
     	   	    const gistId2 = getGistId(FILE_NAME2);
 				//console.log("gistId2:"+gistId2);
-				
-				
-				//console.log("before getting token");				
+								
 				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
 				
@@ -992,135 +1230,114 @@
 						//console.log('Token recibido:', data.token);						
 						ghubt=data.token;
 						
-				        let jsonData2 = await subirJsonEnGist(gistId2, newGist, FILE_NAME2 );
+				        let jsonData2 = await subirJsonEnGist(gistId2, newGist, FILE_NAME2 , ghubt);
 						alert("ok");
-				});
-						
-	            
+				});            
 				
      		} catch (error) {
 			  console.error(error);
 			  alert("Unexpected error updating file.");
 			}
-	});
-			
-      //function procesarImagen() {
-      /*document.getElementById("subir").addEventListener("click", async () => {
-		  const inputArchivo = document.getElementById('archivo');
-		  const inputPalabra = document.getElementById('llave');
-		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
-		  
-		  if ( simpleStringHash(inputLlave2)!= 49683){
-			alert("invalid secondary key");
-			return;
-		  }
-		  
-		  if ( inputPalabra.value.substring(0,2) != "cc"){
-			alert("invalid key");
-			return;
-		  }
+	});*/
 
-		  const mySelectElement = document.getElementById('miLista').value; 
-		
-		  const file = inputArchivo.files[0];   // Archivo seleccionado
-		  const palabra = atob((inputPalabra.value).slice(3,-1));      
 
-		  // --- Ejemplo de uso (puedes borrar esto si quieres) ---
-		  console.log('Archivo seleccionado:', file);
-		  console.log('Palabra ingresada:', palabra);
-		  		  
-		  if (!file) {
-			alert("Primero selecciona un archivo.");
-			return;
-		  }
-		  
-		  const theExtension = getFileExtension(file.name);
-		  var newExtension = "jpg";
-		  if ( theExtension == "MP4" || theExtension == "mp4" ){
-			newExtension = "mp4";
-		  }
-		*/  
+    // * Para subir data
+	document.getElementById("subir").addEventListener("click", async () => {  
 			
+			try {
+				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
+					console.log("Error de entrada.");
+					alert("Invalid value from user.");
+					return;
+				}				
+				if ( document.getElementById("tullave").value !=  
+						document.getElementById("confirmatullave").value) {
+					console.log("Error de entrada...");
+					alert("Invalid values from user.");
+					return;
+				}				
+				
+			    let quiereVersiculo = "no";
+				let quiereNumeroSuerte = "no";
+				let quieresMotivacional = "no";
+				let esIngles = "no";
 			
-		/*
-			const updatedContent = {
-			  "files": {
-				"nombre_del_archivo.txt": {
-				  "content": "Este es el nuevo contenido del archivo."
+				if ( document.getElementById("quieresversiculo").checked ) {
+					quiereVersiculo = "si";
 				}
-			  }
-			};
-
-			fetch(url, {
-			  method: 'PUT',
-			  headers: {
-				'Authorization': `token ${token}`,
-				'Content-Type': 'application/json'
-			  },
-			  body: JSON.stringify(updatedContent)
-			})
-			.then(response => response.json())
-			.then(data => console.log('Gist actualizado:', data))
-			.catch(error => console.error('Error actualizando el Gist:', error));
-            */
-		  
-		    /*
-		    // Hacemos una peticion a la funcion serverless
-			fetch('/.netlify/functions/getTheToken')
-				.then(response => response.json())
-				.then(async (data) => {
-					console.log('Token recibido:', data.token);
-					
-					  ghubt=data.token;
-			
-				  console.log('Token recibido2:', ghubt);
+			    if ( document.getElementById("quieresnumerosuerte").checked ) {
+					quiereNumeroSuerte = "si";
+				}
+				if ( document.getElementById("quieresmotivacional").checked ) {
+					quieresMotivacional = "si";
+				}
+				
+				if ( document.getElementById("esingles").checked ) {
+					esIngles = "si";
+				}
+				
+				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
+				console.log("imagesToUpdate:"+imagesToUpdate);
+				
+				let laclave = document.getElementById("tullave").value;
+				if (laclave == ""){
+					laclave = defaultKey;
+				}else{
+					laclave = simpleStringHash(laclave);
+				}
+				
+     			const newGist = {
+				  instagram: document.getElementById("tuinstagram").value,
+				  whatsapp: document.getElementById("tuwhatsapp").value,
+				  nombre: document.getElementById("tunombre").value,
+				  clave: laclave,
+				  motivacional: quieresMotivacional,
+				  				  
+				  tipoIa: document.getElementById("tipoia").value,
+				  
+				  versiculo: quiereVersiculo,
+				  numerosuerte: quiereNumeroSuerte,
+				  spotify:  document.getElementById("listaspotify").value ,
+				  linkpublicidad: document.getElementById("linkpublicidad").value,
+				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
+				  images: imagesToUpdate ,
+				  palabras: document.getElementById("tuspalabras").value,
+				  lastupdate: new Date(),
+				  isEnglish: esIngles,
+				  segundosslide: document.getElementById("segundosslide").value
+	 			};	
+				
+				const keyFromUser2 =  (document.getElementById("llave").value).slice(2, -1);
+		        const filenamepart2 = atob( keyFromUser2 ); //11121197
+		        //console.log("filenamepart:"+filenamepart2);
+		    
+		        const FILE_NAME2 = "prop" + filenamepart2 + ".txt";
+    	   	    const gistId2 = getGistId(FILE_NAME2);
+				//console.log("gistId2:"+gistId2);
+								
+				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+				
+				//fetch(tokenurl)
+					//.then(response => response.json())
+					//.then(async (data) => {
+						//console.log('Token recibido:', data.token);						
+						//ghubt=data.token;
+						
+				        //let jsonData2 = await subirJsonEnFire(gistId2, newGist, FILE_NAME2 , ghubt);
+						await subirJsonEnFire(newGist, filenamepart2 );
+						alert("ok");
+				//});            
+				
+     		} catch (error) {
+			  console.error(error);
+			  alert("Unexpected error updating data.");
+			}
+	});			      
 	
-				  const pathInRepo = palabra + `/tem`+mySelectElement+`.`+newExtension;// 11121443  
-				  
-				  const sha = await getFileSh(pathInRepo, ghubt);
-	
-				  // Leemos el archivo como ArrayBuffer
-				  const arrayBuffer = await file.arrayBuffer();
-				  const base64Content = arrayBufferToBase64(arrayBuffer);
 
-				  // Ruta dentro del repo: /naviapp/{nombreArchivo}
-				  //const pathInRepo = `naviapp/${file.name}`;//naviapp
-				  
-				  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(pathInRepo)}`;
-
-				  const body = {
-					message: `Subir archivo ${file.name} desde formulario HTML`,
-					content: base64Content,
-					branch: BRANCH
-				  };
-			
-			      if (sha) {
-                    body.sha = sha;
-                  }
-				  
-				  const response = await fetch(url, {
-					method: "PUT",
-					headers: {
-					  "Authorization": `Bearer ${ghubt}`,
-					  "Accept": "application/vnd.github+json"
-					},
-					body: JSON.stringify(body)
-				  });
-
-				  const data2 = await response.json();
-				  //document.getElementById("resultado").textContent = JSON.stringify(data2, null, 2);
-
-				  if (!response.ok) {
-					alert("Hubo un error subiendo el archivo.");
-					document.getElementById("resultado").textContent="error";
-				  } else {
-					alert("Archivo subido");
-					document.getElementById("resultado").textContent="ok";
-				  }
-		  						
-				})*/
-			  
-   
   </script>
+  
+  
+
 </body>
 </html>
