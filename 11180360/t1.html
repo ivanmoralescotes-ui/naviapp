@@ -138,8 +138,11 @@
     <img id="slide-img" src="" alt="Imagen" />
 
     <video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>
-      <source src="../temm.mp4" type="video/mp4" />
-      Tu navegador no soporta la etiqueta <code>video</code>.
+        <!--<source src="../temm.mp4" type="video/mp4" />-->
+	    <!--<source src="" type="video/mp4" />-->
+	    <!--<source id="video-source" type="video/mp4">-->
+
+        Tu navegador no soporta la etiqueta <code>video</code>.
     </video>
 
     <div id="slide-html">
@@ -178,7 +181,11 @@
   <div id="message" style="display:none;"></div>
 
   <script src="../js/someFunctions.js"></script>
-  <script>
+
+  <script type="module">
+  
+    import { consultarPorId } from "../js/functionss.js"; 
+  
     let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
     let verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
     let verseLink3 = "https://wa.me/573113068431";
@@ -187,27 +194,43 @@
 	let segundosslide = 0;
 	let displayTime =  7000; //getDisplayTime(); // tu función (ej 7000)
 	
+	//const parts = location.pathname.split("/").filter(Boolean);
+    //const penultima = parts[0]; // SIEMPRE existe
+	//console.log("penultimaa:" + penultima);
+    
+	function getPenultima() {
+		const parts = location.pathname.split("/").filter(Boolean);
+		return parts[0] || "";
+	}
+
 	async function initSlideshow() {
+	
+	
       if (slides.length === 0) {
         showMessage("No hay slides configurados.");
         return;
       }
 
-      console.log("starting");
-      await startAll();
-	  
-	  const ss = Number(segundosslide);
-      displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
-	  //console.log("displaytimee");
-	  console.log({   segundosslide, displayTime, slidesLen: slides.length });
+	  try{
+		  console.log("starting");
+		  await startAll();
+		  
+		  const ss = Number(segundosslide);
+		  displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
+		  //console.log("displaytimee");
+		  console.log({   segundosslide, displayTime, slidesLen: slides.length });
 
-	  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
-	  
-	  //console.log("displayTime(ms):", displayTime);
+		  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
+		  
+		  //console.log("displayTime(ms):", displayTime);
 
-      currentIndex = 0;
-      showSlide(currentIndex, false);
-      startSlideshow();
+		  currentIndex = 0;
+		  showSlide(currentIndex, false);
+		  startSlideshow();
+	  } catch (e) {
+		  console.error("Error en initSlideshow:", e);
+          showMessage("Error cargando datos");
+      }
     }
 	
 	// ----------------- Slideshow control -----------------
@@ -228,13 +251,60 @@
     function nextSlide(isManual = true) {
       if (!slides.length) return;
       currentIndex = (currentIndex + 1) % slides.length;
-      console.log("currentIndex:", currentIndex);
+      //console.log("currentIndex:", currentIndex);
       showSlide(currentIndex, isManual);
     }
 
-    window.addEventListener("load", initSlideshow);
-	//initSlideshow();
+    //window.addEventListener("load", initSlideshow);
 	
+	//document.addEventListener("DOMContentLoaded", initSlideshow);
+    //window.addEventListener("pageshow", initSlideshow);
+	///initSlideshow();
+
+	let initPromise = null;
+
+	async function initSlideshowOnce() {
+	  if (initPromise) return initPromise;
+
+	  initPromise = (async () => {
+	  
+	    const penultima = getPenultima();
+		console.log("starting");
+		await startAll(penultima);
+
+		const ss = Number(segundosslide);
+		displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
+		console.log({ segundosslide, displayTime, slidesLen: slides.length });
+
+		currentIndex = 0;
+		showSlide(currentIndex, false);
+		startSlideshow();
+	  })().catch((e) => {
+		console.error("Error en initSlideshow:", e);
+		showMessage("Error cargando datos");
+		initPromise = null; // permite reintentar
+		throw e;
+	  });
+
+	  return initPromise;
+	}
+
+	// 1) Arranca ya si el DOM ya está listo
+	if (document.readyState === "loading") {
+	  document.addEventListener("DOMContentLoaded", () => initSlideshowOnce(), { once: true });
+	} else {
+	  initSlideshowOnce();
+	}
+
+	// 2) Si vuelves con bfcache (atrás/adelante), reinicia
+	window.addEventListener("pageshow", (e) => {
+	  if (e.persisted) {
+		console.log("pageshow (bfcache) -> reiniciando");
+		initPromise = null;
+		initSlideshowOnce();
+	  }
+	});
+
 	
 	const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // 2. Use it inside an async function
@@ -263,7 +333,10 @@ async function delayedTask() {
 
     const imgElement   = document.getElementById("slide-img");
     const videoElement = document.getElementById("slide-video");
+
     const videoSource  = videoElement.querySelector("source");
+	//const videoSource = document.getElementById("video-source");
+
     const htmlElement  = document.getElementById("slide-html");
 
     const verseLinkEl  = document.getElementById("verse-link");
@@ -287,6 +360,7 @@ async function delayedTask() {
     let currentIndex = 0;
     
 	let slideshowTimer = null;
+	let isEnglish = "no";
 	
 	//if (segundosslide != 0){
 		//displayTime = segundosslide;
@@ -348,28 +422,42 @@ async function delayedTask() {
     }
 
     // ----------------- Tu lógica existente (startAll) -----------------
-    const parts = location.pathname.split("/").filter(p => p !== "");
-    const penultima = parts[parts.length - 2];
-    console.log("penultima:" + penultima);
-
-    let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
-    const thefilename ="prop" + penultima + ".txt";
-    thegist = getGistId(thefilename);
-	
-	let isEnglish = "no";
-
-	async function startAll() {
-	  //const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/${thegist}/raw/${thefilename}');
-	  
-	  const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
-	  const r2 = await r.text();
-	  console.log("the object:" + r2);
-	  if ( !r2 || r2 == "" || r2.includes("404") ){
+    //const parts = location.pathname.split("/").filter(p => p !== "");
+    //const penultima = parts[parts.length - 2];
+		
+    
+    const thefilename ="prop" + getPenultima() + ".txt";
+    
+    // * Para iniciar todo 
+	async function startAll( penultima ) {
+	  const isFire = true; 
+	  let props = null;
+	  	  
+	  if ( !isFire ){	
+	     //let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
+	     let thegist = getGistId(thefilename); //toDo: delete
+	     console.log("despues the getGistId");
+		
+		const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
+		const r2 = await r.text();
+		console.log("the object:" + r2);
+		if ( !r2 || r2 == "" || r2.includes("404") ){
 			console.log("invalid json object");
 			return;
+		}
+		props = JSON.parse(r2);
+      }else{
+	    console.log ("using fire ");
+		const penultima = getPenultima();
+	    props = await consultarPorId( "prop" + penultima );
+		console.log("consultado  con prop" + penultima);
 	  }
 
-	  const props = JSON.parse(r2);
+	  if (!props) {
+         showMessage("No se encontró el documento.");
+		 console.log("No se encontró el documento.");
+         return;
+      }
 
 	  const mostrarVersiculo = props.versiculo;
 	  const mostrarMotivacional = props.motivacional;
@@ -381,7 +469,7 @@ async function delayedTask() {
 
 	  const thewords = props.palabras;
 	  const theai1 = props.ia1;
-	  //const theai2 = props.ia2;
+	  
 	  const tipoia = props.tipoIa;
 	 
 	  isEnglish = props.isEnglish;
@@ -391,12 +479,7 @@ async function delayedTask() {
 
 	  const theimages = props.images;
 	  let imagesList = props.images;
-	  
-	  /*if (props.segundosslide){
-		segundosslide = parseInt(props.segundosslide, 10);
-		console.log("segundosslide:" + segundosslide);
-	  }*/
-	  
+	  	  	  
 	  if (props.segundosslide != null) {
         segundosslide = Number(props.segundosslide);
 		console.log("segundosslide:" + segundosslide);
@@ -409,7 +492,7 @@ async function delayedTask() {
             let cuentaImagen = 1;
 
             for (const unaimagen of imagesList) {
-              console.log("iimagen " + unaimagen);
+              //console.log("iimagen " + unaimagen);
 
               if (unaimagen != "" && unaimagen.length > 4) {
                 let theType = "image";
@@ -437,11 +520,11 @@ async function delayedTask() {
               && (theinstagram == "" || theinstagram == "no")
               && (thewhatsapp == "" || thewhatsapp == "no")
               && (thespotify == "" || thespotify == "no")
-              && mostrarNumeroSuerte != "si"
+              && ( mostrarNumeroSuerte != "si" )
               && (thepublicidad == "" || thepublicidad == "no")
 			  && (!thewords || thewords == "" || thewords == "no")
 			  && (!theai1 || theai1 != "si")
-			  //&& (!theai2 || theai2 != "si")
+		
 			  && (!tipoia || tipoia == "")
 			  ) {
             console.log("nohtml");
@@ -471,20 +554,6 @@ async function delayedTask() {
 	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
 	     yourwords.textContent = thewords; } else { yourwords.style.display = "none"; } 
 		 
-	  /*if (theai1 == "si") {
-		aiwords.style.display = "block";
-		const aiquote = await obtainAi1Text();
-		aiwords.textContent = String(aiquote);
-	  } else {
-		aiwords.style.display = "none";
-	  }*/
-	  /*if (theai2 == "si") {
-		ai2words.style.display = "block";
-		const ai2quote = await obtainAi2Text();
-		ai2words.textContent = String(ai2quote);
-	  } else {
-		ai2words.style.display = "none";
-	  }*/
 	  if (tipoia && tipoia != "") {
 		ai2words.style.display = "block";
 		const ai2quote = await obtainAi2Text(tipoia);
@@ -492,8 +561,7 @@ async function delayedTask() {
 	  } else {
 		ai2words.style.display = "none";
 	  }
-	  
-	  
+		  
 	  lucknumberTextEl.style.display = (mostrarNumeroSuerte == "si") ? "block" : "none"; 
 	  if (thepublicidad != "" && thepublicidad != "no") { 
 	     verseLinkEl4.style.display = "block"; verseLink4 = thepublicidad; 
@@ -508,9 +576,7 @@ async function delayedTask() {
 	  
 	  } 
 	}
-	//);
-	  
-  //}
+	 
     
 	
 	/*async function obtainAi1Text(){
@@ -593,7 +659,7 @@ async function delayedTask() {
 
       setTimeout(() => {
         if (slide.type === "image") {
-          console.log("it is image");
+          //console.log("it is image");
 
           imgElement.onload = () => imgElement.classList.add("show");
           imgElement.src = slide.file;
@@ -606,8 +672,10 @@ async function delayedTask() {
             videoElement.classList.add("show");
           }, { once: true });
 
-          videoSource.src = slide.file;
-          videoElement.load();
+          //videoSource.src = slide.file;
+          //videoElement.load();
+		  setVideoSrc(slide.file);
+
 
         } else if (slide.type === "html") {
           console.log("it is html");
@@ -639,7 +707,20 @@ async function delayedTask() {
       }, 500);
     }
 
-    
+    function setVideoSrc(url) {
+	  // borra sources anteriores
+	  while (videoElement.firstChild && videoElement.firstChild.tagName === "SOURCE") {
+		videoElement.removeChild(videoElement.firstChild);
+	  }
+
+	  const s = document.createElement("source");
+	  s.src = url;
+	  s.type = "video/mp4";
+	  videoElement.prepend(s);
+
+	  videoElement.load();
+	}
+
 	
 	// Tu función secreta que quieres ejecutar
 	function miFuncionS() {
