@@ -10,8 +10,10 @@ import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/1
 
 
 
+
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBtOaWY_FQQ_Rf6n5xUY--zE1R-ujI3SlQ",
+  apiKey: await obtenerApiK(),
   authDomain: "qrpro-f4709.firebaseapp.com",
   projectId: "qrpro-f4709",
   storageBucket: "qrpro-f4709.firebasestorage.app",
@@ -37,6 +39,27 @@ const db = initializeFirestore(app, {
     console.log(doc.id, doc.data());
   });
 }*/
+
+async function obtenerApiK(){
+  	
+  const response = await fetch('/.netlify/functions/getApiK');
+  //const response = await fetch('"http://localhost:3000/.netlify/functions/getApiK"');           
+  
+  const data = await response.json(); //await response.json();
+  console.log("apik is" + data );
+  return data.apik;
+
+	//const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";	
+				/*
+		fetch(tokenurl)
+			.then(response => response.json())
+			.then(async (data) => {				
+				ghubt=data.token;	
+			});*/
+	
+	
+	//return "";
+}
 
 export async function obtenerDatos() {
   const snap = await getDocs(collection(db, "configg"));
