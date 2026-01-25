@@ -46,7 +46,7 @@ async function obtenerApiK(){
   //const response = await fetch('"http://localhost:3000/.netlify/functions/getApiK"');           
   
   const data = await response.json(); //await response.json();
-  console.log("apik is" + data );
+  //console.log("apik is" + data );
   return data.apik;
 
 	//const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";	
