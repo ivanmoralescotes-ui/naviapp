@@ -726,7 +726,13 @@ async function delayedTask() {
 	function miFuncionS() {
 		//alert("¡Función activada!");
 		const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
-		window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
+		const isLocal = getIsLocal();
+		if (isLocal){
+		  window.open("http://localhost:3000/uploading2?cd=c" + thekey, "_blank");
+		}else{
+		  window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
+		}
+		
 	}
 
 

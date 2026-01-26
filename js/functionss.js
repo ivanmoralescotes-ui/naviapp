@@ -42,7 +42,9 @@ const db = initializeFirestore(app, {
 
 async function obtenerApiK(){
   	
-  const response = await fetch('/.netlify/functions/getApiK');
+  //const response = await fetch('/.netlify/functions/getApiK');
+  const response = await fetch('https://navi111.netlify.app/.netlify/functions/getApiK');
+  
   //const response = await fetch('"http://localhost:3000/.netlify/functions/getApiK"');           
   
   const data = await response.json(); //await response.json();

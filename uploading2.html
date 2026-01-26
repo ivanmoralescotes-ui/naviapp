@@ -141,13 +141,13 @@
       <div class="field">
         <label for="llave">Your code</label>
         <input type="text" id="llave" placeholder="" maxlength="85"
-           value="111211"		/>
+           value=""		/>
       </div>
 
       <!-- Campo para escribir la clave -->
       <div class="field">
-        <label for="llave2">Your key</label>
-        <input type="password" id="llave2" placeholder="" maxlength="16" 
+        <label for="clave2">Your key</label>
+        <input type="password" id="clave2" placeholder="" maxlength="16" 
              value=""		/>
       </div>
       <button id="consultarprops" type="button" class="btn-alto" style="display:none;" >Read</button>&nbsp;&nbsp;
@@ -330,7 +330,7 @@
 	import { insertMany } from "./js/functionss.js";
     import { consultarPorId } from "./js/functionss.js";
 	
-	consultarPorId("prop11111726");
+	//consultarPorId("prop11111726");
 	//obtenerDatos();
 	//obtenerFila("prop11111357");//c11111357??   c11111726??
 	//upsertConId("prop11111603","abc","def","wW");
@@ -344,7 +344,7 @@
 		document.getElementById('llave').value = urlCode;
 	  }
 	
-	  const isLocal = false;
+	  const isLocal = getIsLocal();
 	  let ghubt = "";
 	  let theTimestamp = "?";
 	  	
@@ -414,7 +414,7 @@
 	
 	  // to check
 	  function validateInput(){
-		  const inputLlave2 = document.getElementById('llave2').value.slice(1);
+		  const inputLlave2 = document.getElementById('clave2').value.slice(1);
 		  const inputLlave = document.getElementById('llave');
 
 		  if ( inputLlave.value.substring(0,1) != "c" || inputLlave.value.length > 100 ){
@@ -657,7 +657,7 @@
 			
 			document.getElementById('tuspalabras').value="";
 			
-			document.getElementById('llave2').value="";
+			document.getElementById('clave2').value="";
 			document.getElementById('linkpublicidad').value="";
 			document.getElementById('nombrepublicidad').value="";
 			
@@ -675,16 +675,21 @@
 	    let llavee = document.getElementById("llave");
 	    llavee.addEventListener("blur", () => {
 		
-			if (llavee.value.length == "11" && llavee.value.startsWith("c") 
-					&& llavee.value.endsWith("??") ){
+			if (llavee.value.length > 3 && llavee.value.startsWith("c") 
+					&& llavee.value.endsWith("??") && !llavee.value.endsWith("???")){
 				console.log("to process the key");
+								
 				
-				llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";;
+				llavee.value="cW" + btoa( llavee.value.slice(1,-2) ) + "i";
+				
 			} else if ( llavee.value.endsWith("???") ) {
-			
-				alert("k: " //+ llavee.value.slice(2, -5)+ "__"
-					  + atob( llavee.value.slice(2, -5) ).slice(3)  );
+			    if (llavee.length > 12){
+					alert("k: " + atob( llavee.value.slice(2, -5) ).slice(3)  );
+				}else{
+                    alert("k: " + atob( llavee.value.slice(2, -4) )  );
+                }				
 				llavee.value = llavee.value.slice(0,-3);
+				
 			}else if ( llavee.value.endsWith("..") && !llavee.value.endsWith("...") ) {
 				navigator.clipboard.writeText(
 				  "https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-2 ) )
@@ -741,7 +746,7 @@
 	    let tullaveValue = document.getElementById("tullave");
 	    tullaveValue.addEventListener("blur", () => {		
 		  if ( tullaveValue.value == "   " ||  tullaveValue.value == "  "){
-			tullaveValue.value=document.getElementById("llave2").value;
+			tullaveValue.value=document.getElementById("clave2").value;
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 		  }
 	    });
@@ -798,14 +803,19 @@
 	
 	// to do
 	document.getElementById("irapagina").addEventListener("click", async () => {	
-		const thekey = document.getElementById("llave").value.slice(1);
+		let thekey = document.getElementById("llave").value.slice(1);
 		if ( ! validateInput() ) {
 			console.log("Error de entrada..");
 			return;
 		}
+		//alert("thekey:"+thekey);
+		if (thekey.length == 6){
+		   thekey = thekey.slice(1,-1);
+		}
 		if (isLocal){
-		   window.open("http://localhost:3000/i.html?f=" + thekey , "_blank");
+		   window.open("http://localhost:3000/i?f=" + thekey , "_blank");
 		   // http://localhost:3000/i.html?f=11121197
+		   // http://localhost:3000/i?f=QUFB
 		}else{
 			window.open("https://navi111.netlify.app/i.html?f=" + thekey , "_blank");
 		}
@@ -880,7 +890,7 @@
 						let jsonData = await leerJsonDeGist( (document.getElementById("llave").value).slice(2, -1) , ghubt );
 						//console.log( "jsonData:" + JSON.stringify(jsonData) );
 						
-						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
+						const llave2hash = simpleStringHash(document.getElementById("clave2").value); 
 						// 233 def
 						
 						if (llave2hash != mainKeyy 
@@ -1026,7 +1036,7 @@
 												
 						let jsonData = await leerJsonDeFire( (document.getElementById("llave").value).slice(2, -1) , ghubt );
 						
-						const llave2hash = simpleStringHash(document.getElementById("llave2").value); 
+						const llave2hash = simpleStringHash(document.getElementById("clave2").value); 
 						
 						if (llave2hash != mainKeyy 
 						    && llave2hash != jsonData.clave ){
@@ -1058,6 +1068,14 @@
 						}else{
 						    document.getElementById("tipoia").value ="";
 						}
+						
+						/*if (jsonData.clave && jsonData.clave != ""){
+							document.getElementById("tullave").value = jsonData.clave;
+							document.getElementById("confirmatullave").value =jsonData.clave;
+						}else{
+						    document.getElementById("tullave").value ="";
+						    document.getElementById("confirmatullave").value ="";
+						}*/
 						
 						if ( jsonData.numerosuerte == "si" ){
 							document.getElementById("quieresnumerosuerte").checked = true;
@@ -1132,8 +1150,9 @@
 						   theTimestamp = jsonData.lastupdate ;
 						}
 						
-						document.getElementById("tullave").value =""
-						document.getElementById("confirmatullave").value =""
+						document.getElementById("tullave").value =document.getElementById("clave2").value;
+						document.getElementById("confirmatullave").value =document.getElementById("clave2").value;
+						
 						alert("Done.");
 						
 				//});			
@@ -1247,7 +1266,7 @@
 			try {
 				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
 					console.log("Error de entrada.");
-					alert("Invalid value from user.");
+					//alert("Invalid value from user.");
 					return;
 				}				
 				if ( document.getElementById("tullave").value !=  
