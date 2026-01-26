@@ -459,7 +459,7 @@ window.getGistId = function getGistId(filename){
 }
 
 window.getIsLocal = function getIsLocal(){
-	return true;//false 
+	return false;//false 
 }
 
 window.getDisplayTime = function getDisplayTime(){

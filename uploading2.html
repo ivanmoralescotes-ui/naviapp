@@ -311,12 +311,12 @@
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
 	<br>
-	<div><center><a href="https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" target="_blank">qface</a></center></div>
+	<!--<div><center><a href="https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" target="_blank">qface</a></center></div>-->
 	
-	<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>
+	<!--<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>-->
 	<div><center><a href="https://scanqr.org/#scan" target="_blank">scan</a></center></div>
 	
-	<div><br><br><center>573113068430</center></div>
+	<div><br><center>573113068430</center></div>
 	<div><center><a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a></center></div>
 	
   </div>
@@ -735,6 +735,9 @@
 		 	spotifyValue.value="6zV9uAXv1YVor3H3m5PAej";
 		  }
 	    });
+		
+		
+	    	
 	  
 	    let instagramValue = document.getElementById("tuinstagram");
 	    instagramValue.addEventListener("blur", () => {		
@@ -756,6 +759,13 @@
 		  if ( tunombreElement.value.endsWith("tt") ){
 			alert ("t " + theTimestamp);			
 		  }
+		  if ( tunombreElement.value.endsWith("??") &&
+		        !tunombreElement.value.endsWith("???") ){
+		 	 window.open("https://huggingface.co/spaces/Oysiyl/AI-QR-code-generator" , "_blank");
+		  } else if ( tunombreElement.value.endsWith("???") ){
+		     window.open("https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" , "_blank");
+		  }
+	    
 	    });
 	  	  
 	  
