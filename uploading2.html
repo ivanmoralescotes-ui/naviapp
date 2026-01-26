@@ -283,7 +283,7 @@
 	  
       <!-- Botón para ejecutar tu código -->
       <button id="exsubir" type="button" style="display:none;">Save</button>
-	  <button id="subir" type="button">Save</button>
+	  <button id="subir" type="button"  style="display:none;" >Save</button>
 
       <!--<pre id="resultado"></pre>-->
     </div>
@@ -752,6 +752,13 @@
 			tullaveValue.value=document.getElementById("clave2").value;
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 		  }
+		  
+		  if ( tullaveValue.value == "ii"){
+			tullaveValue.value=document.getElementById("clave2").value;
+			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
+			document.getElementById("subir").style.display = "inline-block";
+		  }
+		  
 	    });
 	  
 	    let tunombreElement = document.getElementById("tunombre");
