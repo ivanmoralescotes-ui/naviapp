@@ -704,8 +704,14 @@
 				llavee.value = llavee.value.slice(0,-3);
 				
 			}else if ( llavee.value.endsWith("..") && !llavee.value.endsWith("...") ) {
+			
+			    let tempi = llavee.value.slice( 1,-2 );
+				if (tempi.length == 6){
+				   tempi = tempi.slice(1, -1);
+				}
+			
 				navigator.clipboard.writeText(
-				  "https://" + adomain + "/i?f=" + llavee.value.slice( 1,-2 ) )
+				  "https://" + adomain + "/i?f=" + tempi )
 				  .then(() => {
 					alert("Copied.");
 					llavee.value = llavee.value.slice(0,-2);
@@ -714,7 +720,12 @@
 					console.error("Error al copiar:", err);
 				  });
 			}else if ( llavee.value.endsWith("...") ) {
-				alert("https://" + adomain + "/i?f=" + llavee.value.slice( 1,-3 ) );
+			    let tempi = llavee.value.slice( 1,-3 );
+				if (tempi.length == 6){
+				   tempi = tempi.slice(1, -1);
+				}
+				
+				alert("https://" + adomain + "/i?f=" + tempi );
 				llavee.value = llavee.value.slice(0,-3);
 			}else if ( llavee.value.endsWith("--") ) {
 				
