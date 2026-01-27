@@ -319,7 +319,10 @@
 	<div><center><a href="https://scanqr.org/#scan" target="_blank">scan</a></center></div>
 	
 	<div><br><center>573113068430</center></div>
-	<div><center><a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a></center></div>
+	<div><center>
+	<!--<a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>-->
+	<a href="https://kpweb.biz/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>
+	</center></div>
 	
   </div>
 
@@ -346,6 +349,8 @@
 	
   
       console.log("c11121197");
+	  const adomain = "kpweb.biz"; // "navi111.netlify.app"  //kpweb.biz
+	  
 	  const params = new URLSearchParams(window.location.search);
       const urlCode = params.get('cd');
 	  if (urlCode != null && urlCode != ""){
@@ -700,7 +705,7 @@
 				
 			}else if ( llavee.value.endsWith("..") && !llavee.value.endsWith("...") ) {
 				navigator.clipboard.writeText(
-				  "https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-2 ) )
+				  "https://" + adomain + "/i?f=" + llavee.value.slice( 1,-2 ) )
 				  .then(() => {
 					alert("Copied.");
 					llavee.value = llavee.value.slice(0,-2);
@@ -709,7 +714,7 @@
 					console.error("Error al copiar:", err);
 				  });
 			}else if ( llavee.value.endsWith("...") ) {
-				alert("https://navi111.netlify.app/i?f=" + llavee.value.slice( 1,-3 ) );
+				alert("https://" + adomain + "/i?f=" + llavee.value.slice( 1,-3 ) );
 				llavee.value = llavee.value.slice(0,-3);
 			}else if ( llavee.value.endsWith("--") ) {
 				
@@ -848,7 +853,7 @@
 		   // http://localhost:3000/i.html?f=11121197
 		   // http://localhost:3000/i?f=QUFB
 		}else{
-			window.open("https://navi111.netlify.app/i.html?f=" + thekey , "_blank");
+			window.open("https://" + adomain + "/i.html?f=" + thekey , "_blank");
 		}
 		console.log("ir a");
 	});
@@ -900,7 +905,7 @@
 
 
 	// * Para leer el gist pero antes de tener el token 
-	document.getElementById("consultarprops").addEventListener("click", async () => { 	        
+	/*document.getElementById("consultarprops").addEventListener("click", async () => { 	        
 			try {
 			    //toDo
 			    if ( ! validateInput() ) {
@@ -909,7 +914,7 @@
 				}
 			
 				console.log("before getting t");				
-				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+				const tokenurl ="https://navi11.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
 				
 				fetch(tokenurl)
@@ -919,7 +924,7 @@
 						ghubt=data.token;
 								
 						let jsonData = await leerJsonDeGist( (document.getElementById("llave").value).slice(2, -1) , ghubt );
-						//console.log( "jsonData:" + JSON.stringify(jsonData) );
+						
 						
 						const llave2hash = simpleStringHash(document.getElementById("clave2").value); 
 						// 233 def
@@ -949,13 +954,7 @@
 						}else{
 						    document.getElementById("quieresmotivacional").checked = false;
 						}
-
-						/*if ( jsonData.ia1 && jsonData.ia1 == "si" ){
-							document.getElementById("quieresia").checked = true;
-						}else{
-						    document.getElementById("quieresia").checked = false;
-						}*/	
-						
+										
 						if (jsonData.tipoIa && jsonData.tipoIa != ""){
 							document.getElementById("tipoia").value = jsonData.tipoIa;
 						}else{
@@ -1014,7 +1013,6 @@
 						if ( jsonData.images != null && jsonData.images.length > 0){
 						
 							document.getElementById("imagenes").value = jsonData.images.join("\n");
-							//textarea.value = frases.join("\n");
 						}else{
 						    document.getElementById("imagenes").value = "";
 						}
@@ -1045,7 +1043,7 @@
 			  console.error(error);
 			  alert("Unexpected error with the file.");
 			}
-	});	
+	});*/	
 
 
 
@@ -1057,7 +1055,7 @@
 					return;
 				}
 										
-				//const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheTokenFire";
+				//const tokenurl ="https://navi11.netlify.app/.netlify/functions/getTheTokenFire";
 				//  /.netlify/functions/getTheToken				
 				//fetch(tokenurl)
 					//.then(response => response.json())
@@ -1271,7 +1269,7 @@
     	   	    const gistId2 = getGistId(FILE_NAME2);
 				//console.log("gistId2:"+gistId2);
 								
-				const tokenurl ="https://navi111.netlify.app/.netlify/functions/getTheToken";
+				const tokenurl ="https://navi11.netlify.app/.netlify/functions/getTheToken";
 				//  /.netlify/functions/getTheToken
 				
 				fetch(tokenurl)
