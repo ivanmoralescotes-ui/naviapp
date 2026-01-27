@@ -146,9 +146,10 @@
 
       <!-- Campo para escribir la clave -->
       <div class="field">
-        <label for="clave2">Your key</label>
+	  
+        <label for="clave2">Your key&nbsp;&nbsp;<a href="javascript:void(0);" onclick="useKey();">></a></label>
         <input type="password" id="clave2" placeholder="" maxlength="16" 
-             value=""		/>
+             value="" /> 
       </div>
       <button id="consultarprops" type="button" class="btn-alto" style="display:none;" >Read</button>&nbsp;&nbsp;
 	  <button id="consultarpropsFire" type="button" class="btn-alto">Read</button>&nbsp;&nbsp;
@@ -305,6 +306,7 @@
 		</select>
 		<button id="usarimagen" type="button" class="btn-alto">Use</button>
 		<button id="ajustarimagen" type="button" class="btn-alto">Jpg</button>
+		<button id="defaultimg" type="button" class="btn-alto">default</button>
 		<button id="ajustarmp4" type="button" class="btn-alto">Mp4</button>
 		<button id="iraunaimagen" type="button" class="btn-alto">Go</button>
     </div>
@@ -321,6 +323,12 @@
 	
   </div>
 
+  <script>
+      function useKey(){
+	      document.getElementById("tullave").value=document.getElementById("clave2").value;
+		  document.getElementById("confirmatullave").value=document.getElementById("clave2").value;
+	  }  
+  </script>
   
   <script type="module">
     import { obtenerDatos } from "./js/functionss.js";
@@ -365,8 +373,8 @@
 		}
 		return btoa(binary);
 	  }
-	
-  
+	  
+	    
 	  function simpleStringHash(str) {
 		let hash = 0;
 		for (let i = 0; i < str.length; i++) {
@@ -444,7 +452,7 @@
 	    return filas.join('\n');
 	  }
 
-
+	  
 
 	  // * Para subir gist
       async function  subirJsonEnGist(theGist, theObject, theFileName,  theTokenn){	     
@@ -817,6 +825,12 @@
                //"\nhttps://i.imgur.com/HA1h36w.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"
 	});
+	
+	document.getElementById("defaultimg").addEventListener("click", async () => {
+		document.getElementById("imagenes").value = "https://i.imgur.com/ZYbySOV.jpg" +
+			   "\nhttps://i.imgur.com/n9LNBpb.jpg"
+	});
+	
 	
 	// to do
 	document.getElementById("irapagina").addEventListener("click", async () => {	
