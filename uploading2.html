@@ -1078,6 +1078,11 @@
 						
 						const llave2hash = simpleStringHash(document.getElementById("clave2").value); 
 						
+						if ( !jsonData || jsonData == null) {
+							alert("Invalid input.");
+							return;
+						}
+						
 						if (llave2hash != mainKeyy 
 						    && llave2hash != jsonData.clave ){
 							alert("Invalid value.");
@@ -1198,7 +1203,7 @@
 				//});			
 			} catch (error) {
 			  console.error(error);
-			  alert("Unexpected error with the query.");
+			  alert("Unexpected error.");
 			}
 	});	
 
