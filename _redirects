@@ -3,5 +3,5 @@
 
 # Redireccion con parametros de consulta
 
-/123  /i?f=QUFB  200
-
+/A1  /i?f=QUFB
+/A2  /i?f=QUFQ
