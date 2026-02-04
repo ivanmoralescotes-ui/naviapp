@@ -139,7 +139,7 @@
 
       <!-- Campo para escribir la llave -->
       <div class="field">
-        <label for="llave">Your code</label>
+        <label for="llave" id="yourCodeLabel">Your code</label>
         <input type="text" id="llave" placeholder="" maxlength="85"
            value=""		/>
       </div>
@@ -158,7 +158,7 @@
 	  <button id="limpiarprops" type="button" class="btn-alto">Clean</button>&nbsp;&nbsp;
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  &nbsp;&nbsp;
-	  <button id="irapagina" type="button" class="btn-alto" style="display:none;">Go</button>
+	  <button id="irapagina" type="button" class="btn-alto" style="display:none;" >Go</button>
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -212,6 +212,10 @@
 	  <div class="field">
 	    <label for="nombrepublicidad">Link Name</label>
         <input type="text" id="nombrepublicidad" placeholder="" value="" />
+      </div>
+	  <div class="field">
+	    <label for="linkdirecto">Direct Link</label>
+        <input type="text" id="linkdirecto" placeholder="" value="" />
       </div>
 	  <div class="field">
         <label for="tullave">*New key</label>
@@ -323,7 +327,8 @@
 	<!--<a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>-->
 	<a href="https://kpweb.biz/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>
 	</center></div>
-	
+	<div class="field"><br><center>Español<input type="checkbox" name="espanol" id="espanol"></center>
+    </div><br>
   </div>
 
   <script>
@@ -511,7 +516,7 @@
 			
 		upsertConId("prop"+theFileName, theObject.nombre, theObject.whatsapp, theObject.instagram,
            theObject.tipoIa,theObject.lastupdate,theObject.isEnglish,theObject.segundosslide,theObject.palabras,theObject.clave,"",
-	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images);
+	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images,theObject.linkdirecto);
 		   
 		/*const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
@@ -662,6 +667,7 @@
 			document.getElementById('urlimagen').value="";
 			document.getElementById('imagenes').value="";
 			document.getElementById('listaspotify').value="";
+						
 			document.getElementById('tuwhatsapp').value="";
 			document.getElementById('tuinstagram').value="";
 			document.getElementById('tunombre').value="";
@@ -673,7 +679,7 @@
 			document.getElementById('clave2').value="";
 			document.getElementById('linkpublicidad').value="";
 			document.getElementById('nombrepublicidad').value="";
-			
+			document.getElementById('linkdirecto').value="";
 			document.getElementById('quieresversiculo').checked=false;
 			document.getElementById('quieresnumerosuerte').checked=false;
 			document.getElementById('quieresmotivacional').checked=false;
@@ -799,7 +805,20 @@
 	    
 	    });
 	  	  
-	  
+      let espanol = document.getElementById("espanol");
+	  espanol.addEventListener('change', (event) => {
+			// 3. Check the 'checked' property to see the current state
+			console.log("is checked: " + event.currentTarget.checked);
+			if (event.currentTarget.checked) {
+				//statusText.textContent = 'Checkbox is checked';
+			   document.getElementById("iraunaimagen").innerText   = "Ir";
+               document.getElementById("yourCodeLabel").innerText  = "Codigo";				
+			} else {
+			   document.getElementById("iraunaimagen").innerText   = "Go";
+			   document.getElementById("yourCodeLabel").innerText  = "Your code";
+			}
+		});
+
 	////////////////////////////////////////////////////////
 		
 	document.getElementById("usarimagen").addEventListener("click", async () => {	
@@ -1096,6 +1115,12 @@
 							document.getElementById("irapagina").style.display = "inline-block";							
 						}
 						
+						if ( jsonData.linkdirecto && jsonData.linkdirecto != "" ){
+							document.getElementById("linkdirecto").value = jsonData.linkdirecto;
+						}else{
+						    document.getElementById("linkdirecto").value = "";
+						}
+						
 						if ( jsonData.versiculo == "si" ){
 							document.getElementById("quieresversiculo").checked = true;
 						}else{
@@ -1128,7 +1153,7 @@
 						    document.getElementById("quieresnumerosuerte").checked = false;
 						}
 						
-						if ( jsonData.spotify != "" && jsonData.spotify != "no"){
+						if ( jsonData.spotify != "" && jstonData.spotify != "no"){
 							document.getElementById("listaspotify").value = jsonData.spotify;
 						}else{
 						    document.getElementById("listaspotify").value = "";
@@ -1368,7 +1393,8 @@
 				  palabras: document.getElementById("tuspalabras").value,
 				  lastupdate: new Date(),
 				  isEnglish: esIngles,
-				  segundosslide: document.getElementById("segundosslide").value
+				  segundosslide: document.getElementById("segundosslide").value,
+				  linkdirecto: document.getElementById("linkdirecto").value
 	 			};	
 				
 				const keyFromUser2 =  (document.getElementById("llave").value).slice(2, -1);

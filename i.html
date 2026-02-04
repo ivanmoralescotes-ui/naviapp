@@ -2,72 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Redirigiendo...</title>
+  <title>Redirigiendo</title>
   <script>
     // https://navi111.netlify.app/middle2.html
     const ahora = new Date();
-    const parteMinutoActual = ahora.getMinutes().toString().slice(-1); // 4 = 4am, 17 = 5pm, etc.
+    const parteMinutoActual = ahora.getMinutes().toString().slice(-1);
 	const horaActual = ahora.getHours();
 	
-    console.log("min is "+parteMinutoActual);
-    // Aquí decides qué imagen usar según la hora
+    //console.log("min is "+parteMinutoActual);
+    // Aqui decides que imagen usar segun la hora
     let rutaImagen = "./11111111/error.jpg";
-    const op1 = "t1";//tem.jpg
-    const op2 = "t3";//tem2.jpg,temm.mp4 html
-	
+    const op1 = "t1";
+    const op2 = "t3";
 	//console.log("href:", window.location.href);
     //console.log("hash:", window.location.hash);
 
 	const params2 = new URLSearchParams(window.location.search);
 
     const f = params2.get('f');
-	//f will be used and decoded 
-    console.log('Val f:' + f);
+    //console.log('Val f:' + f)
 	
 	var folder = "11111111";
-	//alert("f "+f);
 	if (f != null && f != "" && f.length > 12) {//WMjIyMjIyMjI=I
 	  folder = atob( f.slice(1, -1) );
-	}
-	
-	if (f != null && f != "" && f.length == 4) {
+	}else if (f != null && f != "" && f.length == 4) {
 	  folder = atob( f );
 	}
 	
-	console.log('Val f2:', folder);
-	//folder = "";
-
+	//console.log('Val f2:', folder)
     if (parteMinutoActual == "1" || parteMinutoActual == "3") {
-      // 0:00 - 5:59 -> madrugada
-      rutaImagen = "./"+folder+"/" +op1;//mo3.jpeg
+      
+      rutaImagen = "./"+folder+"/" +op1;
     } else if (parteMinutoActual == "5" || parteMinutoActual == "7") {
-      // 6:00 - 11:59 -> mañana
-      rutaImagen = "./"+folder+"/"+op1;//monkey6.jpeg
+      
+      rutaImagen = "./"+folder+"/"+op1;
     } else if (parteMinutoActual == "9") {
-      // 12:00 - 17:59 -> tarde
+      
       rutaImagen = "./"+folder+"/"+op1;//mo8.jpeg
 	} else if (parteMinutoActual == "2" || parteMinutoActual == "4") {
-      rutaImagen = "./"+folder+"/"+op2;//middle.jpg
+      rutaImagen = "./"+folder+"/"+op2;
 	} else if (parteMinutoActual == "0" && horaActual == 11 ) {
-	  rutaImagen = "./"+folder+"/tempii.jpg";
+	  rutaImagen = "./"+folder+"/"+op2;    //"/tempii.jpg";
     } else {
-      // 18:00 - 23:59 -> noche
-      rutaImagen = "./"+folder+"/" + op2;//alien.jpeg
+      rutaImagen = "./"+folder+"/" + op2;
     }
 
-    // Redirección
-    window.location.href = rutaImagen ;//+ "?cd=" + f;
+    // Redireccion
+    window.location.href = rutaImagen ;//+ "?cd=" + f
     // Si prefieres reemplazar el historial:
     // window.location.replace(rutaImagen);
   </script>
 </head>
 <body>
-  <p>Redirigiendo...</p>
-  <p>Si no eres redirigido automáticamente, haz clic aquí:</p>
+  <p>Redirigiendo...Si no eres redirigido automáticamente, haz clic aquí:</p>
   <a id="link-manual" href="#">Ir a la pagina</a>
-
   <script>
-    // Fallback: por si el navegador bloquea la redirección automática
+    // Fallback: por si el navegador bloquea la redireccion automatica
     document.getElementById("link-manual").href = rutaImagen;
   </script>
 </body>

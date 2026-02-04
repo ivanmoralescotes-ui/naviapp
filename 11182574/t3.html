@@ -203,7 +203,7 @@
 		return parts[0] || "";
 	}
 
-	async function initSlideshow() {
+	async function initSlideshow() {//is it used?
 	
 	
       if (slides.length === 0) {
@@ -485,6 +485,13 @@ async function delayedTask() {
 		console.log("segundosslide:" + segundosslide);
       }
 
+      // window.location.href = rutaImagen
+	  if (props.linkdirecto != null && props.linkdirecto != "") {
+        console.log("direct:" + props.linkdirecto);
+		window.location.href = props.linkdirecto;
+		
+      }	
+	  
 	  // ... (aquí dejas tu bloque de images tal cual)
 	  if (theimages != null && theimages.length > 0) {
             console.log("first image:" + imagesList[0]);
@@ -546,8 +553,10 @@ async function delayedTask() {
 	  } else { 
 	        verseLinkEl3.style.display = "none"; 
       } 
+	  	  	  
 	  
-	  if (thespotify != "" && thespotify != "no") { verseLinkEl.style.display = "block"; 
+	  if (thespotify != "" && thespotify != "no") { 
+	     verseLinkEl.style.display = "block"; 
 	     verseLink = "https://open.spotify.com/playlist/" + thespotify; 
 	  } else { verseLinkEl.style.display = "none"; } 
 	  

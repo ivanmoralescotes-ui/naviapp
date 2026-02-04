@@ -157,7 +157,7 @@ export async function insertarConId(miId, nombree, whatsapp1, instagram1) {
 
 export async function upsertConId(miId, nombre1, whatsapp1, instagram1,
     tipoIa1,lastupdate1,isEnglish1,segundosslide1,palabras1,clave1,akey1,
-	versiculo1,motivacional1,numerosuerte1,spotify1,linkpublicidad1,nombrepublicidad1,images1) {
+	versiculo1,motivacional1,numerosuerte1,spotify1,linkpublicidad1,nombrepublicidad1,images1, linkdirecto1) {
 	await setDoc(
 	  doc(db, "configg", miId),
 	  { 
@@ -178,7 +178,8 @@ export async function upsertConId(miId, nombre1, whatsapp1, instagram1,
 		spotify:spotify1,
 		linkpublicidad:linkpublicidad1,
 		nombrepublicidad:nombrepublicidad1,
-		images:images1		
+		images:images1,
+        linkdirecto: linkdirecto1		
       },
 	  { merge: true }
 	);
