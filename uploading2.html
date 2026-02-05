@@ -129,7 +129,7 @@
   <script src="js/someFunctions.js"></script>
   <div class="container">
     <div class="card">
-      <h1>Updating page (with <a href="https://imgur.com/" target="_blank">imgur</a>)</h1>
+      <h1 id="titulo">Updating page (with <a href="https://imgur.com/" target="_blank">imgur</a>)</h1>
 
       <!-- Campo para seleccionar archivo -->
       <!--<div class="field">
@@ -139,7 +139,7 @@
 
       <!-- Campo para escribir la llave -->
       <div class="field">
-        <label for="llave" id="yourCodeLabel">Your code</label>
+        <label for="llave" id="yourCodeLabel">Code</label>
         <input type="text" id="llave" placeholder="" maxlength="85"
            value=""		/>
       </div>
@@ -147,7 +147,7 @@
       <!-- Campo para escribir la clave -->
       <div class="field">
 	  
-        <label for="clave2">Your key&nbsp;&nbsp;<a href="javascript:void(0);" onclick="useKey();">></a></label>
+        <label for="clave2" id="clave2Label">Password&nbsp;&nbsp;<a href="javascript:void(0);" onclick="useKey();">></a></label>
         <input type="password" id="clave2" placeholder="" maxlength="16" 
              value="" /> 
       </div>
@@ -183,69 +183,68 @@
       </div>-->
 	  
 	  <div class="field">
-        <label for="listaspotify">Spotify List</label>
+        <label for="listaspotify" id="listaspotifyLabel">Spotify list</label>
         <input type="text" id="listaspotify" placeholder="" title="ejemplo: 6zV9uAXv1YVor3H3m5PAej" maxlength="120" />
       </div>
 	  
 	  <div class="field">
-        <label for="tuinstagram">Instagram Link</label>
+        <label for="tuinstagram" id="tuinstagramLabel" >Instagram link</label>
         <input type="text" id="tuinstagram" placeholder="" value="" 
 		    maxlength="200" />
       </div>
 	  
 	  <div class="field">
-        <label for="tuwhatsapp">Whatsapp</label>
+        <label for="tuwhatsapp" id="tuwhatsappLabel">Whatsapp</label>
         <input type="text" id="tuwhatsapp" placeholder="" value="" 
 		    maxlength="15" />
       </div>
 	  <div class="field">
-        <label for="tuspalabras">Words</label>
+        <label for="tuspalabras" id="tuspalabrasLabel">Words</label>
         <input type="text" id="tuspalabras" placeholder="" value="" 
 		    maxlength="150" />
       </div>
 	  
 	  
 	  <div class="field">
-	    <label for="linkpublicidad">Additional Link</label>
+	    <label for="linkpublicidad" id="linkpublicidadLabel">Additional link</label>
         <input type="text" id="linkpublicidad" placeholder="" value="" />
       </div>
 	  <div class="field">
-	    <label for="nombrepublicidad">Link Name</label>
+	    <label for="nombrepublicidad" id="nombrepublicidadLabel">Link name</label>
         <input type="text" id="nombrepublicidad" placeholder="" value="" />
       </div>
 	  <div class="field">
-	    <label for="linkdirecto">Direct Link</label>
+	    <label for="linkdirecto" id="linkdirectoLabel">Direct link</label>
         <input type="text" id="linkdirecto" placeholder="" value="" />
       </div>
 	  <div class="field">
-        <label for="tullave">*New key</label>
+        <label for="tullave" id="tullaveLabel">*New password</label>
         <input type="password" id="tullave" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  <div class="field">
-        <label for="confirmatullave">*Confirm new key</label>
+        <label for="confirmatullave" id="confirmatullaveLabel">*Confirm new password</label>
         <input type="password" id="confirmatullave" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  <div class="field">
-        <label for="tunombre">Name</label>
+        <label for="tunombre" id="tunombreLabel">Name</label>
         <input type="text" id="tunombre" placeholder="" value="" 
 		    maxlength="20" />
       </div>
 	  
 	  <br>
-	  <div class="field">
-	    Verse?<input type="checkbox" name="quieresversiculo" 
+	  <div class="field"><label for="quieresversiculo" id="quieresversiculoLabel">Verse?</label><input type="checkbox" name="quieresversiculo" 
 		       value="value1" id="quieresversiculo">			   
       </div>
 	  <br>
 	  <div class="field">
-	    Lucky number?<input type="checkbox" name="quieresnumerosuerte" 
+	    <label for="quieresnumerosuerte" id="quieresnumerosuerteLabel">Lucky number?</label><input type="checkbox" name="quieresnumerosuerte" 
 		       value="value1" id="quieresnumerosuerte">		   
       </div>
 	  <br>
 	  <div class="field">
-	    Quote?<input type="checkbox" name="quieresmotivacional" 
+	    <label for="quieresmotivacional" id="quieresmotivacionalLabel" >Nice quote?</label><input type="checkbox" name="quieresmotivacional" 
 		       id="quieresmotivacional">		   
       </div>
 	  <!--<div class="field">
@@ -254,12 +253,12 @@
       </div>-->
 	  
 	  <div class="field">
-	    English?<input type="checkbox" name="esingles" 
+	    <label for="esingles" id="esinglesLabel">English?</label><input type="checkbox" name="esingles" 
 		       id="esingles">		   
       </div>
 	  
 	  <div class="field">
-	     AI
+	     <label for="tipoia" id="tipoiaLabel">AI type</label>
 	     <select id="tipoia">
 		    <option value=""></option>
 			<option value="news">&nbsp;news</option>
@@ -271,7 +270,7 @@
 	  </div>
 	  
 	  <div class="field">
-	     Seconds
+	     <label for="segundosslide" id="segundosslideLabel">Seconds</label>
 	     <select id="segundosslide">
 			<option value="5">&nbsp;5</option>
 			<option value="8" selected="selected" >&nbsp;8</option>
@@ -282,7 +281,7 @@
 	  </div>
 	  
 	  <div class="field">
-	    <label for="imagenes">Images</label>
+	    <label for="imagenes" id="imagenesLabel">Images</label>
         <textarea id="imagenes" rows="9"></textarea>
       </div>
 	  
@@ -294,7 +293,7 @@
     </div>
 	<br>
 	<div class="field">
-	    <label for="urlimagen">Url:</label>
+	    <label for="urlimagen" id="urlimagenLabel">Url:</label>
         <input type="text" id="urlimagen" placeholder="" 
 		  value="" />		
 		<select id="imagenPorAjustar">
@@ -322,12 +321,12 @@
 	<!--<div><center><a href="https://app.v2.qrcodekit.com" target="_blank">qkit</a></center></div>-->
 	<div><center><a href="https://scanqr.org/#scan" target="_blank">scan</a></center></div>
 	
-	<div><br><center>573113068430</center></div>
+	<div><br><center>W 573113068430</center></div>
 	<div><center>
 	<!--<a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>-->
 	<a href="https://kpweb.biz/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>
 	</center></div>
-	<div class="field"><br><center>Español<input type="checkbox" name="espanol" id="espanol"></center>
+	<div class="field"><br><center><label for="espanol" id="espanolLabel">Espa&ntildeol</label><input type="checkbox" name="espanol" id="espanol"></center>
     </div><br>
   </div>
 
@@ -811,11 +810,63 @@
 			console.log("is checked: " + event.currentTarget.checked);
 			if (event.currentTarget.checked) {
 				//statusText.textContent = 'Checkbox is checked';
+			   document.getElementById("yourCodeLabel").innerText  = "Código";
+			   document.getElementById("clave2Label").innerText   = "Clave";
+			   document.getElementById("tuspalabrasLabel").innerText   = "Palabras";
+			   document.getElementById("linkpublicidadLabel").innerText   = "Link adicional";
+			   document.getElementById("nombrepublicidadLabel").innerText   = "Nombre de link";
+			   document.getElementById("linkdirectoLabel").innerText   = "Link directo";
+			   document.getElementById("tullaveLabel").innerText   = "Nueva clave";
+			   document.getElementById("confirmatullaveLabel").innerText   = "Confirme nueva clave";
+			   document.getElementById("tunombreLabel").innerText   = "Nombre";
+			   document.getElementById("quieresversiculoLabel").innerText   = "Versículo?";
+			   document.getElementById("quieresnumerosuerteLabel").innerText   = "Número de suerte?";
+			   document.getElementById("quieresmotivacionalLabel").innerText   = "Frase  motivacional?";
+			   document.getElementById("esinglesLabel").innerText   = "Inglés?";
+			   document.getElementById("tipoiaLabel").innerText   = "Tipo IA";
+			   document.getElementById("segundosslideLabel").innerText   = "Segundos";
+			   document.getElementById("imagenesLabel").innerText   = "Imágenes";
+			   			   
+			   
 			   document.getElementById("iraunaimagen").innerText   = "Ir";
-               document.getElementById("yourCodeLabel").innerText  = "Codigo";				
+               document.getElementById("consultarpropsFire").innerText   = "Consultar";
+			   document.getElementById("limpiarprops").innerText   = "Limpiar";
+			   document.getElementById("defaultimages").innerText   = "Default";
+			   document.getElementById("irapagina").innerText   = "Ir";
+			   document.getElementById("subir").innerText   = "Guardar";
+			   document.getElementById("usarimagen").innerText   = "Usar";
+			   document.getElementById("iraunaimagen").innerText   = "Ir";
+			   document.getElementById("espanolLabel").innerText   = "Spanish";
+			   
 			} else {
+			   		   
+			   document.getElementById("yourCodeLabel").innerText  = "Code";
+			   document.getElementById("clave2Label").innerText   = "Password";
+			   document.getElementById("tuspalabrasLabel").innerText   = "Words";
+			   document.getElementById("linkpublicidadLabel").innerText   = "Additional link";
+			   document.getElementById("nombrepublicidadLabel").innerText   = "Link name";
+			   document.getElementById("linkdirectoLabel").innerText   = "Direct link";
+			   document.getElementById("tullaveLabel").innerText   = "New password";
+			   document.getElementById("confirmatullaveLabel").innerText   = "Confirm new password";
+			   document.getElementById("tunombreLabel").innerText   = "Name";
+			   document.getElementById("quieresversiculoLabel").innerText   = "Verse?";
+			   document.getElementById("quieresnumerosuerteLabel").innerText   = "Lucky number?";
+			   document.getElementById("quieresmotivacionalLabel").innerText   = "Nice quote?";
+			   document.getElementById("esinglesLabel").innerText   = "English?";
+			   document.getElementById("tipoiaLabel").innerText   = "AI type";
+			   document.getElementById("segundosslideLabel").innerText   = "Seconds";
+			   document.getElementById("imagenesLabel").innerText   = "Images";
+			   
+			   			   
 			   document.getElementById("iraunaimagen").innerText   = "Go";
-			   document.getElementById("yourCodeLabel").innerText  = "Your code";
+               document.getElementById("consultarpropsFire").innerText   = "Read";
+			   document.getElementById("limpiarprops").innerText   = "Clean";
+			   document.getElementById("defaultimages").innerText   = "Default";
+			   document.getElementById("irapagina").innerText   = "Go";
+			   document.getElementById("subir").innerText   = "Save";
+			   document.getElementById("usarimagen").innerText   = "Use";
+			   document.getElementById("iraunaimagen").innerText   = "Go";
+			   document.getElementById("espanolLabel").innerText   = "Español";
 			}
 		});
 
