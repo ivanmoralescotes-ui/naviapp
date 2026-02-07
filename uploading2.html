@@ -811,7 +811,7 @@
 			if (event.currentTarget.checked) {
 				//statusText.textContent = 'Checkbox is checked';
 			   document.getElementById("yourCodeLabel").innerText  = "Código";
-			   document.getElementById("clave2Label").innerText   = "Clave";
+			   document.getElementById("clave2Label").innerHTML   = 'Clave&nbsp;&nbsp;<a href="javascript:void(0);" onclick="useKey();">></a>';
 			   document.getElementById("tuspalabrasLabel").innerText   = "Palabras";
 			   document.getElementById("linkpublicidadLabel").innerText   = "Link adicional";
 			   document.getElementById("nombrepublicidadLabel").innerText   = "Nombre de link";
@@ -842,7 +842,7 @@
 			} else {
 			   		   
 			   document.getElementById("yourCodeLabel").innerText  = "Code";
-			   document.getElementById("clave2Label").innerText   = "Password";
+			   document.getElementById("clave2Label").innerHTML   = 'Password&nbsp;&nbsp;<a href="javascript:void(0);" onclick="useKey();">></a>';
 			   document.getElementById("tuspalabrasLabel").innerText   = "Words";
 			   document.getElementById("linkpublicidadLabel").innerText   = "Additional link";
 			   document.getElementById("nombrepublicidadLabel").innerText   = "Link name";
