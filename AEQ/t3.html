@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slideshow</title>
   <style>
@@ -135,7 +136,8 @@
 
 <body>
   <div id="slideshow">
-    <img id="slide-img" src="" alt="Imagen" referrerpolicy="no-referrer" />
+    <img id="slide-img" src="" alt="Imagen" 
+	    referrerpolicy="no-referrer" loading="eager" decoding="async" />  
 
     <video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>
         <!--<source src="../temm.mp4" type="video/mp4" />-->
@@ -675,7 +677,7 @@ async function delayedTask() {
           imgElement.alt = slide.file;
 		  imgElement.onerror = () => {
 			console.log("Falla con imagen:", slide.file);
-			showMessage("No pude cargar una imagen.");
+			showMessage("No se pudo cargar una imagen.");
 		  };
 
         } else if (slide.type === "video") {
