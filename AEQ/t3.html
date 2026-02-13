@@ -673,6 +673,10 @@ async function delayedTask() {
           imgElement.onload = () => imgElement.classList.add("show");
           imgElement.src = slide.file;
           imgElement.alt = slide.file;
+		  imgElement.onerror = () => {
+			console.log("Falla con imagen:", slide.file);
+			showMessage("No pude cargar una imagen.");
+		  };
 
         } else if (slide.type === "video") {
           console.log("it is video");
