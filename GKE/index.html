@@ -220,7 +220,7 @@
 		  const ss = Number(segundosslide);
 		  displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
 		  //console.log("displaytimee");
-		  console.log({   segundosslide, displayTime, slidesLen: slides.length });
+		  //console.log({   segundosslide, displayTime, slidesLen: slides.length });
 
 		  //displayTime = ((Number.isFinite(segundosslide) && segundosslide != 0 ) ? segundosslide : 7) * 1000;
 		  
@@ -276,7 +276,7 @@
 
 		const ss = Number(segundosslide);
 		displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
-		console.log({ segundosslide, displayTime, slidesLen: slides.length });
+		//console.log({ segundosslide, displayTime, slidesLen: slides.length });
 
 		currentIndex = 0;
 		showSlide(currentIndex, false);
@@ -449,10 +449,10 @@ async function delayedTask() {
 		}
 		props = JSON.parse(r2);
       }else{
-	    console.log ("using fire ");
+	    console.log ("using f ");
 		const penultima = getPenultima();
 	    props = await consultarPorId( "prop" + penultima );
-		console.log("consultado  con prop" + penultima);
+		//console.log("consultado  con prop" + penultima);
 	  }
 
 	  if (!props) {
@@ -484,7 +484,7 @@ async function delayedTask() {
 	  	  	  
 	  if (props.segundosslide != null) {
         segundosslide = Number(props.segundosslide);
-		console.log("segundosslide:" + segundosslide);
+		//console.log("segundosslide:" + segundosslide);
       }
 
       // window.location.href = rutaImagen
@@ -496,7 +496,7 @@ async function delayedTask() {
 	  
 	  // ... (aquí dejas tu bloque de images tal cual)
 	  if (theimages != null && theimages.length > 0) {
-            console.log("first image:" + imagesList[0]);
+            //console.log("first image:" + imagesList[0]);
 
             let cuentaImagen = 1;
 

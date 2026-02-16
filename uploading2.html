@@ -159,6 +159,9 @@
 	  <button id="defaultimages" type="button" class="btn-alto">Default</button>
 	  &nbsp;&nbsp;
 	  <button id="irapagina" type="button" class="btn-alto" style="display:none;" >Go</button>
+	  &nbsp;&nbsp;
+	  <button id="subir01" type="button" class="btn-alto" style="display:none;" >Save</button>
+	  
       <!-- Lista desplegable -->
       <!--<div class="field">
         <label for="miLista">Elige el tipo</label>
@@ -324,7 +327,7 @@
 	<div><br><center>W 573113068430</center></div>
 	<div><center>
 	<!--<a href="https://navi111.netlify.app/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>-->
-	<a href="https://kpweb.biz/i?f=WMTExMTM0NDg=I" target="_blank">Note</a>
+	<a href="https://ú.ws/aaa" target="_blank">Note</a>
 	</center></div>
 	<div class="field"><br><center><label for="espanol" id="espanolLabel">Espa&ntildeol</label><input type="checkbox" name="espanol" id="espanol"></center>
     </div><br>
@@ -352,8 +355,8 @@
     //insertMany();
 	
   
-      console.log("c11121197");
-	  const adomain = "kpweb.biz"; // "navi111.netlify.app"  //kpweb.biz
+      //console.log("c11121197");
+	  const adomain = "ú.ws"; // "navi111.netlify.app"  //kpweb.biz
 	  
 	  const params = new URLSearchParams(window.location.search);
       const urlCode = params.get('cd');
@@ -782,10 +785,12 @@
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 		  }
 		  
-		  if ( tullaveValue.value == "ii"){
+		  if ( tullaveValue.value == "ii"){//toDo: delete
 			tullaveValue.value=document.getElementById("clave2").value;
 			document.getElementById("confirmatullave").value=document.getElementById("tullave").value;
 			document.getElementById("subir").style.display = "inline-block";
+			document.getElementById("subir01").style.display = "inline-block";
+			
 		  }
 		  
 	    });
@@ -807,7 +812,7 @@
       let espanol = document.getElementById("espanol");
 	  espanol.addEventListener('change', (event) => {
 			// 3. Check the 'checked' property to see the current state
-			console.log("is checked: " + event.currentTarget.checked);
+			//console.log("is checked: " + event.currentTarget.checked);
 			if (event.currentTarget.checked) {
 				//statusText.textContent = 'Checkbox is checked';
 			   document.getElementById("yourCodeLabel").innerText  = "Código";
@@ -834,6 +839,8 @@
 			   document.getElementById("defaultimages").innerText   = "Default";
 			   document.getElementById("irapagina").innerText   = "Ir";
 			   document.getElementById("subir").innerText   = "Guardar";
+			   document.getElementById("subir01").innerText   = "Guarda";
+			   
 			   document.getElementById("usarimagen").innerText   = "Usar";
 			   document.getElementById("iraunaimagen").innerText   = "Ir";
 			   document.getElementById("espanolLabel").innerText   = "Spanish";
@@ -865,6 +872,7 @@
 			   document.getElementById("defaultimages").innerText   = "Default";
 			   document.getElementById("irapagina").innerText   = "Go";
 			   document.getElementById("subir").innerText   = "Save";
+			   document.getElementById("subir01").innerText   = "Save";
 			   document.getElementById("usarimagen").innerText   = "Use";
 			   document.getElementById("iraunaimagen").innerText   = "Go";
 			   document.getElementById("espanolLabel").innerText   = "Español";
@@ -1392,10 +1400,7 @@
 			}
 	});*/
 
-
-    // * Para subir data
-	document.getElementById("subir").addEventListener("click", async () => {  
-			
+	async function subir1(){
 			try {
 				if ( ! validateInput() || document.getElementById("tullave").value == "" ) {
 					console.log("Error de entrada.");
@@ -1485,7 +1490,16 @@
 			  console.error(error);
 			  alert("Unexpected error updating data.");
 			}
-	});			      
+	
+	}
+
+    // * Para subir data
+	document.getElementById("subir").addEventListener("click", async () => {  
+			subir1();	
+	});
+    document.getElementById("subir01").addEventListener("click", async () => {  
+			subir1();	
+	});	
 	
 
   </script>

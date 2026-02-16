@@ -121,7 +121,7 @@ export async function consultarPorId(idd) {
     }
 
     const data = snap.data();
-    console.log("Datoss:", data);
+    //console.log("Datoss:", data);
 
     return data;
   } catch (err) {
