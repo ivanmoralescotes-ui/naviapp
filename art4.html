@@ -7,28 +7,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --bg1:#f0fdf4; /* verde muy suave */
-      --bg2:#ecfeff; /* azul suave */
+      --bg1:#f0fdf4;
+      --bg2:#ecfeff;
       --text:#0f172a;
       --muted:#475569;
       --card:#ffffff;
-      --brand:#10b981; /* verde */
-      --accent:#38bdf8; /* celeste */
+      --brand:#10b981;
+      --accent:#38bdf8;
       --ring:rgba(16,185,129,.35);
       --shadow:0 12px 30px rgba(2,6,23,.12);
     }
+
     *{ box-sizing:border-box; }
     html, body{ height:100%; }
+
     body{
-      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color:var(--text);
-      background: radial-gradient(80rem 60rem at 10% -10%, rgba(16,185,129,.15), transparent 45%),
-                  radial-gradient(60rem 60rem at 100% 0%, rgba(56,189,248,.18), transparent 50%),
-                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      background:
+        radial-gradient(80rem 60rem at 10% -10%, rgba(16,185,129,.15), transparent 45%),
+        radial-gradient(60rem 60rem at 100% 0%, rgba(56,189,248,.18), transparent 50%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
     }
-    .wrap{ width:min(980px, 92vw); margin:0 auto; padding:28px 0 48px; }
+
+    .wrap{
+      width:min(980px, 92vw);
+      margin:0 auto;
+      padding:28px 0 48px;
+    }
 
     .card{
       background:var(--card);
@@ -36,91 +46,264 @@
       border-radius:22px;
       box-shadow:var(--shadow);
       padding:24px 18px;
-      margin: 0 auto;
+      margin:0 auto;
     }
+
     .center{ text-align:center; }
     .sp-1{ margin-top:18px; }
     .sp-2{ margin-top:28px; }
     .sp-3{ margin-top:40px; }
 
-    .headline{ font-size:clamp(22px, 3.5vw, 32px); font-weight:800; letter-spacing:-.02em; }
-    .lead{ color:var(--muted); font-size:clamp(15px, 1.8vw, 17px); }
+    .lead{
+      color:var(--muted);
+      font-size:clamp(15px, 1.8vw, 17px);
+    }
 
-    img.media{ width:min(342px, 80vw); height:auto; border-radius:18px; box-shadow:var(--shadow); outline:2px solid var(--ring); outline-offset:4px; }
+    img.media{
+      width:min(342px, 80vw);
+      height:auto;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      outline:2px solid var(--ring);
+      outline-offset:4px;
+      display:block;
+      margin:0 auto;
+    }
 
-    video.media{ width:min(520px, 92vw); height:auto; border-radius:18px; box-shadow:var(--shadow); border:1px solid rgba(148,163,184,.25); }
+    video.media{
+      width:min(520px, 92vw);
+      height:auto;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(148,163,184,.25);
+    }
 
-    a.ws img{ width:min(240px, 60vw); height:auto; border-radius:18px; box-shadow:var(--shadow); border:1px solid rgba(148,163,184,.25); transition: transform .15s ease; }
-    a.ws:hover img{ transform: translateY(-2px) scale(1.01); }
+    a.ws img{
+      width:min(240px, 60vw);
+      height:auto;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(148,163,184,.25);
+      transition: transform .15s ease;
+    }
 
-    img.qr{ width:min(342px, 75vw); height:auto; border-radius:16px; border:1px dashed rgba(148,163,184,.55); padding:10px; background:linear-gradient(180deg, rgba(255,255,255,.6), transparent); }
+    a.ws:hover img{
+      transform: translateY(-2px) scale(1.01);
+    }
 
-    .pill{ display:inline-block; padding:.45rem .8rem; border-radius:999px; background:linear-gradient(180deg, rgba(16,185,129,.12), rgba(56,189,248,.12)); border:1px solid rgba(148,163,184,.35); font-weight:600; color:#0b1220; }
+    img.qr{
+      width:min(342px, 75vw);
+      height:auto;
+      border-radius:16px;
+      border:1px dashed rgba(148,163,184,.55);
+      padding:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,.6), transparent);
+    }
 
-    footer{ color:var(--muted); font-size:.9rem; }
+    .pill{
+      display:inline-block;
+      padding:.45rem .8rem;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(16,185,129,.12), rgba(56,189,248,.12));
+      border:1px solid rgba(148,163,184,.35);
+      font-weight:600;
+      color:#0b1220;
+    }
+
+    footer{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    /* ===== Slideshow pro ===== */
+    .slideshow-wrap{
+      display:inline-block;
+      text-align:center;
+      width:min(342px, 80vw);
+      margin:0 auto;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+
+    .slideshow-frame{
+      position:relative;
+      width:100%;
+      overflow:hidden;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      outline:2px solid var(--ring);
+      outline-offset:4px;
+      background:#fff;
+      touch-action:pan-y;
+    }
+
+    .slideshow-track{
+      display:flex;
+      transition:transform .35s ease;
+      will-change:transform;
+    }
+
+    .slide{
+      min-width:100%;
+      flex:0 0 100%;
+    }
+
+    .slide img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+
+    .slideshow-controls{
+      margin-top:16px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .slide-btn{
+      border:none;
+      border-radius:999px;
+      padding:.65rem 1rem;
+      font-weight:700;
+      cursor:pointer;
+      color:#0b1220;
+      background:linear-gradient(180deg, rgba(16,185,129,.12), rgba(56,189,248,.12));
+      border:1px solid rgba(148,163,184,.35);
+      box-shadow:0 6px 14px rgba(2,6,23,.08);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+
+    .slide-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 18px rgba(2,6,23,.12);
+    }
+
+    .slide-btn:active{
+      transform:translateY(0);
+    }
+
+    .slide-counter{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.95rem;
+      font-weight:600;
+    }
+
+    .slide-dots{
+      margin-top:10px;
+      display:flex;
+      justify-content:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .slide-dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      border:none;
+      padding:0;
+      cursor:pointer;
+      background:rgba(148,163,184,.45);
+      transition:transform .18s ease, background .18s ease;
+    }
+
+    .slide-dot.active{
+      background:var(--brand);
+      transform:scale(1.18);
+    }
   </style>
-
-  <script type="text/javascript">
-    // Mantiene tu widget original de WhatsApp
-    //window.onload = function(){
-      //(function(d, script) {
-        //script = d.createElement('script');
-        //script.type = 'text/javascript';
-        //script.async = true;
-        //script.src = 'https://w.app/widget-v1/75pMZC.js';
-		//script.src = 'https://w.app/widget-v1/B2TvXY.js';
-		//script.src = 'https://w.app/widget-v1/XUPrM9.js';
-        //d.getElementsByTagName('head')[0].appendChild(script);
-      //}(document));
-    //};
-  </script>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card center">
-      <!-- Respetando el ORDEN y manteniendo todo centrado -->
+
       <div class="sp-1">
-        <span class="pill"><b>Hermoso cuadro con  QR personalizado</b></span>
+        <span class="pill"><b>Hermoso cuadro con QR personalizado</b></span>
       </div>
 
-      <div class="sp-3 lead">Cada obra de arte tiene inmerso un código QR personalizado que te lleva a un conjunto de imágenes y/o un video corto o lo que quieras. Escanea y espera para que veas las diferentes imágenes. Ejemplo de lo que se muestra al escanear el código QR inmerso en el cuadro:     
-<br><br>
-<a href="https://navi111.netlify.app/cnf" target="_blank">https://navi111.netlify.app/cnf</a>
-
-<br><br>
-Cada cuadro mide 34cms*34cms con un valor de $55000 y se entrega en 5 días hábiles en las ciudades.
-<br>
-Si deseas otras medidas u otro estilo se puede con un valor diferente. Opciones disponibles hoy: </div>
-
-      <div class="sp-2">
-	    1. <img src="imgs/sunset1.jpg" alt="sunset" class="media" width="342" height="342">
-        
-	    <br><br>	
-		2. <img src="imgs/dio.webp" alt="picture2" class="media" width="342" height="342">
-		<br><br>
-		3. <img src="imgs/dyd.webp" alt="picture3" class="media" width="342" height="342">
-		<br><br>
-		4. <img src="imgs/dzh.webp" alt="picture4" class="media" width="342" height="342">
-		<br><br>
-		5. <img src="imgs/dzw.webp" alt="picture5" class="media" width="342" height="342">
+      <div class="sp-3 lead">
+        Cada obra de arte tiene inmerso un código QR personalizado que te lleva a un conjunto de imágenes y/o un video corto o lo que quieras. Escanea y espera para que veas las diferentes imágenes.
         <br><br>
-		6. <img src="imgs/dqq.webp" alt="picture6" class="media" width="342" height="342">
-
-		
+        <!--<a href="https://navi111.netlify.app/cnf" target="_blank" rel="noopener noreferrer">https://navi111.netlify.app/cnf</a>-->
+        
+        Cada cuadro mide 34cms*34cms con un valor de $55000 y se entrega en 5 días hábiles en las ciudades.
+        <br>
+        Si deseas otras medidas u otro estilo se puede con un valor diferente. Opciones disponibles hoy:
       </div>
 
-      <div class="sp-3 lead">Si quieres más información sobre como funciona cada QR para darle un toque creativo a tu sala o habitación, puedes ver este corto video:</div>
+      <div class="sp-2">
+        
+        <div class="slideshow-wrap" data-slideshow="1">
+          <div class="slideshow-frame">
+            <div class="slideshow-track" id="track-1">
+              <div class="slide"><img src="imgs/sunset1.jpg" alt="Opción 1 imagen 1" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/dio.webp" alt="Opción 1 imagen 2" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/dyd.webp" alt="Opción 1 imagen 3" width="342" height="342"></div>
+            </div>
+          </div>
+
+          <div class="slideshow-controls">
+            <button type="button" class="slide-btn" onclick="prevSlide(1)">Anterior</button>
+            <button type="button" class="slide-btn" onclick="nextSlide(1)">Siguiente</button>
+          </div>
+
+          <div class="slide-counter" id="counter-1"></div>
+          <div class="slide-dots" id="dots-1"></div>
+        </div>
+
+        <br><br><br>
+
+        
+        <div class="slideshow-wrap" data-slideshow="2">
+          <div class="slideshow-frame">
+            <div class="slideshow-track" id="track-2">
+              <div class="slide"><img src="imgs/dzh.webp" alt="Opción 2 imagen 1" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/dzw.webp" alt="Opción 2 imagen 2" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/dqq.webp" alt="Opción 2 imagen 3" width="342" height="342"></div>
+            </div>
+          </div>
+
+          <div class="slideshow-controls">
+            <button type="button" class="slide-btn" onclick="prevSlide(2)">Anterior</button>
+            <button type="button" class="slide-btn" onclick="nextSlide(2)">Siguiente</button>
+          </div>
+
+          <div class="slide-counter" id="counter-2"></div>
+          <div class="slide-dots" id="dots-2"></div>
+        </div>
+
+        <!--<br><br>
+        3. <img src="imgs/dyd.webp" alt="picture3" class="media" width="342" height="342">
+        <br><br>
+        4. <img src="imgs/dzh.webp" alt="picture4" class="media" width="342" height="342">
+        <br><br>
+        5. <img src="imgs/dzw.webp" alt="picture5" class="media" width="342" height="342">
+        <br><br>
+        6. <img src="imgs/dqq.webp" alt="picture6" class="media" width="342" height="342">
+         -->
+	  </div>
+
+      <div class="sp-3 lead">
+        Si quieres más información sobre como funciona cada QR para darle un toque creativo a tu sala o habitación, puedes ver este corto video:
+      </div>
 
       <div class="sp-2">
-        <video class="media" controls preload="none"><!-- metadata -->
+        <video class="media" controls preload="none">
           <source src="imgs/how8.mp4" type="video/mp4">
           <source src="movie.ogg" type="video/ogg">
           Tu navegador no soporta el video.
         </video>
       </div>
 
-      <div class="sp-3 lead">Si estás interesado puedes contactarnos por whatsapp (57 3113068430) con un clic acá:</div>
+      <div class="sp-3 lead">
+        Si estás interesado puedes contactarnos por whatsapp (57 3113068430) con un clic acá:
+      </div>
+
       <div class="sp-2">
         <a class="ws" href="https://wa.me/573113068430" target="_blank" rel="noopener">
           <img src="ws2.png" alt="Botón para chatear por WhatsApp">
@@ -133,8 +316,9 @@ Si deseas otras medidas u otro estilo se puede con un valor diferente. Opciones 
         <img src="imgs/dio.webp" alt="Código QR para contacto" class="qr" width="410" height="410">
       </div>
 
-      <div class="sp-3">Esperamos que disfrutes tus cuadros porque tú escoges lo que se mostrará al escanearlos, puede ser una foto romántica, o un video gracioso o unas fotos geniales o una lista de Spotify o una frase motivacional o algo interesante...&#128522;</div>
-
+      <div class="sp-3">
+        Esperamos que disfrutes tus cuadros porque tú escoges lo que se mostrará al escanearlos, puede ser una foto romántica, o un video gracioso o unas fotos geniales o una lista de Spotify o una frase motivacional o algo interesante...&#128522;
+      </div>
 
       <div class="sp-3">
         <footer>© <span id="y"></span> · Galería de Arte NaviTech</footer>
@@ -142,10 +326,91 @@ Si deseas otras medidas u otro estilo se puede con un valor diferente. Opciones 
     </div>
   </div>
 
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    const slideshows = {
+      1: { current: 0, total: 3 },
+      2: { current: 0, total: 3 }
+    };
+
+    function updateSlide(id) {
+      const data = slideshows[id];
+      const track = document.getElementById(`track-${id}`);
+      const counter = document.getElementById(`counter-${id}`);
+      const dots = document.querySelectorAll(`#dots-${id} .slide-dot`);
+
+      track.style.transform = `translateX(-${data.current * 100}%)`;
+      counter.textContent = `Imagen ${data.current + 1} de ${data.total}`;
+
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === data.current);
+      });
+    }
+
+    function nextSlide(id) {
+      const data = slideshows[id];
+      data.current = (data.current + 1) % data.total;
+      updateSlide(id);
+    }
+
+    function prevSlide(id) {
+      const data = slideshows[id];
+      data.current = (data.current - 1 + data.total) % data.total;
+      updateSlide(id);
+    }
+
+    function goToSlide(id, index) {
+      slideshows[id].current = index;
+      updateSlide(id);
+    }
+
+    function buildDots(id) {
+      const dotsWrap = document.getElementById(`dots-${id}`);
+      const total = slideshows[id].total;
+
+      for (let i = 0; i < total; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'slide-dot';
+        btn.setAttribute('aria-label', `Ir a imagen ${i + 1}`);
+        btn.onclick = () => goToSlide(id, i);
+        dotsWrap.appendChild(btn);
+      }
+    }
+
+    function enableSwipe(id) {
+      const frame = document.querySelector(`[data-slideshow="${id}"] .slideshow-frame`);
+      let startX = 0;
+      let endX = 0;
+
+      frame.addEventListener('touchstart', (e) => {
+        startX = e.changedTouches[0].clientX;
+      }, { passive: true });
+
+      frame.addEventListener('touchend', (e) => {
+        endX = e.changedTouches[0].clientX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        const diff = endX - startX;
+
+        if (Math.abs(diff) < 40) return;
+
+        if (diff < 0) {
+          nextSlide(id);
+        } else {
+          prevSlide(id);
+        }
+      }
+    }
+
+    Object.keys(slideshows).forEach(id => {
+      buildDots(id);
+      updateSlide(id);
+      enableSwipe(id);
+    });
+  </script>
 </body>
 </html>
-
-
-
-
