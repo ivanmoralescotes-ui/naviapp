@@ -74,6 +74,26 @@
 
     #slide-img.show, #slide-video.show, #slide-html.show { opacity: 1; }
 
+
+
+    #loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.2rem, 2.5vh, 1.8rem);
+      z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading-overlay.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     #message {
       position: fixed;
       top: 20px;
@@ -136,6 +156,8 @@
 
 <body>
   <div id="slideshow">
+    <div id="loading-overlay">Loading...</div>
+
     <img id="slide-img" src="" alt="Imagen" 
 	    referrerpolicy="no-referrer" loading="eager" decoding="async" />  
 
@@ -354,6 +376,8 @@ async function delayedTask() {
 	const ai2words = document.getElementById("ai2words-text");
 	
     const messageBox   = document.getElementById("message");
+    const loadingOverlay = document.getElementById("loading-overlay");
+    let firstSlideLoaded = false;
 
     // ====== NUEVO: botones ======
     const btnPrev = document.getElementById("btn-prev");
@@ -672,7 +696,13 @@ async function delayedTask() {
         if (slide.type === "image") {
           //console.log("it is image");
 
-          imgElement.onload = () => imgElement.classList.add("show");
+          imgElement.onload = () => {
+            imgElement.classList.add("show");
+            if (!firstSlideLoaded) {
+              loadingOverlay.classList.add("hide");
+              firstSlideLoaded = true;
+            }
+          };
           imgElement.src = slide.file;
           imgElement.alt = slide.file;
 		  imgElement.onerror = () => {
@@ -685,6 +715,10 @@ async function delayedTask() {
 
           videoElement.addEventListener("loadeddata", () => {
             videoElement.classList.add("show");
+            if (!firstSlideLoaded) {
+              loadingOverlay.classList.add("hide");
+              firstSlideLoaded = true;
+            }
           }, { once: true });
 
           //videoSource.src = slide.file;
@@ -718,6 +752,10 @@ async function delayedTask() {
           lucknumberTextEl.textContent = lucknumberText + obtenerNumeroAleatorio();
 
           htmlElement.classList.add("show");
+          if (!firstSlideLoaded) {
+            loadingOverlay.classList.add("hide");
+            firstSlideLoaded = true;
+          }
         }
       }, 500);
     }
