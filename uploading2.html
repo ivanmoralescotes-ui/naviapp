@@ -275,8 +275,8 @@
 	  <div class="field">
 	     <label for="segundosslide" id="segundosslideLabel">Seconds</label>
 	     <select id="segundosslide">
-			<option value="5">&nbsp;5</option>
-			<option value="8" selected="selected" >&nbsp;8</option>
+			<option value="5" selected="selected" >&nbsp;5</option>
+			<option value="8"  >&nbsp;8</option>
 			<option value="11">&nbsp;11</option>
 			<option value="14">&nbsp;14</option>
 			<option value="30">&nbsp;30</option>
@@ -315,6 +315,7 @@
 		<button id="defaultimg" type="button" class="btn-alto">default</button>
 		<button id="ajustarmp4" type="button" class="btn-alto">Mp4</button>
 		<button id="iraunaimagen" type="button" class="btn-alto">Go</button>
+		<button id="clearimage" type="button" class="btn-alto">Clear</button>
     </div>
 	<br>
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
@@ -922,8 +923,8 @@
                //"\nhttps://i.imgur.com/HA1h36w.jpg"
 		document.getElementById('quieresmotivacional').checked=true;
 			
-	    document.getElementById('tuspalabras').value= 
-		  atob( document.getElementById("llave").value.slice(2, -1) ) ;
+	    //document.getElementById('tuspalabras').value= 
+		   //atob( document.getElementById("llave").value.slice(2, -1) ) ;
 		    
 		document.getElementById('clave2').value= "2233";
 		
@@ -991,6 +992,11 @@
 				alert("Invalid number for that list");
 			 }
 	});
+	
+	document.getElementById("clearimage").addEventListener("click", async () => {
+			  document.getElementById('imagenes').value="";
+			  document.getElementById('imagenes').focus();
+	});	
 	
 	document.getElementById("ajustarmp4").addEventListener("click", async () => {
 	          let urlimagen = document.getElementById('urlimagen').value;
