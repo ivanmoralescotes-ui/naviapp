@@ -152,6 +152,7 @@
       width:100%;
       height:auto;
       display:block;
+      cursor:zoom-in;
     }
 
     .slideshow-controls{
@@ -215,6 +216,72 @@
       background:var(--brand);
       transform:scale(1.18);
     }
+
+    /* ===== Visor ampliado ===== */
+    .lightbox{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.88);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      z-index:9999;
+    }
+
+    .lightbox.open{
+      display:flex;
+    }
+
+    .lightbox-content{
+      position:relative;
+      max-width:min(95vw, 1200px);
+      max-height:90vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .lightbox img{
+      max-width:100%;
+      max-height:90vh;
+      width:auto;
+      height:auto;
+      border-radius:18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
+      background:#fff;
+    }
+
+    .lightbox-close{
+      position:absolute;
+      top:-14px;
+      right:-14px;
+      width:42px;
+      height:42px;
+      border:none;
+      border-radius:50%;
+      font-size:1.5rem;
+      line-height:1;
+      cursor:pointer;
+      color:#0b1220;
+      background:#fff;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+    }
+
+    .lightbox-hint{
+      position:fixed;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      color:#e2e8f0;
+      font-size:.95rem;
+      text-align:center;
+      padding:.55rem .9rem;
+      border-radius:999px;
+      background:rgba(15,23,42,.55);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(6px);
+    }
   </style>
 </head>
 
@@ -244,17 +311,17 @@
               <div class="slide"><img src="imgs/IMG_8074.webp" alt="Opción 1 imagen 1" width="342" height="342"></div>
               <div class="slide"><img src="imgs/IMG_8069.webp" alt="Opción 1 imagen 2" width="342" height="342"></div>
               <div class="slide"><img src="imgs/IMG_8065.webp" alt="Opción 1 imagen 3" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8061.webp" alt="Opción 1 imagen 4" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8077.webp" alt="Opción 1 imagen 5" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8083.webp" alt="Opción 1 imagen 6" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8085.webp" alt="Opción 1 imagen 7" width="342" height="342"></div>
-			  
+              <div class="slide"><img src="imgs/IMG_8061.webp" alt="Opción 1 imagen 4" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8077.webp" alt="Opción 1 imagen 5" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8083.webp" alt="Opción 1 imagen 6" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8085.webp" alt="Opción 1 imagen 7" width="342" height="342"></div>
             </div>
           </div>
 
           <div class="slideshow-controls">
             <button type="button" class="slide-btn" onclick="prevSlide(1)">Anterior</button>
             <button type="button" class="slide-btn" onclick="nextSlide(1)">Siguiente</button>
+            <button type="button" class="slide-btn" onclick="openCurrentSlide(1)">Ampliar</button>
           </div>
 
           <div class="slide-counter" id="counter-1"></div>
@@ -266,71 +333,58 @@
         <div class="slideshow-wrap" data-slideshow="2">
           <div class="slideshow-frame">
             <div class="slideshow-track" id="track-2">
-              <div class="slide"><img src="imgs/IMG_8088.webp" alt="Opción 2 imagen 1" width="342" height="342"></div>	  
-			  			  
+              <div class="slide"><img src="imgs/IMG_8088.webp" alt="Opción 2 imagen 1" width="342" height="342"></div>
               <div class="slide"><img src="imgs/IMG_8092.webp" alt="Opción 2 imagen 2" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8097.webp" alt="Opción 3 imagen 3" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8098.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
-
-			  <div class="slide"><img src="imgs/IMG_8107.webp" alt="Opción 2 imagen 5" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8112.webp" alt="Opción 2 imagen 6" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8115.webp" alt="Opción 2 imagen 7" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8119.webp" alt="Opción 2 imagen 8" width="342" height="342"></div>
-			  
-			  
+              <div class="slide"><img src="imgs/IMG_8097.webp" alt="Opción 3 imagen 3" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8098.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8107.webp" alt="Opción 2 imagen 5" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8112.webp" alt="Opción 2 imagen 6" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8115.webp" alt="Opción 2 imagen 7" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8119.webp" alt="Opción 2 imagen 8" width="342" height="342"></div>
             </div>
           </div>
 
           <div class="slideshow-controls">
             <button type="button" class="slide-btn" onclick="prevSlide(2)">Anterior</button>
             <button type="button" class="slide-btn" onclick="nextSlide(2)">Siguiente</button>
+            <button type="button" class="slide-btn" onclick="openCurrentSlide(2)">Ampliar</button>
           </div>
 
           <div class="slide-counter" id="counter-2"></div>
           <div class="slide-dots" id="dots-2"></div>
         </div>
 
-		<br><br><br>
-		
-		<div class="slideshow-wrap" data-slideshow="3">
+        <br><br><br>
+        
+        <div class="slideshow-wrap" data-slideshow="3">
           <div class="slideshow-frame">
             <div class="slideshow-track" id="track-3">
               <div class="slide"><img src="imgs/IMG_8121.webp" alt="Opción 2 imagen 1" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8127.webp" alt="Opción 2 imagen 2" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8127.webp" alt="Opción 2 imagen 2" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8128.webp" alt="Opción 2 imagen 3" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/IMG_8059.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
 
-			  <div class="slide"><img src="imgs/IMG_8128.webp" alt="Opción 2 imagen 3" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/IMG_8059.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
-			    
-			  
-			  <!--
-			  <div class="slide"><img src="imgs/fdw2-instant4.webp" alt="Opción 3 imagen 1" width="342" height="342"></div>
+              <!--
+              <div class="slide"><img src="imgs/fdw2-instant4.webp" alt="Opción 3 imagen 1" width="342" height="342"></div>
               <div class="slide"><img src="imgs/fdw-circ.webp" alt="Opción 3 imagen 2" width="342" height="342"></div>
               <div class="slide"><img src="imgs/fel.webp" alt="Opción 3 imagen 3" width="342" height="342"></div>
-
-  			  <div class="slide"><img src="imgs/fge.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/fgt.webp" alt="Opción 2 imagen 5" width="342" height="342"></div>
-			  <div class="slide"><img src="imgs/fhi.webp" alt="Opción 2 imagen 6" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/fge.webp" alt="Opción 2 imagen 4" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/fgt.webp" alt="Opción 2 imagen 5" width="342" height="342"></div>
+              <div class="slide"><img src="imgs/fhi.webp" alt="Opción 2 imagen 6" width="342" height="342"></div>
               -->
             </div>
           </div>
+
           <div class="slideshow-controls">
             <button type="button" class="slide-btn" onclick="prevSlide(3)">Anterior</button>
             <button type="button" class="slide-btn" onclick="nextSlide(3)">Siguiente</button>
+            <button type="button" class="slide-btn" onclick="openCurrentSlide(3)">Ampliar</button>
           </div>
+
           <div class="slide-counter" id="counter-3"></div>
           <div class="slide-dots" id="dots-3"></div>
         </div>
-		
-        <!--<br><br>
-        3. <img src="imgs/dyd.webp" alt="picture3" class="media" width="342" height="342">
-        <br><br>
-        4. <img src="imgs/dzh.webp" alt="picture4" class="media" width="342" height="342">
-        <br><br>
-        5. <img src="imgs/dzw.webp" alt="picture5" class="media" width="342" height="342">
-        <br><br>
-        6. <img src="imgs/dqq.webp" alt="picture6" class="media" width="342" height="342">
-         -->
-	  </div>
+      </div>
 
       <div class="sp-3 lead">
         Si quieres ver como funciona cada QR para darle un toque creativo a tu sala o habitación, puedes ver este corto video:
@@ -360,7 +414,7 @@
 
       <div class="sp-3">
         Esperamos que disfrutes tus cuadros! Recuerda que tú escoges lo que se mostrará al escanearlos, puede ser una foto romántica, un video gracioso, unas fotos geniales, una lista de Spotify, una frase motivacional o lo que quieras...&#128522;
-		Nota: Si en el futuro quieres volver a cambiar lo que aparece al escanear el cuadro, el cambio solo cuesta $10000. 
+        Nota: Si en el futuro quieres volver a cambiar lo que aparece al escanear el cuadro, el cambio solo cuesta $10000. 
       </div>
 
       <div class="sp-3">
@@ -369,13 +423,21 @@
     </div>
   </div>
 
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Cerrar imagen ampliada">×</button>
+      <img id="lightboxImage" src="" alt="Imagen ampliada">
+    </div>
+    <div class="lightbox-hint">Haz clic fuera de la imagen, pulsa Esc o usa la X para cerrar.</div>
+  </div>
+
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
     const slideshows = {
       1: { current: 0, total: 7 },
       2: { current: 0, total: 8 },
-	  3: { current: 0, total: 4 },
+      3: { current: 0, total: 4 },
     };
 
     function updateSlide(id) {
@@ -450,10 +512,55 @@
       }
     }
 
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxClose = document.getElementById('lightboxClose');
+
+    function getCurrentSlideImage(id) {
+      const currentIndex = slideshows[id].current;
+      return document.querySelector(`#track-${id} .slide:nth-child(${currentIndex + 1}) img`);
+    }
+
+    function openCurrentSlide(id) {
+      const img = getCurrentSlideImage(id);
+      if (!img) return;
+      lightboxImage.src = img.src;
+      lightboxImage.alt = img.alt || 'Imagen ampliada';
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImage.src = '';
+      document.body.style.overflow = '';
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.classList.contains('open')) {
+        closeLightbox();
+      }
+    });
+
     Object.keys(slideshows).forEach(id => {
       buildDots(id);
       updateSlide(id);
       enableSwipe(id);
+
+      const images = document.querySelectorAll(`#track-${id} .slide img`);
+      images.forEach(img => {
+        img.addEventListener('click', () => openCurrentSlide(id));
+      });
     });
   </script>
 </body>
