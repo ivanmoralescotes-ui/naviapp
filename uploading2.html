@@ -231,7 +231,7 @@
 		    maxlength="20" />
       </div>
 	  <div class="field">
-        <label for="llavelectura" id="llavelecturaLabel">*Password to see</label>
+        <label for="llavelectura" id="llavelecturaLabel">*Password to see (required)</label>
         <input type="password" id="llavelectura" placeholder="" value="" 
 		    maxlength="20" />
       </div>
@@ -831,7 +831,7 @@
 			   document.getElementById("linkdirectoLabel").innerText   = "Link directo";
 			   document.getElementById("tullaveLabel").innerText   = "Nueva clave";
 			   document.getElementById("confirmatullaveLabel").innerText   = "Confirme nueva clave";
-			   document.getElementById("llavelecturaLabel").innerText   = "Clave para ver";
+			   document.getElementById("llavelecturaLabel").innerText   = "Clave para ver (importante)";
 			   
 			   document.getElementById("tunombreLabel").innerText   = "Nombre";
 			   document.getElementById("quieresversiculoLabel").innerText   = "Versículo?";
@@ -865,7 +865,7 @@
 			   document.getElementById("linkdirectoLabel").innerText   = "Direct link";
 			   document.getElementById("tullaveLabel").innerText   = "New password";
 			   document.getElementById("confirmatullaveLabel").innerText   = "Confirm new password";
-			   document.getElementById("llavelecturaLabel").innerText   = "Password to see";
+			   document.getElementById("llavelecturaLabel").innerText   = "Password to see (required)";
 			   
 			   document.getElementById("tunombreLabel").innerText   = "Name";
 			   document.getElementById("quieresversiculoLabel").innerText   = "Verse?";
@@ -1302,11 +1302,12 @@
 						    document.getElementById("segundosslide").value = "8";
 						}
 						
-						if ( jsonData.claveLectura && jsonData.claveLectura !="" ){
+						/*if ( jsonData.claveLectura && jsonData.claveLectura !="" ){
 							document.getElementById("llavelectura").value = jsonData.claveLectura;
 						}else{
 						    document.getElementById("llavelectura").value = "";
-						}						
+						}*/
+						document.getElementById("llavelectura").value = "";
 						
 						if (jsonData.lastupdate){
 						   console.log("upd" + jsonData.lastupdate);
@@ -1465,7 +1466,12 @@
 					laclave = simpleStringHash(laclave);
 				}
 				
-				//let llavelecturaa = document.getElementById("llavelectura").value;
+				let llavelecturaa = document.getElementById("llavelectura").value;
+				if (llavelecturaa == ""){
+					console.log("no key to read");
+				}else{
+					llavelecturaa = simpleStringHash(llavelecturaa);
+				}
 				
      			const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
@@ -1488,7 +1494,7 @@
 				  segundosslide: document.getElementById("segundosslide").value,
 				  linkdirecto: document.getElementById("linkdirecto").value,
 
-				  claveLectura: document.getElementById("llavelectura").value
+				  claveLectura: llavelecturaa
 
 	 			};	
 				

@@ -226,7 +226,7 @@
     <div id="auth-overlay" aria-live="polite">
       <div id="auth-card">
         <p id="auth-title">Clave:</p>
-        <input id="auth-input" type="password" inputmode="numeric" autocomplete="off" placeholder="Clave" />
+        <input id="auth-input" type="password" inputmode="numeric" autocomplete="off" placeholder="" />
         <button id="auth-submit" type="button">Ok</button>
         <p id="auth-error"></p>
       </div>
@@ -561,13 +561,24 @@ async function delayedTask() {
     }
 
     function resetAuthUI() {
-      authTitle.textContent = "Clave:";
+      authTitle.textContent = "Clave / password:";
       authInput.value = "";
       authInput.style.display = "block";
       authSubmit.style.display = "block";
       authError.textContent = "";
       authOverlay.style.display = "none";
     }
+	
+	function simpleStringHash(str) {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+		  const char = str.charCodeAt(i);
+		  hash = (hash << 5) - hash + char;
+		  hash |= 0; // Convert to 32bit integer
+		}
+		//console.log("hash: z9"+hash+"r5");
+		return hash;
+	}
 
     function setClaveRequirement(claveLectura) {
       requiredClaveLectura = typeof claveLectura === "string"
@@ -602,7 +613,8 @@ async function delayedTask() {
     function tryUnlockContent() {
       if (!authRequired || authValidated || authFailed) return;
 
-      const typedKey = authInput.value;
+      const typedKey = "" + simpleStringHash(authInput.value);//
+	  
       if (typedKey === requiredClaveLectura) {
         authValidated = true;
         authOverlay.style.display = "none";
