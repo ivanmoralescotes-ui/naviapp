@@ -231,6 +231,11 @@
 		    maxlength="20" />
       </div>
 	  <div class="field">
+        <label for="llavelectura" id="llavelecturaLabel">*Password to see</label>
+        <input type="password" id="llavelectura" placeholder="" value="" 
+		    maxlength="20" />
+      </div>
+	  <div class="field">
         <label for="tunombre" id="tunombreLabel">Name</label>
         <input type="text" id="tunombre" placeholder="" value="" 
 		    maxlength="20" />
@@ -519,7 +524,8 @@
 			
 		upsertConId("prop"+theFileName, theObject.nombre, theObject.whatsapp, theObject.instagram,
            theObject.tipoIa,theObject.lastupdate,theObject.isEnglish,theObject.segundosslide,theObject.palabras,theObject.clave,"",
-	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images,theObject.linkdirecto);
+	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images,theObject.linkdirecto
+		   ,theObject.claveLectura);
 		   
 		/*const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
@@ -676,7 +682,8 @@
 			document.getElementById('tunombre').value="";
 			document.getElementById('tullave').value="";
 			document.getElementById('confirmatullave').value="";
-			
+			document.getElementById('llavelectura').value="";
+						
 			document.getElementById('tuspalabras').value="";
 			
 			document.getElementById('clave2').value="";
@@ -824,6 +831,8 @@
 			   document.getElementById("linkdirectoLabel").innerText   = "Link directo";
 			   document.getElementById("tullaveLabel").innerText   = "Nueva clave";
 			   document.getElementById("confirmatullaveLabel").innerText   = "Confirme nueva clave";
+			   document.getElementById("llavelecturaLabel").innerText   = "Clave para ver";
+			   
 			   document.getElementById("tunombreLabel").innerText   = "Nombre";
 			   document.getElementById("quieresversiculoLabel").innerText   = "Versículo?";
 			   document.getElementById("quieresnumerosuerteLabel").innerText   = "Número de suerte?";
@@ -832,8 +841,7 @@
 			   document.getElementById("tipoiaLabel").innerText   = "Tipo IA";
 			   document.getElementById("segundosslideLabel").innerText   = "Segundos";
 			   document.getElementById("imagenesLabel").innerText   = "Imágenes";
-			   			   
-			   
+			   			   			   
 			   document.getElementById("iraunaimagen").innerText   = "Ir";
                document.getElementById("consultarpropsFire").innerText   = "Consultar";
 			   document.getElementById("limpiarprops").innerText   = "Limpiar";
@@ -857,6 +865,8 @@
 			   document.getElementById("linkdirectoLabel").innerText   = "Direct link";
 			   document.getElementById("tullaveLabel").innerText   = "New password";
 			   document.getElementById("confirmatullaveLabel").innerText   = "Confirm new password";
+			   document.getElementById("llavelecturaLabel").innerText   = "Password to see";
+			   
 			   document.getElementById("tunombreLabel").innerText   = "Name";
 			   document.getElementById("quieresversiculoLabel").innerText   = "Verse?";
 			   document.getElementById("quieresnumerosuerteLabel").innerText   = "Lucky number?";
@@ -1292,6 +1302,12 @@
 						    document.getElementById("segundosslide").value = "8";
 						}
 						
+						if ( jsonData.claveLectura && jsonData.claveLectura !="" ){
+							document.getElementById("llavelectura").value = jsonData.claveLectura;
+						}else{
+						    document.getElementById("llavelectura").value = "";
+						}						
+						
 						if (jsonData.lastupdate){
 						   console.log("upd" + jsonData.lastupdate);
 						   theTimestamp = jsonData.lastupdate ;
@@ -1449,6 +1465,8 @@
 					laclave = simpleStringHash(laclave);
 				}
 				
+				//let llavelecturaa = document.getElementById("llavelectura").value;
+				
      			const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
 				  whatsapp: document.getElementById("tuwhatsapp").value,
@@ -1468,7 +1486,10 @@
 				  lastupdate: new Date(),
 				  isEnglish: esIngles,
 				  segundosslide: document.getElementById("segundosslide").value,
-				  linkdirecto: document.getElementById("linkdirecto").value
+				  linkdirecto: document.getElementById("linkdirecto").value,
+
+				  claveLectura: document.getElementById("llavelectura").value
+
 	 			};	
 				
 				const keyFromUser2 =  (document.getElementById("llave").value).slice(2, -1);

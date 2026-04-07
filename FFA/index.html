@@ -151,12 +151,86 @@
       #btn-prev { left: 10px; }
       #btn-next { right: 10px; }
     }
+
+
+    #auth-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 11000;
+    }
+
+    #auth-card {
+      width: min(92vw, 420px);
+      background: rgba(18,18,18,0.96);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      text-align: center;
+    }
+
+    #auth-title {
+      font-size: clamp(1.05rem, 2.2vh, 1.35rem);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    #auth-input {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    #auth-input:focus {
+      border-color: rgba(255,255,255,0.34);
+    }
+
+    #auth-submit {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #fff;
+      color: #000;
+      font-weight: 600;
+    }
+
+    #auth-error {
+      margin-top: 12px;
+      min-height: 20px;
+      font-size: 14px;
+      color: #ff9f9f;
+    }
+
   </style>
 </head>
 
 <body>
   <div id="slideshow">
     <div id="loading-overlay">Loading...</div>
+
+    <div id="auth-overlay" aria-live="polite">
+      <div id="auth-card">
+        <p id="auth-title">Clave:</p>
+        <input id="auth-input" type="password" inputmode="numeric" autocomplete="off" placeholder="Clave" />
+        <button id="auth-submit" type="button">Ok</button>
+        <p id="auth-error"></p>
+      </div>
+    </div>
 
     <img id="slide-img" src="" alt="Imagen" 
 	    referrerpolicy="no-referrer" loading="eager" decoding="async" />  
@@ -259,6 +333,9 @@
 	
 	// ----------------- Slideshow control -----------------
     function startSlideshow() {
+      if (authRequired && !authValidated) return;
+      if (authFailed) return;
+
       stopSlideshow();
       slideshowTimer = setInterval(() => {
         nextSlide(false); // auto
@@ -287,22 +364,48 @@
 
 	let initPromise = null;
 
+	function resetForInit() {
+	  stopSlideshow();
+	  slides = [{ type: "html" }];
+	  currentIndex = 0;
+	  firstSlideLoaded = false;
+	  segundosslide = 0;
+	  requiredClaveLectura = "";
+	  authRequired = false;
+	  authValidated = true;
+	  authFailed = false;
+	  preloadedVideoElements = [];
+	  loadingOverlay.textContent = "Loading...";
+	  loadingOverlay.classList.remove("hide");
+	  resetAuthUI();
+	  hideAllSlides();
+	}
+
 	async function initSlideshowOnce() {
 	  if (initPromise) return initPromise;
 
 	  initPromise = (async () => {
-	  
+	    resetForInit();
+
 	    const penultima = getPenultima();
 		console.log("starting");
 		await startAll(penultima);
+		preloadSlides();
 
 		const ss = Number(segundosslide);
 		displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
-		//console.log({ segundosslide, displayTime, slidesLen: slides.length });
+
+		if (!slides.length) {
+		  showMessage("No hay slides configurados.");
+		  return;
+		}
 
 		currentIndex = 0;
 		showSlide(currentIndex, false);
-		startSlideshow();
+
+		if (!authRequired || authValidated) {
+		  startSlideshow();
+		}
 	  })().catch((e) => {
 		console.error("Error en initSlideshow:", e);
 		showMessage("Error cargando datos");
@@ -313,23 +416,8 @@
 	  return initPromise;
 	}
 
-	// 1) Arranca ya si el DOM ya está listo
-	if (document.readyState === "loading") {
-	  document.addEventListener("DOMContentLoaded", () => initSlideshowOnce(), { once: true });
-	} else {
-	  initSlideshowOnce();
-	}
+	// Auto-init movido al final del script para evitar TDZ.
 
-	// 2) Si vuelves con bfcache (atrás/adelante), reinicia
-	window.addEventListener("pageshow", (e) => {
-	  if (e.persisted) {
-		console.log("pageshow (bfcache) -> reiniciando");
-		initPromise = null;
-		initSlideshowOnce();
-	  }
-	});
-
-	
 	const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // 2. Use it inside an async function
 async function delayedTask() {
@@ -377,7 +465,17 @@ async function delayedTask() {
 	
     const messageBox   = document.getElementById("message");
     const loadingOverlay = document.getElementById("loading-overlay");
+    const authOverlay = document.getElementById("auth-overlay");
+    const authTitle = document.getElementById("auth-title");
+    const authInput = document.getElementById("auth-input");
+    const authSubmit = document.getElementById("auth-submit");
+    const authError = document.getElementById("auth-error");
     let firstSlideLoaded = false;
+    let requiredClaveLectura = "";
+    let authRequired = false;
+    let authValidated = true;
+    let authFailed = false;
+    let preloadedVideoElements = [];
 
     // ====== NUEVO: botones ======
     const btnPrev = document.getElementById("btn-prev");
@@ -405,6 +503,9 @@ async function delayedTask() {
 
     // ====== NUEVO: navegación manual ======
     function goNextManual() {
+      if (authRequired && !authValidated) return;
+      if (authFailed) return;
+
       // Si está reproduciendo video, lo paras y reseteas (para que no quede sonando)
       videoElement.pause();
       videoElement.currentTime = 0;
@@ -415,6 +516,9 @@ async function delayedTask() {
     }
 
     function goPrevManual() {
+      if (authRequired && !authValidated) return;
+      if (authFailed) return;
+
       videoElement.pause();
       videoElement.currentTime = 0;
 
@@ -427,6 +531,7 @@ async function delayedTask() {
 
     // Teclado: flechas
     document.addEventListener("keydown", (e) => {
+      if ((authRequired && !authValidated) || authFailed) return;
       if (e.key === "ArrowRight") goNextManual();
       if (e.key === "ArrowLeft") goPrevManual();
     });
@@ -445,6 +550,99 @@ async function delayedTask() {
     function showMessage(text) {
       messageBox.textContent = text;
       messageBox.style.display = "block";
+    }
+
+    function hideAllSlides() {
+      imgElement.classList.remove("show");
+      htmlElement.classList.remove("show");
+      videoElement.classList.remove("show");
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    }
+
+    function resetAuthUI() {
+      authTitle.textContent = "Clave:";
+      authInput.value = "";
+      authInput.style.display = "block";
+      authSubmit.style.display = "block";
+      authError.textContent = "";
+      authOverlay.style.display = "none";
+    }
+
+    function setClaveRequirement(claveLectura) {
+      requiredClaveLectura = typeof claveLectura === "string"
+        ? claveLectura
+        : (claveLectura == null ? "" : String(claveLectura));
+
+      authRequired = requiredClaveLectura.trim() !== "";
+      authValidated = !authRequired;
+      authFailed = false;
+
+      if (authRequired) {
+        authOverlay.style.display = "flex";
+        requestAnimationFrame(() => authInput.focus());
+      } else {
+        authOverlay.style.display = "none";
+      }
+    }
+
+    function failAuth() {
+      authFailed = true;
+      authValidated = false;
+      stopSlideshow();
+      hideAllSlides();
+      loadingOverlay.classList.add("hide");
+      authTitle.textContent = "Clave incorrecta.";
+      authInput.style.display = "none";
+      authSubmit.style.display = "none";
+      authError.textContent = "";
+      authOverlay.style.display = "flex";
+    }
+
+    function tryUnlockContent() {
+      if (!authRequired || authValidated || authFailed) return;
+
+      const typedKey = authInput.value;
+      if (typedKey === requiredClaveLectura) {
+        authValidated = true;
+        authOverlay.style.display = "none";
+        if (firstSlideLoaded) {
+          loadingOverlay.classList.add("hide");
+        }
+        startSlideshow();
+      } else {
+        failAuth();
+      }
+    }
+
+    authSubmit.addEventListener("click", tryUnlockContent);
+    authInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        tryUnlockContent();
+      }
+    });
+
+    function preloadSlides() {
+      preloadedVideoElements = [];
+
+      for (const slide of slides) {
+        if (!slide || !slide.file) continue;
+
+        if (slide.type === "image") {
+          const preloadImg = new Image();
+          preloadImg.referrerPolicy = "no-referrer";
+          preloadImg.decoding = "async";
+          preloadImg.src = slide.file;
+        } else if (slide.type === "video") {
+          const preloadVideo = document.createElement("video");
+          preloadVideo.preload = "auto";
+          preloadVideo.muted = true;
+          preloadVideo.playsInline = true;
+          preloadVideo.src = slide.file;
+          preloadedVideoElements.push(preloadVideo);
+        }
+      }
     }
 
     // ----------------- Tu lógica existente (startAll) -----------------
@@ -484,6 +682,8 @@ async function delayedTask() {
 		 console.log("No se encontró el documento.");
          return;
       }
+
+      setClaveRequirement(props.claveLectura);
 
 	  const mostrarVersiculo = props.versiculo;
 	  const mostrarMotivacional = props.motivacional;
@@ -872,6 +1072,22 @@ document.addEventListener("touchend", (e) => {
 document.addEventListener("touchcancel", resetSequence, { passive: true });
 
 
+
+// 1) Arranca ya si el DOM ya está listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => initSlideshowOnce(), { once: true });
+} else {
+  initSlideshowOnce();
+}
+
+// 2) Si vuelves con bfcache (atrás/adelante), reinicia
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) {
+    console.log("pageshow (bfcache) -> reiniciando");
+    initPromise = null;
+    initSlideshowOnce();
+  }
+});
 
   </script>
 </body>
