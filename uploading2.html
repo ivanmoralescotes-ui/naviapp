@@ -280,8 +280,9 @@
 	  <div class="field">
 	     <label for="segundosslide" id="segundosslideLabel">Seconds</label>
 	     <select id="segundosslide">
-			<option value="5" selected="selected" >&nbsp;5</option>
-			<option value="8"  >&nbsp;8</option>
+			<option value="4" selected="selected" >&nbsp;4</option>
+			<option value="5" >&nbsp;5</option>
+			<option value="8" >&nbsp;8</option>
 			<option value="11">&nbsp;11</option>
 			<option value="14">&nbsp;14</option>
 			<option value="30">&nbsp;30</option>
@@ -323,6 +324,14 @@
 		<button id="clearimage" type="button" class="btn-alto">Clear</button>
     </div>
 	<br>
+	<!--
+	<form action="/upload" method="POST" enctype="multipart/form-data">
+       <label for="myFile">Select a file:</label>
+       <input type="file" id="myFile" name="filename">
+       <input type="submit" value="Upload">
+    </form>
+	<br>-->
+	
 	<div><center><a href="https://imgur.com/upload" target="_blank">imgur</a></center></div>
 	<br>
 	<!--<div><center><a href="https://huggingface.co/spaces/huggingface-projects/QR-code-AI-art-generator" target="_blank">qface</a></center></div>-->
@@ -965,7 +974,17 @@
 		   // http://localhost:3000/i.html?f=11121197
 		   // http://localhost:3000/i?f=QUFB
 		}else{
-			window.open("https://" + adomain + "/i.html?f=" + thekey , "_blank");
+			//window.open("https://" + adomain + "/i.html?f=" + thekey , "_blank");
+			let tempLlave = document.getElementById("llave").value;
+			tempLlave = tempLlave + "???";
+			if (tempLlave.length > 12){
+				//alert("k: " + atob( llavee.value.slice(2, -5) ).slice(3)  );
+				tempLlave = atob( tempLlave.slice(2, -5) ).slice(3);
+			}else{
+				//alert("k: " + atob( tempLlave.value.slice(2, -4) )  );
+				tempLlave = atob( tempLlave.slice(2, -4) );
+			}
+			window.open("https://" + adomain + "/" + tempLlave , "_blank");
 		}
 		console.log("ir a");
 	});
