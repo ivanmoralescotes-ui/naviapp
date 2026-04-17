@@ -852,9 +852,12 @@
 			   document.getElementById("imagenesLabel").innerText   = "Imágenes";
 			   			   			   
 			   document.getElementById("iraunaimagen").innerText   = "Ir";
+			   document.getElementById("clearimage").innerText   = "Borrar";
+			   document.getElementById("defaultimg").innerText   = "Ejemplo";
+			   			   
                document.getElementById("consultarpropsFire").innerText   = "Consultar";
 			   document.getElementById("limpiarprops").innerText   = "Limpiar";
-			   document.getElementById("defaultimages").innerText   = "Default";
+			   document.getElementById("defaultimages").innerText   = "Ejemplo";
 			   document.getElementById("irapagina").innerText   = "Ir";
 			   document.getElementById("subir").innerText   = "Guardar";
 			   document.getElementById("subir01").innerText   = "Guarda";
@@ -887,6 +890,9 @@
 			   
 			   			   
 			   document.getElementById("iraunaimagen").innerText   = "Go";
+			   document.getElementById("clearimage").innerText   = "Clear";
+			   document.getElementById("defaultimg").innerText   = "Default";
+			   
                document.getElementById("consultarpropsFire").innerText   = "Read";
 			   document.getElementById("limpiarprops").innerText   = "Clean";
 			   document.getElementById("defaultimages").innerText   = "Default";
@@ -930,16 +936,19 @@
 		document.getElementById('imagenes').value = currentImages.join("\n");
 	});
 	
+	let defaultImagesString = "https://i.imgur.com/C4kxvkF.jpg" +
+			   "\nhttps://i.imgur.com/e6JpQI9.jpg" ;
+	
 	document.getElementById("defaultimages").addEventListener("click", async () => {	
 
 		//document.getElementById('quieresversiculo').checked=true;
 		document.getElementById("imagenes").value =
-	         "https://i.imgur.com/ZYbySOV.jpg" +
-			   "\nhttps://i.imgur.com/n9LNBpb.jpg" 
+	         defaultImagesString ;
 	           //"\nhttps://i.imgur.com/uVFofUl.jpg"
                //"\nhttps://i.imgur.com/E7T8pTv.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"+
                //"\nhttps://i.imgur.com/HA1h36w.jpg"
+			   
 		document.getElementById('quieresmotivacional').checked=true;
 			
 	    //document.getElementById('tuspalabras').value= 
@@ -953,8 +962,10 @@
 	});
 	
 	document.getElementById("defaultimg").addEventListener("click", async () => {
-		document.getElementById("imagenes").value = "https://i.imgur.com/ZYbySOV.jpg" +
-			   "\nhttps://i.imgur.com/n9LNBpb.jpg"
+		document.getElementById("imagenes").value = defaultImagesString;
+
+		//"https://i.imgur.com/C4kxvkF.jpg" +
+		//	   "\nhttps://i.imgur.com/e6JpQI9.jpg"
 	});
 	
 	
