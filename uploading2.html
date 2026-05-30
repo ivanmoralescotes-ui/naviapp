@@ -936,22 +936,38 @@
 	});
 	
 	let firstDefaultImage = "https://i.imgur.com/C4kxvkF.jpg";	
-	let secondDefaultImage = "https://i.imgur.com/e6JpQI9.jpg";
+	let secondDefaultImage = "";//https://i.imgur.com/e6JpQI9.jpg
+	let thirdDefaultImage = "";
 		
 	const firstDefaultImageObject = await consultarPorId("defaultimage");	
 	
 	firstDefaultImage = firstDefaultImageObject.img0;
-	if (!firstDefaultImage) {
-		firstDefaultImage = "https://i.imgur.com/C4kxvkF.jpg";
-	}
+	
     secondDefaultImage = firstDefaultImageObject.img2;	 
-	if (!secondDefaultImage) {
+	
+	thirdDefaultImage = firstDefaultImageObject.img3;	 
+	
+	/*if (!firstDefaultImage) {
+		firstDefaultImage = "https://i.imgur.com/C4kxvkF.jpg";
+	}*/
+	/*if (!secondDefaultImage) {
 		secondDefaultImage = "https://i.imgur.com/e6JpQI9.jpg";
-	}
+	}*/
 	//firstDefaultImage = await fetch("https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/ivanmoralescotes-ui/config/refs/heads/main/defaultimage.txt").then(r => r.text() );
 	
-	let defaultImagesString = firstDefaultImage +
-			   "\n" + secondDefaultImage ;
+	
+	let defaultImagesString = "";
+	
+	if (firstDefaultImage && firstDefaultImage!=""){
+	    defaultImagesString = firstDefaultImage;
+	}
+
+    if (secondDefaultImage && secondDefaultImage!=""){
+		defaultImagesString=defaultImagesString+"\n" +secondDefaultImage ;
+    }
+	if (thirdDefaultImage && thirdDefaultImage!=""){
+		defaultImagesString=defaultImagesString+"\n" +thirdDefaultImage ;
+    }
 	
 	document.getElementById("defaultimages").addEventListener("click", async () => {	
 
