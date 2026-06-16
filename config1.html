@@ -573,7 +573,7 @@
             <input id="cameraVideo" type="file" accept="video/*" capture="environment">
           </label>
 		  
-		  <img id="miImagen" alt="Imagen almacenada">
+		  <img id="miImagen" alt="Imagenn">
 		  
         </div>
 
@@ -695,7 +695,7 @@
 
       function actualizarTitulo() {
         elements.pageTitle.textContent = state.identificador
-          ? `Configuración de ${state.identificador}`
+          ? `Configuración de "${state.identificador}"`
           : "Configuración sin identificador";
         document.title = elements.pageTitle.textContent;
       }
@@ -812,8 +812,19 @@
         try {
           await esperar(SIMULATED_DELAY_MS);
 		  
-		  await cargarImagenPrivada();
+		  // await cargarImagenPrivada();
+		  const folderNamee = decodificarIdentificador(state.identificador);
+		  // "ccWZmx5i"
 		  
+		  const theImages = consultarImagenes(folderNamee) //"fly"
+			  .then((imagenes) => {
+				console.log(imagenes);
+			  })
+			  .catch((error) => {
+				console.error(error.message);
+			  });
+		  
+				  
           mostrarNotificacion("Consulta exitosa", "success");
         } catch {
           mostrarNotificacion("No fue posible completar la consulta simulada.", "error");
@@ -1141,6 +1152,43 @@
       function liberarTodasLasUrls() {
         state.archivos.forEach((item) => URL.revokeObjectURL(item.url));
       }
+	  
+	  function decodificarIdentificador(valor) {
+		  const prefijo = "ccW";
+		  const sufijo = "i";
+
+		  if (
+			typeof valor !== "string" ||
+			!valor.startsWith(prefijo) ||
+			!valor.endsWith(sufijo)
+		  ) {
+			throw new Error("El identificador no tiene el formato esperado.");
+		  }
+
+		  const textoBase64 = valor.slice(
+			prefijo.length,
+			-sufijo.length
+		  );
+
+		  return atob(textoBase64);
+	  }
+
+		//const resultado = decodificarIdentificador("ccWZmx5i");
+		//console.log(resultado); // fly
+	
+	async function consultarImagenes(carpeta) {
+		  const respuesta = await fetch(
+			`/.netlify/functions/obtener-imagenes-carpeta?carpeta=${encodeURIComponent(carpeta)}`
+		  );
+
+		  const datos = await respuesta.json();
+
+		  if (!respuesta.ok) {
+			throw new Error(datos.error || "No fue posible consultar las imágenes.");
+		  }
+
+		  return datos.imagenes;
+		}
 
       function esperar(milisegundos) {
         return new Promise((resolve) => window.setTimeout(resolve, milisegundos));
