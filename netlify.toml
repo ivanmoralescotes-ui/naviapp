@@ -3,7 +3,7 @@
   publish = "."
 
 [functions]
-  directory = "functions"
+  directory = "netlify/functions"
 
 [dev]
   publish = "."
