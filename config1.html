@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <title>Código QR</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --border: #d8e0ea;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --warning: #9a6700;
+      --warning-bg: #fffaeb;
+      --success: #067647;
+      --success-bg: #ecfdf3;
+      --focus: rgba(37, 99, 235, 0.25);
+      --shadow: 0 12px 35px rgba(23, 32, 51, 0.08);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 32rem),
+        var(--background);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .page-shell {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+    }
+
+    .page-header {
+      padding: 8px 4px 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 5vw, 2rem);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid rgba(216, 224, 234, 0.88);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .card-description {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field + .field {
+      margin-top: 16px;
+    }
+
+    label {
+      font-size: 0.92rem;
+      font-weight: 750;
+    }
+
+    .required {
+      color: var(--danger);
+    }
+
+    .optional {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 650;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 52px 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input:hover {
+      border-color: #aab7c5;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    input[aria-invalid="true"] {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(180, 35, 24, 0.12);
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 7px;
+      min-width: 40px;
+      min-height: 38px;
+      padding: 7px 9px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--primary-dark);
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 750;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    .password-toggle:hover {
+      background: #eff6ff;
+    }
+
+    .password-toggle:focus-visible,
+    .button:focus-visible,
+    .file-action:focus-visible,
+    .remove-button:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .help-text,
+    .error-text {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .help-text {
+      color: var(--muted);
+    }
+
+    .error-text {
+      min-height: 1.15em;
+      color: var(--danger);
+      font-weight: 650;
+    }
+
+    .button-row {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .button,
+    .file-action {
+      min-height: 50px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 120ms ease, background-color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+    }
+
+    .button:active,
+    .file-action:active,
+    .remove-button:active {
+      transform: translateY(1px) scale(0.995);
+    }
+
+    .button-primary {
+      color: white;
+      background: var(--primary);
+    }
+
+    .button-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .button-secondary {
+      color: var(--primary-dark);
+      border-color: #b9cdfd;
+      background: #eff6ff;
+    }
+
+    .button-secondary:hover {
+      background: #dbeafe;
+    }
+
+    .button:disabled,
+    .file-action.is-disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .file-inputs {
+      display: grid;
+      gap: 10px;
+    }
+
+    .file-action {
+      position: relative;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      border-color: var(--border);
+      background: var(--surface-soft);
+      overflow: hidden;
+    }
+
+    .file-action:hover {
+      border-color: #9fb0c2;
+      background: #f1f5f9;
+    }
+
+    .file-action input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-action:focus-within {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .counter-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .counter {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .empty-state {
+      margin: 0;
+      padding: 22px 14px;
+      border: 1px dashed #b9c5d2;
+      border-radius: var(--radius-md);
+      color: var(--muted);
+      background: var(--surface-soft);
+      text-align: center;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .media-error {
+      margin: 0 0 12px;
+      color: var(--danger);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .media-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    .media-preview {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: block;
+      object-fit: cover;
+      background: #e8edf3;
+    }
+
+    .media-info {
+      display: grid;
+      gap: 5px;
+      padding: 12px;
+    }
+
+    .media-name {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .media-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .remove-button {
+      min-height: 42px;
+      margin-top: 5px;
+      padding: 9px 12px;
+      border: 1px solid #f3b7b2;
+      border-radius: var(--radius-sm);
+      color: var(--danger);
+      background: var(--danger-bg);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .notification {
+      display: none;
+      margin-bottom: 16px;
+      padding: 13px 15px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+
+    .notification.is-visible {
+      display: block;
+    }
+
+    .notification.success {
+      color: var(--success);
+      border-color: #a6f4c5;
+      background: var(--success-bg);
+    }
+
+    .notification.warning {
+      color: var(--warning);
+      border-color: #fedf89;
+      background: var(--warning-bg);
+    }
+
+    .notification.error {
+      color: var(--danger);
+      border-color: #f7b6b2;
+      background: var(--danger-bg);
+    }
+
+    .footer-note {
+      margin: 17px 4px 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    @media (min-width: 560px) {
+      .page-shell {
+        padding-inline: 24px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .file-inputs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .media-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .button-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <!--<p class="eyebrow">Codigo QR</p>-->
+      <h1 id="pageTitle">Configuración</h1>
+      <p class="subtitle">Consulta y actualiza el contenido que aparecerá al escanear el código.</p>
+    </header>
+
+    <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <form id="configurationForm" class="stack" novalidate>
+      <section class="card" aria-labelledby="accessTitle">
+        <div class="card-header">
+          <h2 id="accessTitle" class="card-title">Acceso a la configuración</h2>
+          <p class="card-description">Confirma que tienes permiso para consultar y modificar este código.</p>
+        </div>
+
+        <div class="field">
+          <label for="configurationPassword">
+            Contraseña de configuración <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              id="configurationPassword"
+              name="configurationPassword"
+              type="password"
+              autocomplete="current-password"
+              required
+              aria-describedby="configurationPasswordHelp configurationPasswordError"
+            >
+            <button
+              class="password-toggle"
+              type="button"
+              data-password-target="configurationPassword"
+              aria-label="Mostrar contraseña de configuración"
+              aria-pressed="false"
+            >Ver</button>
+          </div>
+          <p id="configurationPasswordHelp" class="help-text">
+            Ingresa la contraseña que permite consultar y modificar esta configuración.
+          </p>
+          <p id="configurationPasswordError" class="error-text" aria-live="polite"></p>
+        </div>
+
+        <div class="button-row">
+          <button id="consultButton" class="button button-secondary" type="button">
+            Consultar
+          </button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="visibilityTitle">
+        <div class="card-header">
+          <h2 id="visibilityTitle" class="card-title">Acceso al contenido</h2>
+          <p class="card-description">Puedes proteger lo que verá la persona que escanee el código QR.</p>
+        </div>
+
+        <div class="field">
+          <label for="viewPassword">
+            Contraseña para ver el contenido <span class="optional">(opcional)</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              id="viewPassword"
+              name="viewPassword"
+              type="password"
+              autocomplete="new-password"
+              aria-describedby="viewPasswordHelp"
+            >
+            <button
+              class="password-toggle"
+              type="button"
+              data-password-target="viewPassword"
+              aria-label="Mostrar contraseña para ver el contenido"
+              aria-pressed="false"
+            >Ver</button>
+          </div>
+          <!--<p id="viewPasswordHelp" class="help-text">
+            Déjalo vacío si cualquier persona puede ver el contenido al escanear el código QR.
+          </p>-->
+        </div>
+      </section>
+
+      <section id="mediaSection" class="card" aria-labelledby="mediaTitle">
+        <div class="card-header">
+          <h2 id="mediaTitle" class="card-title">Imágenes y videos</h2>
+          <p class="card-description">Agrega hasta 7 imágenes y 2 videos.</p>
+        </div>
+
+        <div class="file-inputs">
+          <label class="file-action" for="mixedFiles">
+            Seleccionar archivos
+            <input id="mixedFiles" type="file" accept="image/*,video/*" multiple>
+          </label>
+
+          <label class="file-action" for="cameraPhoto">
+            Tomar una foto
+            <input id="cameraPhoto" type="file" accept="image/*" capture="environment">
+          </label>
+
+          <label class="file-action" for="cameraVideo">
+            Grabar un video
+            <input id="cameraVideo" type="file" accept="video/*" capture="environment">
+          </label>
+        </div>
+
+        <div class="counter-row" aria-live="polite">
+          <div id="imageCounter" class="counter">Imágenes: 0 de 7</div>
+          <div id="videoCounter" class="counter">Videos: 0 de 2</div>
+        </div>
+
+        <p id="mediaValidationError" class="media-error" aria-live="polite"></p>
+        <p id="emptyState" class="empty-state">Todavía no has agregado imágenes ni videos.</p>
+        <div id="mediaGrid" class="media-grid" aria-label="Archivos agregados"></div>
+      </section>
+
+      <section class="card" aria-labelledby="saveTitle">
+        <div class="card-header">
+          <h2 id="saveTitle" class="card-title">Guardar cambios</h2>
+          <p class="card-description">Revisa la información antes de actualizar la configuración.</p>
+        </div>
+
+        <button id="saveButton" class="button button-primary" type="submit">
+          Guardar configuración
+        </button>
+      </section>
+    </form>
+
+    <p class="footer-note">Los archivos permanecen únicamente en este navegador hasta que se conecte el backend.</p>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const MAX_IMAGES = 7;
+      const MAX_VIDEOS = 2;
+      const SIMULATED_DELAY_MS = 650;
+
+      const state = {
+        identificador: obtenerIdentificador(),
+        archivos: [],
+        procesando: false
+      };
+
+      const elements = {
+        form: document.getElementById("configurationForm"),
+        pageTitle: document.getElementById("pageTitle"),
+        notification: document.getElementById("notification"),
+        configurationPassword: document.getElementById("configurationPassword"),
+        configurationPasswordError: document.getElementById("configurationPasswordError"),
+        viewPassword: document.getElementById("viewPassword"),
+        consultButton: document.getElementById("consultButton"),
+        saveButton: document.getElementById("saveButton"),
+        mixedFiles: document.getElementById("mixedFiles"),
+        cameraPhoto: document.getElementById("cameraPhoto"),
+        cameraVideo: document.getElementById("cameraVideo"),
+        mediaSection: document.getElementById("mediaSection"),
+        mediaValidationError: document.getElementById("mediaValidationError"),
+        imageCounter: document.getElementById("imageCounter"),
+        videoCounter: document.getElementById("videoCounter"),
+        emptyState: document.getElementById("emptyState"),
+        mediaGrid: document.getElementById("mediaGrid")
+      };
+
+      inicializar();
+
+      function inicializar() {
+        actualizarTitulo();
+        configurarEventos();
+        renderizarArchivos();
+
+        if (!state.identificador) {
+          mostrarNotificacion(
+            "No se encontró un código o identificador válido en la URL. La consulta y el guardado están deshabilitados.",
+            "error"
+          );
+          actualizarDisponibilidadAcciones();
+        }
+      }
+
+      // Obtiene el identificador de una URL como /config1/a123.
+      // También acepta ?codigo= o #/codigo como apoyo para pruebas locales.
+      function obtenerIdentificador() {
+        const segmentos = window.location.pathname
+          .split("/")
+          .map((segmento) => segmento.trim())
+          .filter(Boolean);
+
+        const indiceConfig = segmentos.findIndex(
+          (segmento) => segmento.toLowerCase() === "config1"
+        );
+
+        let candidato = indiceConfig >= 0
+          ? (segmentos[indiceConfig + 1] || "")
+          : (segmentos.at(-1) || "");
+
+        if (/\.html?$/i.test(candidato)) {
+          candidato = "";
+        }
+
+        if (!candidato) {
+          const parametro = new URLSearchParams(window.location.search).get("codigo");
+          candidato = parametro ? parametro.trim() : "";
+        }
+
+        if (!candidato && window.location.hash) {
+          candidato = window.location.hash.replace(/^#\/?/, "").trim();
+        }
+
+        if (!candidato) {
+          return "";
+        }
+
+        try {
+          return decodeURIComponent(candidato);
+        } catch {
+          return "";
+        }
+      }
+
+      function actualizarTitulo() {
+        elements.pageTitle.textContent = state.identificador
+          ? `Configuración de ${state.identificador}`
+          : "Configuración sin identificador";
+        document.title = elements.pageTitle.textContent;
+      }
+
+      function configurarEventos() {
+        document.querySelectorAll("[data-password-target]").forEach((button) => {
+          button.addEventListener("click", alternarVisibilidadPassword);
+        });
+
+        elements.consultButton.addEventListener("click", consultarDatos);
+        elements.form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          guardarDatos();
+        });
+
+        [elements.mixedFiles, elements.cameraPhoto, elements.cameraVideo].forEach((input) => {
+          input.addEventListener("change", manejarSeleccionArchivos);
+        });
+
+        elements.configurationPassword.addEventListener("input", () => {
+          limpiarErrorPassword();
+        });
+
+        window.addEventListener("beforeunload", liberarTodasLasUrls);
+      }
+
+      function alternarVisibilidadPassword(event) {
+        const button = event.currentTarget;
+        const input = document.getElementById(button.dataset.passwordTarget);
+
+        if (!input) {
+          return;
+        }
+
+        const mostrar = input.type === "password";
+        input.type = mostrar ? "text" : "password";
+        button.textContent = mostrar ? "Ocultar" : "Ver";
+        button.setAttribute("aria-pressed", String(mostrar));
+
+        const nombreCampo = input.id === "configurationPassword"
+          ? "contraseña de configuración"
+          : "contraseña para ver el contenido";
+
+        button.setAttribute(
+          "aria-label",
+          `${mostrar ? "Ocultar" : "Mostrar"} ${nombreCampo}`
+        );
+      }
+
+      function validarAcceso() {
+        limpiarErrorPassword();
+
+        if (!state.identificador) {
+          mostrarNotificacion(
+            "No es posible continuar porque la URL no contiene un identificador válido.",
+            "error"
+          );
+          return false;
+        }
+
+        if (!elements.configurationPassword.value.trim()) {
+          elements.configurationPassword.setAttribute("aria-invalid", "true");
+          elements.configurationPasswordError.textContent =
+            "La contraseña de configuración es obligatoria.";
+          enfocarYDesplazar(elements.configurationPassword);
+          return false;
+        }
+
+        return true;
+      }
+
+      function validarGuardado() {
+        if (!validarAcceso()) {
+          return false;
+        }
+
+        elements.mediaValidationError.textContent = "";
+
+        if (state.archivos.length === 0) {
+          elements.mediaValidationError.textContent =
+            "Agrega por lo menos una imagen o un video antes de guardar.";
+          mostrarNotificacion(
+            "Debes agregar por lo menos una imagen o un video.",
+            "warning"
+          );
+          enfocarYDesplazar(elements.mediaSection);
+          return false;
+        }
+
+        return true;
+      }
+
+      function limpiarErrorPassword() {
+        elements.configurationPassword.removeAttribute("aria-invalid");
+        elements.configurationPasswordError.textContent = "";
+      }
+
+      function enfocarYDesplazar(elemento) {
+        elemento.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        if (typeof elemento.focus === "function" && elemento.matches("input, button, select, textarea")) {
+          window.setTimeout(() => elemento.focus({ preventScroll: true }), 220);
+        }
+      }
+
+      async function consultarDatos() {
+        // Aquí se conectará posteriormente el backend.
+        if (state.procesando || !validarAcceso()) {
+          return;
+        }
+
+        establecerProcesando(true, "consulta");
+
+        try {
+          await esperar(SIMULATED_DELAY_MS);
+          mostrarNotificacion("Consulta exitosa", "success");
+        } catch {
+          mostrarNotificacion("No fue posible completar la consulta simulada.", "error");
+        } finally {
+          establecerProcesando(false);
+        }
+      }
+
+      async function guardarDatos() {
+        // Aquí se conectará posteriormente el backend.
+        if (state.procesando || !validarGuardado()) {
+          return;
+        }
+
+        const imagenes = state.archivos
+          .filter((item) => item.tipo === "imagen")
+          .map((item) => item.archivo);
+
+        const videos = state.archivos
+          .filter((item) => item.tipo === "video")
+          .map((item) => item.archivo);
+
+        const datosConfiguracion = {
+          identificador: state.identificador,
+          passwordConfiguracion: elements.configurationPassword.value,
+          passwordVisualizacion: elements.viewPassword.value,
+          imagenes,
+          videos
+        };
+
+        const formData = new FormData();
+        formData.append("identificador", datosConfiguracion.identificador);
+        formData.append("passwordConfiguracion", datosConfiguracion.passwordConfiguracion);
+        formData.append("passwordVisualizacion", datosConfiguracion.passwordVisualizacion);
+
+        datosConfiguracion.imagenes.forEach((archivo) => {
+          formData.append("imagenes", archivo, archivo.name);
+        });
+
+        datosConfiguracion.videos.forEach((archivo) => {
+          formData.append("videos", archivo, archivo.name);
+        });
+
+        // Las variables se dejan preparadas para la futura llamada al backend.
+        void datosConfiguracion;
+        void formData;
+
+        establecerProcesando(true, "guardado");
+
+        try {
+          await esperar(SIMULATED_DELAY_MS);
+          mostrarNotificacion("Datos actualizados", "success");
+        } catch {
+          mostrarNotificacion("No fue posible completar el guardado simulado.", "error");
+        } finally {
+          establecerProcesando(false);
+        }
+      }
+
+      function establecerProcesando(procesando, operacion = "") {
+        state.procesando = procesando;
+
+        elements.consultButton.disabled = procesando || !state.identificador;
+        elements.saveButton.disabled = procesando || !state.identificador;
+
+        if (procesando && operacion === "consulta") {
+          elements.consultButton.textContent = "Consultando...";
+          elements.saveButton.textContent = "Guardar configuración";
+        } else if (procesando && operacion === "guardado") {
+          elements.saveButton.textContent = "Guardando...";
+          elements.consultButton.textContent = "Consultar datos actuales";
+        } else {
+          elements.consultButton.textContent = "Consultar datos actuales";
+          elements.saveButton.textContent = "Guardar configuración";
+        }
+
+        document.querySelectorAll(".file-action").forEach((label) => {
+          label.classList.toggle("is-disabled", procesando);
+        });
+
+        [elements.mixedFiles, elements.cameraPhoto, elements.cameraVideo].forEach((input) => {
+          input.disabled = procesando;
+        });
+      }
+
+      function actualizarDisponibilidadAcciones() {
+        elements.consultButton.disabled = !state.identificador;
+        elements.saveButton.disabled = !state.identificador;
+      }
+
+      function manejarSeleccionArchivos(event) {
+        const input = event.currentTarget;
+        const seleccionados = Array.from(input.files || []);
+
+        if (seleccionados.length === 0) {
+          return;
+        }
+
+        agregarArchivos(seleccionados);
+        input.value = "";
+      }
+
+      function agregarArchivos(archivos) {
+        let cantidadImagenes = contarTipo("imagen");
+        let cantidadVideos = contarTipo("video");
+        const rechazos = [];
+
+        for (const archivo of archivos) {
+          const tipo = clasificarArchivo(archivo);
+
+          if (!tipo) {
+            rechazos.push(`${archivo.name}: el archivo no es una imagen ni un video válido.`);
+            continue;
+          }
+
+          if (esDuplicado(archivo)) {
+            rechazos.push(`${archivo.name}: este archivo ya fue agregado.`);
+            continue;
+          }
+
+          if (tipo === "imagen" && cantidadImagenes >= MAX_IMAGES) {
+            rechazos.push(`${archivo.name}: solo puedes agregar un máximo de 7 imágenes.`);
+            continue;
+          }
+
+          if (tipo === "video" && cantidadVideos >= MAX_VIDEOS) {
+            rechazos.push(`${archivo.name}: solo puedes agregar un máximo de 2 videos.`);
+            continue;
+          }
+
+          const item = {
+            id: generarIdArchivo(archivo),
+            archivo,
+            tipo,
+            url: URL.createObjectURL(archivo)
+          };
+
+          state.archivos.push(item);
+
+          if (tipo === "imagen") {
+            cantidadImagenes += 1;
+          } else {
+            cantidadVideos += 1;
+          }
+        }
+
+        elements.mediaValidationError.textContent = "";
+        renderizarArchivos();
+
+        if (rechazos.length > 0) {
+          mostrarNotificacion(rechazos.join(" "), "warning");
+        } else {
+          mostrarNotificacion("Archivos agregados correctamente.", "success");
+        }
+      }
+
+      function clasificarArchivo(archivo) {
+        if (archivo.type.startsWith("image/")) {
+          return "imagen";
+        }
+
+        if (archivo.type.startsWith("video/")) {
+          return "video";
+        }
+
+        return "";
+      }
+
+      function esDuplicado(archivo) {
+        return state.archivos.some((item) => {
+          const existente = item.archivo;
+          return existente.name === archivo.name
+            && existente.size === archivo.size
+            && existente.type === archivo.type
+            && existente.lastModified === archivo.lastModified;
+        });
+      }
+
+      function generarIdArchivo(archivo) {
+        return [
+          archivo.name,
+          archivo.size,
+          archivo.type,
+          archivo.lastModified,
+          crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+        ].join("-");
+      }
+
+      function contarTipo(tipo) {
+        return state.archivos.filter((item) => item.tipo === tipo).length;
+      }
+
+      function renderizarArchivos() {
+        elements.mediaGrid.replaceChildren();
+
+        const cantidadImagenes = contarTipo("imagen");
+        const cantidadVideos = contarTipo("video");
+
+        elements.imageCounter.textContent = `Imágenes: ${cantidadImagenes} de ${MAX_IMAGES}`;
+        elements.videoCounter.textContent = `Videos: ${cantidadVideos} de ${MAX_VIDEOS}`;
+        elements.emptyState.hidden = state.archivos.length > 0;
+
+        state.archivos.forEach((item) => {
+          elements.mediaGrid.appendChild(crearTarjetaArchivo(item));
+        });
+      }
+
+      function crearTarjetaArchivo(item) {
+        const article = document.createElement("article");
+        article.className = "media-card";
+
+        let preview;
+
+        if (item.tipo === "imagen") {
+          preview = document.createElement("img");
+          preview.alt = `Vista previa de ${item.archivo.name}`;
+        } else {
+          preview = document.createElement("video");
+          preview.controls = true;
+          preview.preload = "metadata";
+          preview.setAttribute("aria-label", `Vista previa de ${item.archivo.name}`);
+        }
+
+        preview.className = "media-preview";
+        preview.src = item.url;
+
+        const info = document.createElement("div");
+        info.className = "media-info";
+
+        const nombre = document.createElement("p");
+        nombre.className = "media-name";
+        nombre.textContent = item.archivo.name;
+
+        const meta = document.createElement("p");
+        meta.className = "media-meta";
+        meta.textContent = `${item.tipo === "imagen" ? "Imagen" : "Video"} · ${formatearTamano(item.archivo.size)}`;
+
+        const quitar = document.createElement("button");
+        quitar.className = "remove-button";
+        quitar.type = "button";
+        quitar.textContent = "Quitar";
+        quitar.setAttribute("aria-label", `Quitar ${item.archivo.name}`);
+        quitar.addEventListener("click", () => quitarArchivo(item.id));
+
+        info.append(nombre, meta, quitar);
+        article.append(preview, info);
+
+        return article;
+      }
+
+      function quitarArchivo(id) {
+        const indice = state.archivos.findIndex((item) => item.id === id);
+
+        if (indice === -1) {
+          return;
+        }
+
+        const [eliminado] = state.archivos.splice(indice, 1);
+        URL.revokeObjectURL(eliminado.url);
+        renderizarArchivos();
+        mostrarNotificacion("Archivo eliminado.", "success");
+      }
+
+      function formatearTamano(bytes) {
+        if (!Number.isFinite(bytes) || bytes < 0) {
+          return "Tamaño desconocido";
+        }
+
+        if (bytes < 1024) {
+          return `${bytes} B`;
+        }
+
+        const kb = bytes / 1024;
+
+        if (kb < 1024) {
+          return `${kb.toFixed(kb >= 100 ? 0 : 1)} KB`;
+        }
+
+        const mb = kb / 1024;
+        return `${mb.toFixed(mb >= 100 ? 0 : 1)} MB`;
+      }
+
+      function mostrarNotificacion(mensaje, tipo) {
+        elements.notification.className = `notification is-visible ${tipo}`;
+        elements.notification.textContent = mensaje;
+        elements.notification.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      function liberarTodasLasUrls() {
+        state.archivos.forEach((item) => URL.revokeObjectURL(item.url));
+      }
+
+      function esperar(milisegundos) {
+        return new Promise((resolve) => window.setTimeout(resolve, milisegundos));
+      }
+    })();
+  </script>
+</body>
+</html>
