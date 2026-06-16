@@ -806,22 +806,21 @@
         establecerProcesando(true, "consulta");
 
         try {
-          const folderNamee = decodificarIdentificador(state.identificador);
-          const imagenesConsultadas = await consultarImagenes(folderNamee);
+          const carpeta = decodificarIdentificador(state.identificador);
+          const archivosConsultados = await consultarArchivos(carpeta);
 
-          cargarImagenesConsultadas(imagenesConsultadas);
+          cargarArchivosConsultados(archivosConsultados);
 
-          const cantidad = state.archivos.length;
+          const imagenes = contarTipo("imagen");
+          const videos = contarTipo("video");
           mostrarNotificacion(
-            cantidad === 1
-              ? "Consulta exitosa: se cargó 1 imagen."
-              : `Consulta exitosa: se cargaron ${cantidad} imágenes.`,
+            `Consulta exitosa: ${imagenes} imagen(es) y ${videos} video(s).`,
             "success"
           );
         } catch (error) {
-          console.error(error.message);
+          console.error(error);
           mostrarNotificacion(
-            error.message || "No fue posible consultar las imágenes.",
+            error.message || "No fue posible consultar los archivos.",
             "error"
           );
         } finally {
@@ -829,57 +828,81 @@
         }
       }
 
-      function cargarImagenesConsultadas(imagenes) {
-        // Libera únicamente las URL temporales creadas para archivos locales.
+      function cargarArchivosConsultados(archivos) {
+        // Al volver a consultar se descartan los archivos locales todavía no guardados.
         liberarUrlsLocales();
 
-        const lista = Array.isArray(imagenes) ? imagenes : [];
-        const imagenesValidas = lista
-          .filter((imagen) => imagen && esUrlHttpValida(imagen.url))
-          .slice(0, MAX_IMAGES);
+        const lista = Array.isArray(archivos) ? archivos : [];
+        const archivosValidos = lista.filter((item) => {
+          const categoria = obtenerCategoriaRemota(item);
+          return item && categoria && esUrlHttpValida(item.url);
+        });
 
-        state.archivos = imagenesValidas.map((imagen, indice) => {
-          const nombre = obtenerNombreImagenRemota(imagen, indice);
-          const tamanoBytes = Number(imagen.tamanoBytes);
+        state.archivos = archivosValidos.map((item, indice) => {
+          const categoria = obtenerCategoriaRemota(item);
+          const nombre = obtenerNombreRemoto(item, indice, categoria);
+          const tamanoBytes = Number(item.tamanoBytes);
 
           return {
-            id: generarIdRemoto(imagen, indice),
+            id: generarIdRemoto(item, indice),
             archivo: null,
             nombre,
-            tipo: "imagen",
-            mimeType: imagen.tipo || "image/*",
+            tipo: categoria,
+            mimeType: item.tipo || (categoria === "imagen" ? "image/*" : "video/*"),
             tamanoBytes: Number.isFinite(tamanoBytes) ? tamanoBytes : null,
-            url: imagen.url,
+            url: item.url,
             origen: "remoto",
-            ruta: imagen.ruta || null
+            ruta: item.ruta || null
           };
         });
 
         elements.mediaValidationError.textContent = "";
         renderizarArchivos();
 
-        if (lista.length > MAX_IMAGES) {
+        const imagenes = contarTipo("imagen");
+        const videos = contarTipo("video");
+
+        if (imagenes > MAX_IMAGES || videos > MAX_VIDEOS) {
           mostrarNotificacion(
-            `La carpeta contiene ${lista.length} imágenes, pero solo se muestran las primeras ${MAX_IMAGES}.`,
+            `La carpeta supera el límite permitido. Deja como máximo ${MAX_IMAGES} imágenes y ${MAX_VIDEOS} videos antes de guardar.`,
             "warning"
           );
         }
       }
 
-      function obtenerNombreImagenRemota(imagen, indice) {
-        if (typeof imagen.nombre === "string" && imagen.nombre.trim()) {
-          return imagen.nombre.trim();
+      function obtenerCategoriaRemota(item) {
+        if (item?.categoria === "imagen" || item?.categoria === "video") {
+          return item.categoria;
         }
 
-        if (typeof imagen.ruta === "string" && imagen.ruta.trim()) {
-          return imagen.ruta.split("/").filter(Boolean).at(-1) || `Imagen ${indice + 1}`;
+        const mimeType = String(item?.tipo || "").toLowerCase();
+
+        if (mimeType.startsWith("image/")) {
+          return "imagen";
         }
 
-        return `Imagen ${indice + 1}`;
+        if (mimeType.startsWith("video/")) {
+          return "video";
+        }
+
+        return "";
       }
 
-      function generarIdRemoto(imagen, indice) {
-        const base = imagen.ruta || imagen.nombre || imagen.url || `imagen-${indice}`;
+      function obtenerNombreRemoto(item, indice, categoria) {
+        if (typeof item.nombre === "string" && item.nombre.trim()) {
+          return item.nombre.trim();
+        }
+
+        if (typeof item.ruta === "string" && item.ruta.trim()) {
+          return item.ruta.split("/").filter(Boolean).at(-1)
+            || `${categoria === "video" ? "Video" : "Imagen"} ${indice + 1}`;
+        }
+
+        return `${categoria === "video" ? "Video" : "Imagen"} ${indice + 1}`;
+      }
+
+      function generarIdRemoto(item, indice) {
+        const base = item.ruta || item.nombre || item.url || `archivo-${indice}`;
         return `remoto-${indice}-${base}`;
       }
 
@@ -897,65 +920,140 @@
       }
 
       async function guardarDatos() {
-        // Aquí se conectará posteriormente el backend.
         if (state.procesando || !validarGuardado()) {
           return;
         }
 
-        const imagenes = state.archivos
-          .filter((item) => item.tipo === "imagen" && item.origen === "local" && item.archivo)
-          .map((item) => item.archivo);
+        const cantidadImagenes = contarTipo("imagen");
+        const cantidadVideos = contarTipo("video");
 
-        const videos = state.archivos
-          .filter((item) => item.tipo === "video" && item.origen === "local" && item.archivo)
-          .map((item) => item.archivo);
+        if (cantidadImagenes > MAX_IMAGES || cantidadVideos > MAX_VIDEOS) {
+          mostrarNotificacion(
+            `Debes dejar como máximo ${MAX_IMAGES} imágenes y ${MAX_VIDEOS} videos.`,
+            "warning"
+          );
+          enfocarYDesplazar(elements.mediaSection);
+          return;
+        }
 
-        const imagenesExistentes = state.archivos
-          .filter((item) => item.tipo === "imagen" && item.origen === "remoto")
-          .map((item) => ({
-            nombre: item.nombre,
-            ruta: item.ruta,
-            url: item.url,
-            tipo: item.mimeType,
-            tamanoBytes: item.tamanoBytes
-          }));
+        const archivosLocales = state.archivos.filter(
+          (item) => item.origen === "local" && item.archivo instanceof File
+        );
 
-        const datosConfiguracion = {
-          identificador: state.identificador,
-          passwordConfiguracion: elements.configurationPassword.value,
-          passwordVisualizacion: elements.viewPassword.value,
-          imagenes,
-          videos,
-          imagenesExistentes
-        };
-
-        const formData = new FormData();
-        formData.append("identificador", datosConfiguracion.identificador);
-        formData.append("passwordConfiguracion", datosConfiguracion.passwordConfiguracion);
-        formData.append("passwordVisualizacion", datosConfiguracion.passwordVisualizacion);
-
-        datosConfiguracion.imagenes.forEach((archivo) => {
-          formData.append("imagenes", archivo, archivo.name);
-        });
-
-        datosConfiguracion.videos.forEach((archivo) => {
-          formData.append("videos", archivo, archivo.name);
-        });
-
-        // Las variables se dejan preparadas para la futura llamada al backend.
-        void datosConfiguracion;
-        void formData;
+        const rutasRemotasConservadas = state.archivos
+          .filter((item) => item.origen === "remoto" && typeof item.ruta === "string")
+          .map((item) => item.ruta);
 
         establecerProcesando(true, "guardado");
 
         try {
-          await esperar(SIMULATED_DELAY_MS);
+          const carpeta = decodificarIdentificador(state.identificador);
+          const passwordConfiguracion = elements.configurationPassword.value;
+
+          const preparacion = await solicitarPreparacionSubidas({
+            carpeta,
+            passwordConfiguracion,
+            archivosLocales
+          });
+
+          await subirArchivosDirectamente(archivosLocales, preparacion.subidas);
+
+          const rutasNuevas = preparacion.subidas.map((item) => item.ruta);
+          const rutasConservadas = [...rutasRemotasConservadas, ...rutasNuevas];
+
+          await finalizarActualizacionCarpeta({
+            carpeta,
+            passwordConfiguracion,
+            rutasConservadas
+          });
+
+          const archivosActualizados = await consultarArchivos(carpeta);
+          cargarArchivosConsultados(archivosActualizados);
+
           mostrarNotificacion("Datos actualizados", "success");
-        } catch {
-          mostrarNotificacion("No fue posible completar el guardado simulado.", "error");
+        } catch (error) {
+          console.error(error);
+          mostrarNotificacion(
+            error.message || "No fue posible guardar los cambios.",
+            "error"
+          );
         } finally {
           establecerProcesando(false);
         }
+      }
+
+      async function solicitarPreparacionSubidas({ carpeta, passwordConfiguracion, archivosLocales }) {
+        const archivosNuevos = archivosLocales.map((item) => ({
+          nombre: item.archivo.name,
+          tipo: item.archivo.type,
+          tamanoBytes: item.archivo.size
+        }));
+
+        return solicitarJson("/.netlify/functions/preparar-actualizacion-carpeta", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            carpeta,
+            passwordConfiguracion,
+            archivosNuevos
+          })
+        });
+      }
+
+      async function subirArchivosDirectamente(archivosLocales, subidas) {
+        if (!Array.isArray(subidas) || subidas.length !== archivosLocales.length) {
+          throw new Error("El servidor no preparó correctamente todas las subidas.");
+        }
+
+        await Promise.all(
+          subidas.map(async (subida, indice) => {
+            const archivo = archivosLocales[indice].archivo;
+            const respuesta = await fetch(subida.urlSubida, {
+              method: "PUT",
+              headers: {
+                "Content-Type": subida.tipo || archivo.type
+              },
+              body: archivo
+            });
+
+            if (!respuesta.ok) {
+              throw new Error(`No fue posible subir el archivo ${archivo.name}.`);
+            }
+          })
+        );
+      }
+
+      async function finalizarActualizacionCarpeta({ carpeta, passwordConfiguracion, rutasConservadas }) {
+        return solicitarJson("/.netlify/functions/finalizar-actualizacion-carpeta", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            carpeta,
+            passwordConfiguracion,
+            rutasConservadas
+          })
+        });
+      }
+
+      async function solicitarJson(url, opciones = {}) {
+        const respuesta = await fetch(url, opciones);
+        let datos = {};
+
+        try {
+          datos = await respuesta.json();
+        } catch {
+          datos = {};
+        }
+
+        if (!respuesta.ok) {
+          throw new Error(datos.error || `La solicitud falló con estado ${respuesta.status}.`);
+        }
+
+        return datos;
       }
 
       function establecerProcesando(procesando, operacion = "") {
@@ -966,13 +1064,13 @@
 
         if (procesando && operacion === "consulta") {
           elements.consultButton.textContent = "Consultando...";
-          elements.saveButton.textContent = "Guardar configuración";
+          elements.saveButton.textContent = "Guardar";
         } else if (procesando && operacion === "guardado") {
           elements.saveButton.textContent = "Guardando...";
-          elements.consultButton.textContent = "Consultar datos actuales";
+          elements.consultButton.textContent = "Consultar";
         } else {
-          elements.consultButton.textContent = "Consultar datos actuales";
-          elements.saveButton.textContent = "Guardar configuración";
+          elements.consultButton.textContent = "Consultar";
+          elements.saveButton.textContent = "Guardar";
         }
 
         document.querySelectorAll(".file-action").forEach((label) => {
@@ -1262,18 +1360,19 @@
 		//const resultado = decodificarIdentificador("ccWZmx5i");
 		//console.log(resultado); // fly
 	
-	async function consultarImagenes(carpeta) {
-		  const respuesta = await fetch(
+	async function consultarArchivos(carpeta) {
+		  const datos = await solicitarJson(
 			`/.netlify/functions/obtener-imagenes-carpeta?carpeta=${encodeURIComponent(carpeta)}`
 		  );
 
-		  const datos = await respuesta.json();
-
-		  if (!respuesta.ok) {
-			throw new Error(datos.error || "No fue posible consultar las imágenes.");
+		  if (Array.isArray(datos.archivos)) {
+			return datos.archivos;
 		  }
 
-		  return datos.imagenes;
+		  return [
+			...(Array.isArray(datos.imagenes) ? datos.imagenes : []),
+			...(Array.isArray(datos.videos) ? datos.videos : [])
+		  ];
 		}
 
       function esperar(milisegundos) {

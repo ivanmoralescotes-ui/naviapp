@@ -1,16 +1,12 @@
 const { Storage } = require("@google-cloud/storage");
 
 const EXTENSIONES_IMAGEN = new Set([
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".gif",
-  ".webp",
-  ".avif",
-  ".bmp",
-  ".svg",
-  ".heic",
-  ".heif"
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif",
+  ".bmp", ".svg", ".heic", ".heif"
+]);
+
+const EXTENSIONES_VIDEO = new Set([
+  ".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".3g2", ".mpeg", ".mpg"
 ]);
 
 exports.handler = async function (event) {
@@ -23,18 +19,8 @@ exports.handler = async function (event) {
   }
 
   try {
-    const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    const bucketName = process.env.GCS_BUCKET;
-
-    if (!credentialsJson || !bucketName) {
-      return responder(500, {
-        error: "Faltan las variables de entorno del servidor."
-      });
-    }
-
-    const carpeta = normalizarCarpeta(
-      event.queryStringParameters?.carpeta
-    );
+    const { storage, bucketName } = crearClienteStorage();
+    const carpeta = normalizarCarpeta(event.queryStringParameters?.carpeta);
 
     if (!carpeta) {
       return responder(400, {
@@ -43,83 +29,89 @@ exports.handler = async function (event) {
       });
     }
 
-    const credentials = JSON.parse(credentialsJson);
-
-    const storage = new Storage({
-      projectId: credentials.project_id,
-      credentials
-    });
-
     const bucket = storage.bucket(bucketName);
     const prefijo = `${carpeta}/`;
+    const [objetos] = await bucket.getFiles({ prefix: prefijo });
 
-    /*
-     * Google Cloud Storage no tiene carpetas reales:
-     * se consultan todos los objetos cuyo nombre comienza por "carpeta/".
-     */
-    const [archivos] = await bucket.getFiles({
-      prefix: prefijo
-    });
-
-    /*
-     * Solo se incluyen imágenes ubicadas directamente dentro de la carpeta.
-     * No se incluyen imágenes de subcarpetas.
-     */
-    const imagenesEncontradas = archivos
-      .filter((archivo) => {
+    const objetosMultimedia = objetos
+      .map((archivo) => ({
+        archivo,
+        categoria: obtenerCategoria(archivo)
+      }))
+      .filter(({ archivo, categoria }) => {
         const nombreRelativo = archivo.name.slice(prefijo.length);
 
-        if (
-          !nombreRelativo ||
-          nombreRelativo.includes("/") ||
-          archivo.name.endsWith("/")
-        ) {
-          return false;
-        }
-
-        return esImagen(archivo);
+        return Boolean(
+          categoria &&
+          nombreRelativo &&
+          !nombreRelativo.includes("/") &&
+          !archivo.name.endsWith("/")
+        );
       })
       .sort((a, b) =>
-        a.name.localeCompare(b.name, "es", {
+        a.archivo.name.localeCompare(b.archivo.name, "es", {
           numeric: true,
           sensitivity: "base"
         })
       );
 
-    const imagenes = await Promise.all(
-      imagenesEncontradas.map(async (archivo) => {
+    const archivos = await Promise.all(
+      objetosMultimedia.map(async ({ archivo, categoria }) => {
         const [urlFirmada] = await archivo.getSignedUrl({
           version: "v4",
           action: "read",
-          expires: Date.now() + 10 * 60 * 1000
+          expires: Date.now() + 15 * 60 * 1000
         });
 
         return {
           nombre: archivo.name.slice(prefijo.length),
           ruta: archivo.name,
-          tipo: archivo.metadata?.contentType || null,
+          tipo: archivo.metadata?.contentType || inferirContentType(archivo.name, categoria),
+          categoria,
           tamanoBytes: obtenerNumeroSeguro(archivo.metadata?.size),
           url: urlFirmada
         };
       })
     );
 
+    const imagenes = archivos.filter((item) => item.categoria === "imagen");
+    const videos = archivos.filter((item) => item.categoria === "video");
+
     return responder(200, {
       carpeta,
-      cantidad: imagenes.length,
-      imagenes
+      cantidad: archivos.length,
+      cantidadImagenes: imagenes.length,
+      cantidadVideos: videos.length,
+      archivos,
+      // Se mantienen estas propiedades por compatibilidad con código anterior.
+      imagenes,
+      videos
     });
   } catch (error) {
-    console.error(
-      "Error obteniendo las imágenes de la carpeta:",
-      error.message
-    );
+    console.error("Error obteniendo los archivos de la carpeta:", error);
 
     return responder(500, {
-      error: "No fue posible obtener las imágenes de la carpeta."
+      error: "No fue posible obtener las imágenes y videos de la carpeta."
     });
   }
 };
+
+function crearClienteStorage() {
+  const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const bucketName = process.env.GCS_BUCKET;
+
+  if (!credentialsJson || !bucketName) {
+    throw new Error("Faltan las variables de entorno del servidor.");
+  }
+
+  const credentials = JSON.parse(credentialsJson);
+  const storage = new Storage({
+    projectId: credentials.project_id,
+    credentials
+  });
+
+  return { storage, bucketName };
+}
 
 function normalizarCarpeta(valor) {
   if (typeof valor !== "string") {
@@ -134,33 +126,64 @@ function normalizarCarpeta(valor) {
     return "";
   }
 
-  carpeta = carpeta
-    .trim()
-    .replace(/^\/+|\/+$/g, "");
+  carpeta = carpeta.trim().replace(/^\/+|\/+$/g, "");
 
-  /*
-   * Permite letras, números, guiones y guion bajo.
-   * Esto evita "..", barras y otros caracteres de ruta no deseados.
-   */
-  if (!/^[a-zA-Z0-9_-]+$/.test(carpeta)) {
-    return "";
-  }
-
-  return carpeta;
+  return /^[a-zA-Z0-9_-]+$/.test(carpeta) ? carpeta : "";
 }
 
-function esImagen(archivo) {
-  const contentType = archivo.metadata?.contentType || "";
+function obtenerCategoria(archivo) {
+  const contentType = String(archivo.metadata?.contentType || "").toLowerCase();
 
   if (contentType.startsWith("image/")) {
-    return true;
+    return "imagen";
   }
 
-  const nombre = archivo.name.toLowerCase();
-  const punto = nombre.lastIndexOf(".");
-  const extension = punto >= 0 ? nombre.slice(punto) : "";
+  if (contentType.startsWith("video/")) {
+    return "video";
+  }
 
-  return EXTENSIONES_IMAGEN.has(extension);
+  const extension = obtenerExtension(archivo.name);
+
+  if (EXTENSIONES_IMAGEN.has(extension)) {
+    return "imagen";
+  }
+
+  if (EXTENSIONES_VIDEO.has(extension)) {
+    return "video";
+  }
+
+  return "";
+}
+
+function obtenerExtension(nombre) {
+  const nombreMinuscula = String(nombre || "").toLowerCase();
+  const punto = nombreMinuscula.lastIndexOf(".");
+  return punto >= 0 ? nombreMinuscula.slice(punto) : "";
+}
+
+function inferirContentType(nombre, categoria) {
+  const extension = obtenerExtension(nombre);
+  const tipos = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".avif": "image/avif",
+    ".svg": "image/svg+xml",
+    ".heic": "image/heic",
+    ".heif": "image/heif",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
+    ".m4v": "video/x-m4v",
+    ".3gp": "video/3gpp",
+    ".3g2": "video/3gpp2",
+    ".mpeg": "video/mpeg",
+    ".mpg": "video/mpeg"
+  };
+
+  return tipos[extension] || (categoria === "imagen" ? "image/*" : "video/*");
 }
 
 function obtenerNumeroSeguro(valor) {
