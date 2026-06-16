@@ -1,0 +1,13 @@
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "functions"
+
+[dev]
+  publish = "."
+  port = 3000
+  framework = "#static"
+  autoLaunch = true
+
