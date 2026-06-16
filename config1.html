@@ -572,9 +572,6 @@
             Grabar un video
             <input id="cameraVideo" type="file" accept="video/*" capture="environment">
           </label>
-		  
-		  <img id="miImagen" alt="Imagenn">
-		  
         </div>
 
         <div class="counter-row" aria-live="polite">
@@ -802,7 +799,6 @@
       }
 
       async function consultarDatos() {
-        // Aquí se conectará posteriormente el backend.
         if (state.procesando || !validarAcceso()) {
           return;
         }
@@ -810,47 +806,95 @@
         establecerProcesando(true, "consulta");
 
         try {
-          await esperar(SIMULATED_DELAY_MS);
-		  
-		  // await cargarImagenPrivada();
-		  const folderNamee = decodificarIdentificador(state.identificador);
-		  // "ccWZmx5i"
-		  
-		  const theImages = consultarImagenes(folderNamee) //"fly"
-			  .then((imagenes) => {
-				console.log(imagenes);
-			  })
-			  .catch((error) => {
-				console.error(error.message);
-			  });
-		  
-				  
-          mostrarNotificacion("Consulta exitosa", "success");
-        } catch {
-          mostrarNotificacion("No fue posible completar la consulta simulada.", "error");
+          const folderNamee = decodificarIdentificador(state.identificador);
+          const imagenesConsultadas = await consultarImagenes(folderNamee);
+
+          cargarImagenesConsultadas(imagenesConsultadas);
+
+          const cantidad = state.archivos.length;
+          mostrarNotificacion(
+            cantidad === 1
+              ? "Consulta exitosa: se cargó 1 imagen."
+              : `Consulta exitosa: se cargaron ${cantidad} imágenes.`,
+            "success"
+          );
+        } catch (error) {
+          console.error(error.message);
+          mostrarNotificacion(
+            error.message || "No fue posible consultar las imágenes.",
+            "error"
+          );
         } finally {
           establecerProcesando(false);
         }
       }
-	  
-	  async function cargarImagenPrivada() {
-		  try {
-			const respuesta = await fetch(
-			  "/.netlify/functions/obtener-url"
-			);
 
-			if (!respuesta.ok) {
-			  throw new Error("No fue posible solicitar el archivo");
-			}
+      function cargarImagenesConsultadas(imagenes) {
+        // Libera únicamente las URL temporales creadas para archivos locales.
+        liberarUrlsLocales();
 
-			const datos = await respuesta.json();
+        const lista = Array.isArray(imagenes) ? imagenes : [];
+        const imagenesValidas = lista
+          .filter((imagen) => imagen && esUrlHttpValida(imagen.url))
+          .slice(0, MAX_IMAGES);
 
-			const imagen = document.getElementById("miImagen");
-			imagen.src = datos.url;
-		  } catch (error) {
-			console.error(error.message);
-		  }
-		}
+        state.archivos = imagenesValidas.map((imagen, indice) => {
+          const nombre = obtenerNombreImagenRemota(imagen, indice);
+          const tamanoBytes = Number(imagen.tamanoBytes);
+
+          return {
+            id: generarIdRemoto(imagen, indice),
+            archivo: null,
+            nombre,
+            tipo: "imagen",
+            mimeType: imagen.tipo || "image/*",
+            tamanoBytes: Number.isFinite(tamanoBytes) ? tamanoBytes : null,
+            url: imagen.url,
+            origen: "remoto",
+            ruta: imagen.ruta || null
+          };
+        });
+
+        elements.mediaValidationError.textContent = "";
+        renderizarArchivos();
+
+        if (lista.length > MAX_IMAGES) {
+          mostrarNotificacion(
+            `La carpeta contiene ${lista.length} imágenes, pero solo se muestran las primeras ${MAX_IMAGES}.`,
+            "warning"
+          );
+        }
+      }
+
+      function obtenerNombreImagenRemota(imagen, indice) {
+        if (typeof imagen.nombre === "string" && imagen.nombre.trim()) {
+          return imagen.nombre.trim();
+        }
+
+        if (typeof imagen.ruta === "string" && imagen.ruta.trim()) {
+          return imagen.ruta.split("/").filter(Boolean).at(-1) || `Imagen ${indice + 1}`;
+        }
+
+        return `Imagen ${indice + 1}`;
+      }
+
+      function generarIdRemoto(imagen, indice) {
+        const base = imagen.ruta || imagen.nombre || imagen.url || `imagen-${indice}`;
+        return `remoto-${indice}-${base}`;
+      }
+
+      function esUrlHttpValida(valor) {
+        if (typeof valor !== "string" || !valor.trim()) {
+          return false;
+        }
+
+        try {
+          const url = new URL(valor);
+          return url.protocol === "https:" || url.protocol === "http:";
+        } catch {
+          return false;
+        }
+      }
 
       async function guardarDatos() {
         // Aquí se conectará posteriormente el backend.
@@ -859,19 +903,30 @@
         }
 
         const imagenes = state.archivos
-          .filter((item) => item.tipo === "imagen")
+          .filter((item) => item.tipo === "imagen" && item.origen === "local" && item.archivo)
           .map((item) => item.archivo);
 
         const videos = state.archivos
-          .filter((item) => item.tipo === "video")
+          .filter((item) => item.tipo === "video" && item.origen === "local" && item.archivo)
           .map((item) => item.archivo);
+
+        const imagenesExistentes = state.archivos
+          .filter((item) => item.tipo === "imagen" && item.origen === "remoto")
+          .map((item) => ({
+            nombre: item.nombre,
+            ruta: item.ruta,
+            url: item.url,
+            tipo: item.mimeType,
+            tamanoBytes: item.tamanoBytes
+          }));
 
         const datosConfiguracion = {
           identificador: state.identificador,
           passwordConfiguracion: elements.configurationPassword.value,
           passwordVisualizacion: elements.viewPassword.value,
           imagenes,
-          videos
+          videos,
+          imagenesExistentes
         };
 
         const formData = new FormData();
@@ -977,8 +1032,13 @@
           const item = {
             id: generarIdArchivo(archivo),
             archivo,
+            nombre: archivo.name,
             tipo,
-            url: URL.createObjectURL(archivo)
+            mimeType: archivo.type,
+            tamanoBytes: archivo.size,
+            url: URL.createObjectURL(archivo),
+            origen: "local",
+            ruta: null
           };
 
           state.archivos.push(item);
@@ -1015,6 +1075,11 @@
       function esDuplicado(archivo) {
         return state.archivos.some((item) => {
           const existente = item.archivo;
+
+          if (!(existente instanceof File)) {
+            return false;
+          }
+
           return existente.name === archivo.name
             && existente.size === archivo.size
             && existente.type === archivo.type
@@ -1055,16 +1120,22 @@
         const article = document.createElement("article");
         article.className = "media-card";
 
+        const nombreArchivo = item.nombre || item.archivo?.name || "Archivo sin nombre";
+        const tamanoBytes = Number.isFinite(item.tamanoBytes)
+          ? item.tamanoBytes
+          : item.archivo?.size;
+
         let preview;
 
         if (item.tipo === "imagen") {
           preview = document.createElement("img");
-          preview.alt = `Vista previa de ${item.archivo.name}`;
+          preview.alt = `Vista previa de ${nombreArchivo}`;
+          preview.loading = "lazy";
         } else {
           preview = document.createElement("video");
           preview.controls = true;
           preview.preload = "metadata";
-          preview.setAttribute("aria-label", `Vista previa de ${item.archivo.name}`);
+          preview.setAttribute("aria-label", `Vista previa de ${nombreArchivo}`);
         }
 
         preview.className = "media-preview";
@@ -1075,17 +1146,18 @@
 
         const nombre = document.createElement("p");
         nombre.className = "media-name";
-        nombre.textContent = item.archivo.name;
+        nombre.textContent = nombreArchivo;
 
         const meta = document.createElement("p");
         meta.className = "media-meta";
-        meta.textContent = `${item.tipo === "imagen" ? "Imagen" : "Video"} · ${formatearTamano(item.archivo.size)}`;
+        const origenTexto = item.origen === "remoto" ? "Guardada" : "Nueva";
+        meta.textContent = `${item.tipo === "imagen" ? "Imagen" : "Video"} · ${formatearTamano(tamanoBytes)} · ${origenTexto}`;
 
         const quitar = document.createElement("button");
         quitar.className = "remove-button";
         quitar.type = "button";
         quitar.textContent = "Quitar";
-        quitar.setAttribute("aria-label", `Quitar ${item.archivo.name}`);
+        quitar.setAttribute("aria-label", `Quitar ${nombreArchivo}`);
         quitar.addEventListener("click", () => quitarArchivo(item.id));
 
         info.append(nombre, meta, quitar);
@@ -1119,15 +1191,23 @@
         }
 
         const [eliminado] = state.archivos.splice(indice, 1);
-        URL.revokeObjectURL(eliminado.url);
+
+        if (eliminado.origen === "local") {
+          URL.revokeObjectURL(eliminado.url);
+        }
+
         renderizarArchivos();
         mostrarNotificacion("Archivo eliminado.", "success");
       }
 
       function formatearTamano(bytes) {
-        if (!Number.isFinite(bytes) || bytes < 0) {
+        const cantidad = Number(bytes);
+
+        if (!Number.isFinite(cantidad) || cantidad < 0) {
           return "Tamaño desconocido";
         }
+
+        bytes = cantidad;
 
         if (bytes < 1024) {
           return `${bytes} B`;
@@ -1149,8 +1229,14 @@
         elements.notification.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
 
+      function liberarUrlsLocales() {
+        state.archivos
+          .filter((item) => item.origen === "local")
+          .forEach((item) => URL.revokeObjectURL(item.url));
+      }
+
       function liberarTodasLasUrls() {
-        state.archivos.forEach((item) => URL.revokeObjectURL(item.url));
+        liberarUrlsLocales();
       }
 	  
 	  function decodificarIdentificador(valor) {
