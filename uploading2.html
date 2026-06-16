@@ -764,6 +764,18 @@
 					console.error("Error al copiar:", err);
 				  });
 				  
+			}else if ( llavee.value=="confff" ) {
+				
+				
+				const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
+				const isLocal = getIsLocal();
+				if (isLocal){
+				  alert("going");
+				  //window.open("http://localhost:3000/uploading2?cd=c" + thekey, "_blank");
+				  window.open("http://localhost:3000/config1?codigo=c" + thekey, "_blank");
+				}else{
+				  window.open("https://navi111.netlify.app/config1?codigo=c" + thekey, "_blank");
+				} 
 			}
 		
 	    });
