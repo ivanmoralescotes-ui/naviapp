@@ -572,6 +572,9 @@
             Grabar un video
             <input id="cameraVideo" type="file" accept="video/*" capture="environment">
           </label>
+		  
+		  <img id="miImagen" alt="Imagen almacenada">
+		  
         </div>
 
         <div class="counter-row" aria-live="polite">
@@ -808,6 +811,9 @@
 
         try {
           await esperar(SIMULATED_DELAY_MS);
+		  
+		  await cargarImagenPrivada();
+		  
           mostrarNotificacion("Consulta exitosa", "success");
         } catch {
           mostrarNotificacion("No fue posible completar la consulta simulada.", "error");
@@ -815,6 +821,25 @@
           establecerProcesando(false);
         }
       }
+	  
+	  async function cargarImagenPrivada() {
+		  try {
+			const respuesta = await fetch(
+			  "/.netlify/functions/obtener-url"
+			);
+
+			if (!respuesta.ok) {
+			  throw new Error("No fue posible solicitar el archivo");
+			}
+
+			const datos = await respuesta.json();
+
+			const imagen = document.getElementById("miImagen");
+			imagen.src = datos.url;
+		  } catch (error) {
+			console.error(error.message);
+		  }
+		}
 
       async function guardarDatos() {
         // Aquí se conectará posteriormente el backend.
