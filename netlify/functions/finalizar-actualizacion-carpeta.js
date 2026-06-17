@@ -1,6 +1,7 @@
 const { Storage } = require("@google-cloud/storage");
+const { Firestore } = require("@google-cloud/firestore");
 
-const PASSWORD_TEMPORAL = "2233";
+const HASH_CLAVE_MAESTRA = 1691068;
 const MAX_IMAGES = 7;
 const MAX_VIDEOS = 2;
 
@@ -15,18 +16,38 @@ exports.handler = async function (event) {
 
   try {
     const body = leerJson(event);
-
-    if (body.passwordConfiguracion !== PASSWORD_TEMPORAL) {
-      return responder(401, {
-        error: "La contraseña de configuración no es correcta."
-      });
-    }
-
     const carpeta = normalizarCarpeta(body.carpeta);
+    const passwordConfiguracion =
+      typeof body.passwordConfiguracion === "string"
+        ? body.passwordConfiguracion
+        : "";
 
     if (!carpeta) {
       return responder(400, {
         error: "El nombre de la carpeta no es válido."
+      });
+    }
+
+    if (!validarFormatoPassword(passwordConfiguracion)) {
+      return responder(400, {
+        error: "La contraseña de configuración no tiene un formato válido."
+      });
+    }
+
+    const datosConfiguracion = await obtenerDatosConfiguracion(carpeta);
+
+    if (!datosConfiguracion) {
+      return responder(404, {
+        error: "No se encontró la configuración asociada a este código."
+      });
+    }
+
+    if (!validarClaveConfiguracion(
+      passwordConfiguracion,
+      datosConfiguracion.clave
+    )) {
+      return responder(401, {
+        error: "La contraseña de configuración no es correcta."
       });
     }
 
@@ -53,38 +74,66 @@ exports.handler = async function (event) {
       }))
       .filter(({ archivo, categoria }) => {
         const relativo = archivo.name.slice(prefijo.length);
-        return Boolean(categoria && relativo && !relativo.includes("/") && !archivo.name.endsWith("/"));
+
+        return Boolean(
+          categoria &&
+          relativo &&
+          !relativo.includes("/") &&
+          !archivo.name.endsWith("/")
+        );
       });
 
     const rutasExistentes = new Map(
-      multimediaDirecta.map(({ archivo, categoria }) => [archivo.name, categoria])
+      multimediaDirecta.map(({ archivo, categoria }) => [
+        archivo.name,
+        categoria
+      ])
     );
 
     for (const ruta of rutasConservadas.rutas) {
       if (!rutasExistentes.has(ruta)) {
         return responder(409, {
-          error: `El archivo que se intentó conservar no existe en Storage: ${ruta}`
+          error:
+            "El archivo que se intentó conservar no existe " +
+            `en Storage: ${ruta}`
         });
       }
     }
 
-    const categoriasConservadas = rutasConservadas.rutas.map((ruta) => rutasExistentes.get(ruta));
-    const cantidadImagenes = categoriasConservadas.filter((tipo) => tipo === "imagen").length;
-    const cantidadVideos = categoriasConservadas.filter((tipo) => tipo === "video").length;
+    const categoriasConservadas = rutasConservadas.rutas.map(
+      (ruta) => rutasExistentes.get(ruta)
+    );
 
-    if (cantidadImagenes > MAX_IMAGES || cantidadVideos > MAX_VIDEOS) {
+    const cantidadImagenes = categoriasConservadas.filter(
+      (tipo) => tipo === "imagen"
+    ).length;
+
+    const cantidadVideos = categoriasConservadas.filter(
+      (tipo) => tipo === "video"
+    ).length;
+
+    if (
+      cantidadImagenes > MAX_IMAGES ||
+      cantidadVideos > MAX_VIDEOS
+    ) {
       return responder(400, {
-        error: `La configuración final supera el máximo de ${MAX_IMAGES} imágenes o ${MAX_VIDEOS} videos.`
+        error:
+          `La configuración final supera el máximo de ` +
+          `${MAX_IMAGES} imágenes o ${MAX_VIDEOS} videos.`
       });
     }
 
     const conjuntoConservado = new Set(rutasConservadas.rutas);
     const porEliminar = multimediaDirecta
       .map(({ archivo }) => archivo)
-      .filter((archivo) => !conjuntoConservado.has(archivo.name));
+      .filter(
+        (archivo) => !conjuntoConservado.has(archivo.name)
+      );
 
     await Promise.all(
-      porEliminar.map((archivo) => archivo.delete({ ignoreNotFound: true }))
+      porEliminar.map((archivo) =>
+        archivo.delete({ ignoreNotFound: true })
+      )
     );
 
     return responder(200, {
@@ -95,17 +144,161 @@ exports.handler = async function (event) {
       cantidadVideos
     });
   } catch (error) {
-    console.error("Error finalizando la actualización:", error);
+    console.error(
+      "Error finalizando la actualización:",
+      error?.message || error
+    );
 
     return responder(500, {
-      error: "No fue posible finalizar la actualización de la carpeta."
+      error: obtenerMensajeErrorServidor(error)
     });
   }
 };
 
+function simpleStringHash(valor) {
+  let hash = 0;
+
+  for (let indice = 0; indice < valor.length; indice += 1) {
+    const caracter = valor.charCodeAt(indice);
+    hash = (hash << 5) - hash + caracter;
+    hash |= 0;
+  }
+
+  return hash;
+}
+
+function validarClaveConfiguracion(password, claveGuardada) {
+  const hashIngresado = simpleStringHash(password);
+  const hashGuardado = Number(claveGuardada);
+
+  if (hashIngresado === HASH_CLAVE_MAESTRA) {
+    return true;
+  }
+
+  return Number.isFinite(hashGuardado) &&
+    hashIngresado === hashGuardado;
+}
+
+async function obtenerDatosConfiguracion(carpeta) {
+  const firestore = crearClienteFirestore();
+  const documentId = `prop${carpeta}`;
+  const collectionName = normalizarNombreColeccion(
+    process.env.FIRESTORE_COLLECTION
+  );
+
+  if (collectionName) {
+    const documento = await firestore
+      .collection(collectionName)
+      .doc(documentId)
+      .get();
+
+    return documento.exists ? documento.data() : null;
+  }
+
+  const colecciones = await firestore.listCollections();
+
+  for (const coleccion of colecciones) {
+    const documento = await coleccion.doc(documentId).get();
+
+    if (documento.exists) {
+      return documento.data();
+    }
+  }
+
+  return null;
+}
+
+function crearClienteFirestore() {
+  const credentials = obtenerCredencialesGoogle();
+
+  return new Firestore({
+    projectId: credentials.project_id,
+    credentials
+  });
+}
+
+function crearClienteStorage() {
+  const credentials = obtenerCredencialesGoogle();
+  const bucketName = process.env.GCS_BUCKET;
+
+  if (!bucketName) {
+    throw new Error("Falta la variable de entorno GCS_BUCKET.");
+  }
+
+  const storage = new Storage({
+    projectId: credentials.project_id,
+    credentials
+  });
+
+  return { storage, bucketName };
+}
+
+function obtenerCredencialesGoogle() {
+  const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+  if (!credentialsJson) {
+    throw new Error(
+      "Falta la variable de entorno GOOGLE_SERVICE_ACCOUNT_JSON."
+    );
+  }
+
+  let credentials;
+
+  try {
+    credentials = JSON.parse(credentialsJson);
+  } catch {
+    throw new Error(
+      "GOOGLE_SERVICE_ACCOUNT_JSON no contiene un JSON válido."
+    );
+  }
+
+  if (
+    !credentials.project_id ||
+    !credentials.client_email ||
+    !credentials.private_key
+  ) {
+    throw new Error(
+      "Las credenciales de Google no contienen los campos requeridos."
+    );
+  }
+
+  return credentials;
+}
+
+function validarFormatoPassword(valor) {
+  return (
+    typeof valor === "string" &&
+    valor.length >= 3 &&
+    valor.length <= 100
+  );
+}
+
+function normalizarNombreColeccion(valor) {
+  if (typeof valor !== "string") {
+    return "";
+  }
+
+  const nombre = valor.trim();
+
+  if (
+    !nombre ||
+    nombre.startsWith("/") ||
+    nombre.endsWith("/") ||
+    nombre.includes("//") ||
+    /[\u0000-\u001f]/.test(nombre)
+  ) {
+    return "";
+  }
+
+  return nombre;
+}
+
 function normalizarRutasConservadas(valor, carpeta) {
   if (!Array.isArray(valor)) {
-    return { ok: false, error: "Debes enviar el arreglo rutasConservadas." };
+    return {
+      ok: false,
+      error: "Debes enviar el arreglo rutasConservadas."
+    };
   }
 
   const prefijo = `${carpeta}/`;
@@ -114,16 +307,27 @@ function normalizarRutasConservadas(valor, carpeta) {
 
   for (const rutaOriginal of valor) {
     if (typeof rutaOriginal !== "string") {
-      return { ok: false, error: "Una de las rutas conservadas no es válida." };
+      return {
+        ok: false,
+        error: "Una de las rutas conservadas no es válida."
+      };
     }
 
     const ruta = rutaOriginal.trim();
-    const relativo = ruta.startsWith(prefijo) ? ruta.slice(prefijo.length) : "";
+    const relativo = ruta.startsWith(prefijo)
+      ? ruta.slice(prefijo.length)
+      : "";
 
-    if (!relativo || relativo.includes("/") || ruta.includes("..")) {
+    if (
+      !relativo ||
+      relativo.includes("/") ||
+      ruta.includes("..")
+    ) {
       return {
         ok: false,
-        error: `La ruta no pertenece directamente a la carpeta ${carpeta}: ${ruta}`
+        error:
+          `La ruta no pertenece directamente a la carpeta ` +
+          `${carpeta}: ${ruta}`
       };
     }
 
@@ -137,7 +341,9 @@ function normalizarRutasConservadas(valor, carpeta) {
 }
 
 function obtenerCategoria(archivo) {
-  const contentType = String(archivo.metadata?.contentType || "").toLowerCase();
+  const contentType = String(
+    archivo.metadata?.contentType || ""
+  ).toLowerCase();
 
   if (contentType.startsWith("image/")) {
     return "imagen";
@@ -148,14 +354,28 @@ function obtenerCategoria(archivo) {
   }
 
   const nombre = archivo.name.toLowerCase();
-  const extensionesImagen = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".bmp", ".svg", ".heic", ".heif"];
-  const extensionesVideo = [".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".3g2", ".mpeg", ".mpg"];
+  const extensionesImagen = [
+    ".jpg", ".jpeg", ".png", ".gif", ".webp",
+    ".avif", ".bmp", ".svg", ".heic", ".heif"
+  ];
+  const extensionesVideo = [
+    ".mp4", ".webm", ".mov", ".m4v", ".avi",
+    ".mkv", ".3gp", ".3g2", ".mpeg", ".mpg"
+  ];
 
-  if (extensionesImagen.some((extension) => nombre.endsWith(extension))) {
+  if (
+    extensionesImagen.some(
+      (extension) => nombre.endsWith(extension)
+    )
+  ) {
     return "imagen";
   }
 
-  if (extensionesVideo.some((extension) => nombre.endsWith(extension))) {
+  if (
+    extensionesVideo.some(
+      (extension) => nombre.endsWith(extension)
+    )
+  ) {
     return "video";
   }
 
@@ -171,24 +391,15 @@ function leerJson(event) {
     ? Buffer.from(event.body, "base64").toString("utf8")
     : event.body;
 
-  return JSON.parse(texto);
-}
-
-function crearClienteStorage() {
-  const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const bucketName = process.env.GCS_BUCKET;
-
-  if (!credentialsJson || !bucketName) {
-    throw new Error("Faltan las variables de entorno del servidor.");
+  try {
+    return JSON.parse(texto);
+  } catch {
+    const error = new Error(
+      "El cuerpo de la solicitud no contiene un JSON válido."
+    );
+    error.codigoHttp = 400;
+    throw error;
   }
-
-  const credentials = JSON.parse(credentialsJson);
-  const storage = new Storage({
-    projectId: credentials.project_id,
-    credentials
-  });
-
-  return { storage, bucketName };
 }
 
 function normalizarCarpeta(valor) {
@@ -197,10 +408,38 @@ function normalizarCarpeta(valor) {
   }
 
   const carpeta = valor.trim().replace(/^\/+|\/+$/g, "");
-  return /^[a-zA-Z0-9_-]+$/.test(carpeta) ? carpeta : "";
+
+  return /^[a-zA-Z0-9_-]+$/.test(carpeta)
+    ? carpeta
+    : "";
 }
 
-function responder(statusCode, contenido, headersAdicionales = {}) {
+function obtenerMensajeErrorServidor(error) {
+  if (error?.codigoHttp === 400) {
+    return error.message;
+  }
+
+  const mensaje = String(error?.message || "");
+
+  if (
+    mensaje.includes("PERMISSION_DENIED") ||
+    mensaje.includes("permission") ||
+    mensaje.includes("403")
+  ) {
+    return (
+      "La cuenta de servicio no tiene permiso para consultar " +
+      "la configuración en Firestore."
+    );
+  }
+
+  return "No fue posible finalizar la actualización de la carpeta.";
+}
+
+function responder(
+  statusCode,
+  contenido,
+  headersAdicionales = {}
+) {
   return {
     statusCode,
     headers: {

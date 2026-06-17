@@ -807,7 +807,10 @@
 
         try {
           const carpeta = decodificarIdentificador(state.identificador);
-          const archivosConsultados = await consultarArchivos(carpeta);
+          const archivosConsultados = await consultarArchivos(
+            carpeta,
+            elements.configurationPassword.value
+          );
 
           cargarArchivosConsultados(archivosConsultados);
 
@@ -967,7 +970,10 @@
             rutasConservadas
           });
 
-          const archivosActualizados = await consultarArchivos(carpeta);
+          const archivosActualizados = await consultarArchivos(
+            carpeta,
+            passwordConfiguracion
+          );
           cargarArchivosConsultados(archivosActualizados);
 
           mostrarNotificacion("Datos actualizados", "success");
@@ -1360,20 +1366,30 @@
 		//const resultado = decodificarIdentificador("ccWZmx5i");
 		//console.log(resultado); // fly
 	
-	async function consultarArchivos(carpeta) {
-		  const datos = await solicitarJson(
-			`/.netlify/functions/obtener-imagenes-carpeta?carpeta=${encodeURIComponent(carpeta)}`
-		  );
+	async function consultarArchivos(carpeta, passwordConfiguracion) {
+          const datos = await solicitarJson(
+            "/.netlify/functions/obtener-imagenes-carpeta",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                carpeta,
+                passwordConfiguracion
+              })
+            }
+          );
 
-		  if (Array.isArray(datos.archivos)) {
-			return datos.archivos;
-		  }
+          if (Array.isArray(datos.archivos)) {
+            return datos.archivos;
+          }
 
-		  return [
-			...(Array.isArray(datos.imagenes) ? datos.imagenes : []),
-			...(Array.isArray(datos.videos) ? datos.videos : [])
-		  ];
-		}
+          return [
+            ...(Array.isArray(datos.imagenes) ? datos.imagenes : []),
+            ...(Array.isArray(datos.videos) ? datos.videos : [])
+          ];
+        }
 
       function esperar(milisegundos) {
         return new Promise((resolve) => window.setTimeout(resolve, milisegundos));
