@@ -10,6 +10,8 @@ const EXTENSIONES_VIDEO = new Set([
   ".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv",
   ".3gp", ".3g2", ".mpeg", ".mpg"
 ]);
+const FIRESTORE_PROJECT_ID = "qrpro-f4709";
+const FIRESTORE_COLLECTION = "configg";
 
 const HASH_CLAVE_MAESTRA = 1691068;
 
@@ -162,9 +164,9 @@ function validarClaveConfiguracion(password, claveGuardada) {
 async function obtenerDatosConfiguracion(carpeta) {
   const firestore = crearClienteFirestore();
   const documentId = `prop${carpeta}`;
-  const collectionName = normalizarNombreColeccion(
-    process.env.FIRESTORE_COLLECTION
-  );
+  const collectionName = FIRESTORE_COLLECTION;//normalizarNombreColeccion(
+    //process.env.FIRESTORE_COLLECTION
+  //);
 
   if (collectionName) {
     const documento = await firestore
@@ -192,7 +194,7 @@ function crearClienteFirestore() {
   const credentials = obtenerCredencialesGoogle();
 
   return new Firestore({
-    projectId: credentials.project_id,
+    projectId: FIRESTORE_PROJECT_ID,
     credentials
   });
 }

@@ -4,6 +4,8 @@ const { Firestore } = require("@google-cloud/firestore");
 const HASH_CLAVE_MAESTRA = 1691068;
 const MAX_IMAGES = 7;
 const MAX_VIDEOS = 2;
+const FIRESTORE_PROJECT_ID = "qrpro-f4709";
+const FIRESTORE_COLLECTION = "configg";
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -182,9 +184,10 @@ function validarClaveConfiguracion(password, claveGuardada) {
 async function obtenerDatosConfiguracion(carpeta) {
   const firestore = crearClienteFirestore();
   const documentId = `prop${carpeta}`;
-  const collectionName = normalizarNombreColeccion(
-    process.env.FIRESTORE_COLLECTION
-  );
+  const collectionName = FIRESTORE_COLLECTION;
+  //normalizarNombreColeccion(
+    //process.env.FIRESTORE_COLLECTION
+  //);
 
   if (collectionName) {
     const documento = await firestore
@@ -212,7 +215,7 @@ function crearClienteFirestore() {
   const credentials = obtenerCredencialesGoogle();
 
   return new Firestore({
-    projectId: credentials.project_id,
+    projectId: FIRESTORE_PROJECT_ID,
     credentials
   });
 }
