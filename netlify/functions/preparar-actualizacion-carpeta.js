@@ -65,7 +65,7 @@ exports.handler = async function (event) {
     }
 
     const archivosNuevos = Array.isArray(body.archivosNuevos)
-      ? body.archivosNuevos
+      ? body.archivosNuevos 
       : [];
 
     const validacion = validarArchivosNuevos(archivosNuevos);
