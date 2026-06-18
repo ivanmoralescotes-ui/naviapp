@@ -1,11 +1,12 @@
 const { Storage } = require("@google-cloud/storage");
 const { Firestore } = require("@google-cloud/firestore");
 
+const FIRESTORE_PROJECT_ID = "qrpro-f4709";
+const FIRESTORE_COLLECTION = "configg";
 const HASH_CLAVE_MAESTRA = 1691068;
 const MAX_IMAGES = 7;
 const MAX_VIDEOS = 2;
-const FIRESTORE_PROJECT_ID = "qrpro-f4709";
-const FIRESTORE_COLLECTION = "configg";
+const MAX_PASSWORD_VISUALIZACION = 20;
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -23,6 +24,10 @@ exports.handler = async function (event) {
       typeof body.passwordConfiguracion === "string"
         ? body.passwordConfiguracion
         : "";
+    const passwordVisualizacion =
+      typeof body.passwordVisualizacion === "string"
+        ? body.passwordVisualizacion
+        : "";
 
     if (!carpeta) {
       return responder(400, {
@@ -30,19 +35,36 @@ exports.handler = async function (event) {
       });
     }
 
-    if (!validarFormatoPassword(passwordConfiguracion)) {
+    if (!validarFormatoPasswordConfiguracion(passwordConfiguracion)) {
       return responder(400, {
         error: "La contraseña de configuración no tiene un formato válido."
       });
     }
 
-    const datosConfiguracion = await obtenerDatosConfiguracion(carpeta);
+    if (
+      passwordVisualizacion.length > MAX_PASSWORD_VISUALIZACION
+    ) {
+      return responder(400, {
+        error:
+          `La contraseña para ver el contenido no puede superar ` +
+          `${MAX_PASSWORD_VISUALIZACION} caracteres.`
+      });
+    }
 
-    if (!datosConfiguracion) {
+    const firestore = crearClienteFirestore();
+    const documentoRef = firestore
+      .collection(FIRESTORE_COLLECTION)
+      .doc(`prop${carpeta}`);
+
+    const documento = await documentoRef.get();
+
+    if (!documento.exists) {
       return responder(404, {
         error: "No se encontró la configuración asociada a este código."
       });
     }
+
+    const datosConfiguracion = documento.data();
 
     if (!validarClaveConfiguracion(
       passwordConfiguracion,
@@ -132,10 +154,33 @@ exports.handler = async function (event) {
         (archivo) => !conjuntoConservado.has(archivo.name)
       );
 
+    /*
+     * Primero termina la sincronización de Storage.
+     * Solo si esta operación funciona se actualiza claveLectura.
+     */
     await Promise.all(
       porEliminar.map((archivo) =>
         archivo.delete({ ignoreNotFound: true })
       )
+    );
+
+    /*
+     * Misma lógica que uploading2.html:
+     * - campo vacío: se guarda ""
+     * - campo con valor: se guarda simpleStringHash(valor)
+     */
+    const claveLectura = passwordVisualizacion === ""
+      ? ""
+      : simpleStringHash(passwordVisualizacion);
+
+    await documentoRef.set(
+      {
+        claveLectura,
+        lastupdate: new Date()
+      },
+      {
+        merge: true
+      }
     );
 
     return responder(200, {
@@ -143,7 +188,9 @@ exports.handler = async function (event) {
       conservados: rutasConservadas.rutas,
       eliminados: porEliminar.map((archivo) => archivo.name),
       cantidadImagenes,
-      cantidadVideos
+      cantidadVideos,
+      claveLecturaActualizada: true,
+      contenidoProtegido: claveLectura !== ""
     });
   } catch (error) {
     console.error(
@@ -179,36 +226,6 @@ function validarClaveConfiguracion(password, claveGuardada) {
 
   return Number.isFinite(hashGuardado) &&
     hashIngresado === hashGuardado;
-}
-
-async function obtenerDatosConfiguracion(carpeta) {
-  const firestore = crearClienteFirestore();
-  const documentId = `prop${carpeta}`;
-  const collectionName = FIRESTORE_COLLECTION;
-  //normalizarNombreColeccion(
-    //process.env.FIRESTORE_COLLECTION
-  //);
-
-  if (collectionName) {
-    const documento = await firestore
-      .collection(collectionName)
-      .doc(documentId)
-      .get();
-
-    return documento.exists ? documento.data() : null;
-  }
-
-  const colecciones = await firestore.listCollections();
-
-  for (const coleccion of colecciones) {
-    const documento = await coleccion.doc(documentId).get();
-
-    if (documento.exists) {
-      return documento.data();
-    }
-  }
-
-  return null;
 }
 
 function crearClienteFirestore() {
@@ -268,32 +285,12 @@ function obtenerCredencialesGoogle() {
   return credentials;
 }
 
-function validarFormatoPassword(valor) {
+function validarFormatoPasswordConfiguracion(valor) {
   return (
     typeof valor === "string" &&
     valor.length >= 3 &&
     valor.length <= 100
   );
-}
-
-function normalizarNombreColeccion(valor) {
-  if (typeof valor !== "string") {
-    return "";
-  }
-
-  const nombre = valor.trim();
-
-  if (
-    !nombre ||
-    nombre.startsWith("/") ||
-    nombre.endsWith("/") ||
-    nombre.includes("//") ||
-    /[\u0000-\u001f]/.test(nombre)
-  ) {
-    return "";
-  }
-
-  return nombre;
 }
 
 function normalizarRutasConservadas(valor, carpeta) {
@@ -430,7 +427,7 @@ function obtenerMensajeErrorServidor(error) {
     mensaje.includes("403")
   ) {
     return (
-      "La cuenta de servicio no tiene permiso para consultar " +
+      "La cuenta de servicio no tiene permiso para actualizar " +
       "la configuración en Firestore."
     );
   }

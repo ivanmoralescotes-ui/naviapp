@@ -535,6 +535,7 @@
               name="viewPassword"
               type="password"
               autocomplete="new-password"
+              maxlength="20"
               aria-describedby="viewPasswordHelp"
             >
             <button
@@ -952,6 +953,7 @@
         try {
           const carpeta = decodificarIdentificador(state.identificador);
           const passwordConfiguracion = elements.configurationPassword.value;
+          const passwordVisualizacion = elements.viewPassword.value;
 
           const preparacion = await solicitarPreparacionSubidas({
             carpeta,
@@ -967,6 +969,7 @@
           await finalizarActualizacionCarpeta({
             carpeta,
             passwordConfiguracion,
+            passwordVisualizacion,
             rutasConservadas
           });
 
@@ -1031,7 +1034,12 @@
         );
       }
 
-      async function finalizarActualizacionCarpeta({ carpeta, passwordConfiguracion, rutasConservadas }) {
+      async function finalizarActualizacionCarpeta({
+        carpeta,
+        passwordConfiguracion,
+        passwordVisualizacion,
+        rutasConservadas
+      }) {
         return solicitarJson("/.netlify/functions/finalizar-actualizacion-carpeta", {
           method: "POST",
           headers: {
@@ -1040,6 +1048,7 @@
           body: JSON.stringify({
             carpeta,
             passwordConfiguracion,
+            passwordVisualizacion,
             rutasConservadas
           })
         });
