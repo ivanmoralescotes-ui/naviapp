@@ -224,6 +224,32 @@
       margin-top: 18px;
     }
 
+    .settings-link {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      padding: 8px 6px;
+      color: var(--primary-dark);
+      font-size: 0.88rem;
+      font-weight: 750;
+      text-align: center;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    .settings-link:hover {
+      color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .settings-link:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
     .button,
     .file-action {
       min-height: 50px;
@@ -516,7 +542,25 @@
           <button id="consultButton" class="button button-secondary" type="button">
             Consultar
           </button>
+
+          <button
+            id="saveButtonTop"
+            class="button button-primary"
+            type="submit"
+            disabled
+          >
+            Guardar
+          </button>
         </div>
+
+        <a
+          class="settings-link"
+          href="https://ú.ws/changepwd.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Cambiar contraseña de configuración
+        </a>
       </section>
 
       <section class="card" aria-labelledby="visibilityTitle">
@@ -591,7 +635,12 @@
           <p class="card-description">Revisa la información antes de actualizar la configuración.</p>
         </div>-->
 
-        <button id="saveButton" class="button button-primary" type="submit">
+        <button
+          id="saveButton"
+          class="button button-primary"
+          type="submit"
+          disabled
+        >
           Guardar
         </button>
       </section>
@@ -612,7 +661,8 @@
       const state = {
         identificador: obtenerIdentificador(),
         archivos: [],
-        procesando: false
+        procesando: false,
+        consultaExitosa: false
       };
 
       const elements = {
@@ -623,6 +673,7 @@
         configurationPasswordError: document.getElementById("configurationPasswordError"),
         viewPassword: document.getElementById("viewPassword"),
         consultButton: document.getElementById("consultButton"),
+        saveButtonTop: document.getElementById("saveButtonTop"),
         saveButton: document.getElementById("saveButton"),
         mixedFiles: document.getElementById("mixedFiles"),
         cameraPhoto: document.getElementById("cameraPhoto"),
@@ -641,13 +692,13 @@
         actualizarTitulo();
         configurarEventos();
         renderizarArchivos();
+        actualizarDisponibilidadAcciones();
 
         if (!state.identificador) {
           mostrarNotificacion(
             "No se encontró un código o identificador válido en la URL. La consulta y el guardado están deshabilitados.",
             "error"
           );
-          actualizarDisponibilidadAcciones();
         }
       }
 
@@ -715,6 +766,8 @@
 
         elements.configurationPassword.addEventListener("input", () => {
           limpiarErrorPassword();
+          state.consultaExitosa = false;
+          actualizarDisponibilidadAcciones();
         });
 
         window.addEventListener("beforeunload", liberarTodasLasUrls);
@@ -814,6 +867,7 @@
           );
 
           cargarArchivosConsultados(archivosConsultados);
+          state.consultaExitosa = true;
 
           const imagenes = contarTipo("imagen");
           const videos = contarTipo("video");
@@ -822,6 +876,7 @@
             "success"
           );
         } catch (error) {
+          state.consultaExitosa = false;
           console.error(error);
           mostrarNotificacion(
             error.message || "No fue posible consultar los archivos.",
@@ -1074,17 +1129,19 @@
       function establecerProcesando(procesando, operacion = "") {
         state.procesando = procesando;
 
-        elements.consultButton.disabled = procesando || !state.identificador;
-        elements.saveButton.disabled = procesando || !state.identificador;
+        actualizarDisponibilidadAcciones();
 
         if (procesando && operacion === "consulta") {
           elements.consultButton.textContent = "Consultando...";
+          elements.saveButtonTop.textContent = "Guardar";
           elements.saveButton.textContent = "Guardar";
         } else if (procesando && operacion === "guardado") {
+          elements.saveButtonTop.textContent = "Guardando...";
           elements.saveButton.textContent = "Guardando...";
           elements.consultButton.textContent = "Consultar";
         } else {
           elements.consultButton.textContent = "Consultar";
+          elements.saveButtonTop.textContent = "Guardar";
           elements.saveButton.textContent = "Guardar";
         }
 
@@ -1098,8 +1155,17 @@
       }
 
       function actualizarDisponibilidadAcciones() {
-        elements.consultButton.disabled = !state.identificador;
-        elements.saveButton.disabled = !state.identificador;
+        const sinIdentificador = !state.identificador;
+        const guardarDeshabilitado =
+          state.procesando ||
+          sinIdentificador ||
+          !state.consultaExitosa;
+
+        elements.consultButton.disabled =
+          state.procesando || sinIdentificador;
+
+        elements.saveButtonTop.disabled = guardarDeshabilitado;
+        elements.saveButton.disabled = guardarDeshabilitado;
       }
 
       function manejarSeleccionArchivos(event) {
