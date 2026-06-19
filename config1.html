@@ -196,6 +196,7 @@
     .password-toggle:focus-visible,
     .button:focus-visible,
     .file-action:focus-visible,
+    .order-button:focus-visible,
     .remove-button:focus-visible {
       outline: 3px solid var(--focus);
       outline-offset: 2px;
@@ -405,16 +406,42 @@
       font-size: 0.8rem;
     }
 
+    .media-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .order-button,
     .remove-button {
       min-height: 42px;
-      margin-top: 5px;
-      padding: 9px 12px;
-      border: 1px solid #f3b7b2;
+      padding: 9px 10px;
       border-radius: var(--radius-sm);
-      color: var(--danger);
-      background: var(--danger-bg);
       font-weight: 800;
       cursor: pointer;
+    }
+
+    .order-button {
+      border: 1px solid #b9cdfd;
+      color: var(--primary-dark);
+      background: #eff6ff;
+    }
+
+    .order-button:hover:not(:disabled) {
+      background: #dbeafe;
+    }
+
+    .remove-button {
+      border: 1px solid #f3b7b2;
+      color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .order-button:disabled,
+    .remove-button:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
     }
 
     .notification {
@@ -1018,14 +1045,45 @@
 
           await subirArchivosDirectamente(archivosLocales, preparacion.subidas);
 
-          const rutasNuevas = preparacion.subidas.map((item) => item.ruta);
-          const rutasConservadas = [...rutasRemotasConservadas, ...rutasNuevas];
+          const rutasLocalesPorId = new Map(
+            archivosLocales.map((item, indice) => [
+              item.id,
+              preparacion.subidas[indice]?.ruta || ""
+            ])
+          );
+
+          const ordenArchivosStorage = state.archivos.map((item) => {
+            if (
+              item.origen === "remoto" &&
+              typeof item.ruta === "string"
+            ) {
+              return item.ruta;
+            }
+
+            if (item.origen === "local") {
+              return rutasLocalesPorId.get(item.id) || "";
+            }
+
+            return "";
+          });
+
+          if (
+            ordenArchivosStorage.length !== state.archivos.length ||
+            ordenArchivosStorage.some((ruta) => !ruta)
+          ) {
+            throw new Error(
+              "No fue posible construir el orden final de los archivos."
+            );
+          }
+
+          const rutasConservadas = [...ordenArchivosStorage];
 
           await finalizarActualizacionCarpeta({
             carpeta,
             passwordConfiguracion,
             passwordVisualizacion,
-            rutasConservadas
+            rutasConservadas,
+            ordenArchivosStorage
           });
 
           const archivosActualizados = await consultarArchivos(
@@ -1093,7 +1151,8 @@
         carpeta,
         passwordConfiguracion,
         passwordVisualizacion,
-        rutasConservadas
+        rutasConservadas,
+        ordenArchivosStorage
       }) {
         return solicitarJson("/.netlify/functions/finalizar-actualizacion-carpeta", {
           method: "POST",
@@ -1104,7 +1163,8 @@
             carpeta,
             passwordConfiguracion,
             passwordVisualizacion,
-            rutasConservadas
+            rutasConservadas,
+            ordenArchivosStorage
           })
         });
       }
@@ -1151,6 +1211,17 @@
 
         [elements.mixedFiles, elements.cameraPhoto, elements.cameraVideo].forEach((input) => {
           input.disabled = procesando;
+        });
+
+        document.querySelectorAll(".remove-button").forEach((button) => {
+          button.disabled = procesando;
+        });
+
+        document.querySelectorAll(".order-button").forEach((button) => {
+          const bloqueadoPorPosicion =
+            button.dataset.positionBlocked === "true";
+
+          button.disabled = procesando || bloqueadoPorPosicion;
         });
       }
 
@@ -1332,14 +1403,57 @@
         const origenTexto = item.origen === "remoto" ? "Guardada" : "Nueva";
         meta.textContent = `${item.tipo === "imagen" ? "Imagen" : "Video"} · ${formatearTamano(tamanoBytes)} · ${origenTexto}`;
 
+        const indiceActual = state.archivos.findIndex(
+          (archivoActual) => archivoActual.id === item.id
+        );
+
+        const actions = document.createElement("div");
+        actions.className = "media-actions";
+
+        const subir = document.createElement("button");
+        subir.className = "order-button";
+        subir.type = "button";
+        subir.textContent = "Subir";
+        subir.dataset.positionBlocked = String(indiceActual <= 0);
+        subir.disabled = state.procesando || indiceActual <= 0;
+        subir.setAttribute(
+          "aria-label",
+          `Mover ${nombreArchivo} una posición hacia arriba`
+        );
+        subir.addEventListener("click", () => {
+          moverArchivo(item.id, -1);
+        });
+
+        const bajar = document.createElement("button");
+        bajar.className = "order-button";
+        bajar.type = "button";
+        bajar.textContent = "Bajar";
+        bajar.dataset.positionBlocked = String(
+          indiceActual < 0 ||
+          indiceActual >= state.archivos.length - 1
+        );
+        bajar.disabled =
+          state.procesando ||
+          indiceActual < 0 ||
+          indiceActual >= state.archivos.length - 1;
+        bajar.setAttribute(
+          "aria-label",
+          `Mover ${nombreArchivo} una posición hacia abajo`
+        );
+        bajar.addEventListener("click", () => {
+          moverArchivo(item.id, 1);
+        });
+
         const quitar = document.createElement("button");
         quitar.className = "remove-button";
         quitar.type = "button";
         quitar.textContent = "Quitar";
+        quitar.disabled = state.procesando;
         quitar.setAttribute("aria-label", `Quitar ${nombreArchivo}`);
         quitar.addEventListener("click", () => quitarArchivo(item.id));
 
-        info.append(nombre, meta, quitar);
+        actions.append(subir, bajar, quitar);
+        info.append(nombre, meta, actions);
         article.append(preview, info);
 
         return article;
@@ -1361,6 +1475,38 @@
 				} 
             }
 	  });
+
+      function moverArchivo(id, desplazamiento) {
+        const indiceActual = state.archivos.findIndex(
+          (item) => item.id === id
+        );
+
+        if (indiceActual === -1) {
+          return;
+        }
+
+        const nuevoIndice = indiceActual + desplazamiento;
+
+        if (
+          nuevoIndice < 0 ||
+          nuevoIndice >= state.archivos.length
+        ) {
+          return;
+        }
+
+        const [archivoMovido] = state.archivos.splice(
+          indiceActual,
+          1
+        );
+
+        state.archivos.splice(nuevoIndice, 0, archivoMovido);
+        renderizarArchivos();
+
+        mostrarNotificacion(
+          "Orden actualizado. Pulsa Guardar para conservarlo.",
+          "success"
+        );
+      }
 
       function quitarArchivo(id) {
         const indice = state.archivos.findIndex((item) => item.id === id);

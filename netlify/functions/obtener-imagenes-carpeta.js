@@ -88,8 +88,14 @@ exports.handler = async function (event) {
         })
       );
 
+    const objetosMultimediaOrdenados =
+      ordenarMultimediaPorRutas(
+        objetosMultimedia,
+        datosConfiguracion.ordenArchivosStorage
+      );
+
     const archivos = await Promise.all(
-      objetosMultimedia.map(async ({ archivo, categoria }) => {
+      objetosMultimediaOrdenados.map(async ({ archivo, categoria }) => {
         const [urlFirmada] = await archivo.getSignedUrl({
           version: "v4",
           action: "read",
@@ -136,6 +142,50 @@ exports.handler = async function (event) {
     });
   }
 };
+
+
+function ordenarMultimediaPorRutas(multimedia, ordenArchivosStorage) {
+  if (!Array.isArray(ordenArchivosStorage)) {
+    return multimedia;
+  }
+
+  const posiciones = new Map();
+
+  ordenArchivosStorage.forEach((ruta, indice) => {
+    if (
+      typeof ruta === "string" &&
+      ruta.trim() &&
+      !posiciones.has(ruta.trim())
+    ) {
+      posiciones.set(ruta.trim(), indice);
+    }
+  });
+
+  if (posiciones.size === 0) {
+    return multimedia;
+  }
+
+  return [...multimedia].sort((a, b) => {
+    const posicionA = posiciones.get(a.archivo.name);
+    const posicionB = posiciones.get(b.archivo.name);
+    const existeA = Number.isInteger(posicionA);
+    const existeB = Number.isInteger(posicionB);
+
+    if (existeA && existeB) {
+      return posicionA - posicionB;
+    }
+
+    if (existeA) {
+      return -1;
+    }
+
+    if (existeB) {
+      return 1;
+    }
+
+    return 0;
+  });
+}
 
 function simpleStringHash(valor) {
   let hash = 0;

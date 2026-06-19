@@ -86,6 +86,38 @@ exports.handler = async function (event) {
       });
     }
 
+    const ordenArchivosStorage = normalizarOrdenArchivosStorage(
+      body.ordenArchivosStorage,
+      carpeta
+    );
+
+    if (!ordenArchivosStorage.ok) {
+      return responder(400, {
+        error: ordenArchivosStorage.error
+      });
+    }
+
+    if (ordenArchivosStorage.proporcionado) {
+      const conjuntoConservadoTemporal = new Set(
+        rutasConservadas.rutas
+      );
+
+      const contieneLasMismasRutas =
+        ordenArchivosStorage.rutas.length ===
+          rutasConservadas.rutas.length &&
+        ordenArchivosStorage.rutas.every(
+          (ruta) => conjuntoConservadoTemporal.has(ruta)
+        );
+
+      if (!contieneLasMismasRutas) {
+        return responder(400, {
+          error:
+            "El orden de archivos debe contener exactamente " +
+            "las mismas rutas que se van a conservar."
+        });
+      }
+    }
+
     const { storage, bucketName } = crearClienteStorage();
     const bucket = storage.bucket(bucketName);
     const prefijo = `${carpeta}/`;
@@ -173,11 +205,18 @@ exports.handler = async function (event) {
       ? ""
       : simpleStringHash(passwordVisualizacion);
 
+    const cambiosFirestore = {
+      claveLectura,
+      lastupdate: new Date()
+    };
+
+    if (ordenArchivosStorage.proporcionado) {
+      cambiosFirestore.ordenArchivosStorage =
+        ordenArchivosStorage.rutas;
+    }
+
     await documentoRef.set(
-      {
-        claveLectura,
-        lastupdate: new Date()
-      },
+      cambiosFirestore,
       {
         merge: true
       }
@@ -190,7 +229,11 @@ exports.handler = async function (event) {
       cantidadImagenes,
       cantidadVideos,
       claveLecturaActualizada: true,
-      contenidoProtegido: claveLectura !== ""
+      contenidoProtegido: claveLectura !== "",
+      ordenArchivosStorage:
+        ordenArchivosStorage.proporcionado
+          ? ordenArchivosStorage.rutas
+          : null
     });
   } catch (error) {
     console.error(
@@ -291,6 +334,72 @@ function validarFormatoPasswordConfiguracion(valor) {
     valor.length >= 3 &&
     valor.length <= 100
   );
+}
+
+function normalizarOrdenArchivosStorage(valor, carpeta) {
+  if (valor === undefined || valor === null) {
+    return {
+      ok: true,
+      proporcionado: false,
+      rutas: []
+    };
+  }
+
+  if (!Array.isArray(valor)) {
+    return {
+      ok: false,
+      error: "ordenArchivosStorage debe ser un arreglo."
+    };
+  }
+
+  const prefijo = `${carpeta}/`;
+  const rutas = [];
+  const unicas = new Set();
+
+  for (const rutaOriginal of valor) {
+    if (typeof rutaOriginal !== "string") {
+      return {
+        ok: false,
+        error:
+          "Una de las rutas del orden de archivos no es válida."
+      };
+    }
+
+    const ruta = rutaOriginal.trim();
+    const relativo = ruta.startsWith(prefijo)
+      ? ruta.slice(prefijo.length)
+      : "";
+
+    if (
+      !relativo ||
+      relativo.includes("/") ||
+      ruta.includes("..")
+    ) {
+      return {
+        ok: false,
+        error:
+          `La ruta del orden no pertenece directamente a ` +
+          `la carpeta ${carpeta}: ${ruta}`
+      };
+    }
+
+    if (unicas.has(ruta)) {
+      return {
+        ok: false,
+        error:
+          `La ruta aparece repetida en el orden: ${ruta}`
+      };
+    }
+
+    unicas.add(ruta);
+    rutas.push(ruta);
+  }
+
+  return {
+    ok: true,
+    proporcionado: true,
+    rutas
+  };
 }
 
 function normalizarRutasConservadas(valor, carpeta) {
