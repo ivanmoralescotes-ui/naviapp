@@ -311,7 +311,7 @@
 	
 	
       if (slides.length === 0) {
-        showMessage("No hay slides configurados.");
+        //showMessage("No hay slides configurados...");
         return;
       }
 
@@ -381,6 +381,8 @@
 	  authValidated = true;
 	  authFailed = false;
 	  preloadedVideoElements = [];
+	  storageSlidesLoaded = false;
+	  storageSlidesPromise = null;
 	  loadingOverlay.textContent = "Loading...";
 	  loadingOverlay.classList.remove("hide");
 	  resetAuthUI();
@@ -396,13 +398,18 @@
 	    const penultima = getPenultima();
 		console.log("starting");
 		await startAll(penultima);
+
+		if (!authRequired) {
+		  await asegurarSlidesStorage("");
+		}
+
 		preloadSlides();
 
 		const ss = Number(segundosslide);
 		displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
 
 		if (!slides.length) {
-		  showMessage("No hay slides configurados.");
+		  //showMessage("No hay slides configurados.");
 		  return;
 		}
 
@@ -482,6 +489,8 @@ async function delayedTask() {
     let authValidated = true;
     let authFailed = false;
     let preloadedVideoElements = [];
+    let storageSlidesLoaded = false;
+    let storageSlidesPromise = null;
 
     // ====== NUEVO: botones ======
     const btnPrev = document.getElementById("btn-prev");
@@ -571,6 +580,8 @@ async function delayedTask() {
       authInput.value = "";
       authInput.style.display = "block";
       authSubmit.style.display = "block";
+      authSubmit.disabled = false;
+      authSubmit.textContent = "Ok";
       authError.textContent = "";
       authOverlay.style.display = "none";
     }
@@ -616,30 +627,184 @@ async function delayedTask() {
       authOverlay.style.display = "flex";
     }
 
-    function tryUnlockContent() {
+    async function tryUnlockContent() {
       if (!authRequired || authValidated || authFailed) return;
 
-      const typedKey = "" + simpleStringHash(authInput.value);//
-	  
-      if (typedKey === requiredClaveLectura) {
+      const typedKey = "" + simpleStringHash(authInput.value);
+
+      if (typedKey !== requiredClaveLectura) {
+        failAuth();
+        return;
+      }
+
+      authSubmit.disabled = true;
+      authSubmit.textContent = "Loading...";
+      authError.textContent = "";
+
+      try {
+        await asegurarSlidesStorage(authInput.value);
+        preloadSlides();
+
         authValidated = true;
         authOverlay.style.display = "none";
+
         if (firstSlideLoaded) {
           loadingOverlay.classList.add("hide");
         }
+
         startSlideshow();
-      } else {
-        failAuth();
+      } catch (error) {
+        console.error("Error cargando archivos de Storage:", error);
+        authSubmit.disabled = false;
+        authSubmit.textContent = "Ok";
+        authError.textContent =
+          error.message || "No fue posible cargar el contenido.";
       }
     }
 
-    authSubmit.addEventListener("click", tryUnlockContent);
+    authSubmit.addEventListener("click", () => {
+      void tryUnlockContent();
+    });
+
+    authInput.addEventListener("input", () => {
+      if (
+        authRequired &&
+        !authValidated &&
+        !authFailed &&
+        ("" + simpleStringHash(authInput.value)) === requiredClaveLectura
+      ) {
+        void asegurarSlidesStorage(authInput.value).catch((error) => {
+          console.error("La precarga desde Storage falló:", error);
+        });
+      }
+    });
+
     authInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        tryUnlockContent();
+        void tryUnlockContent();
       }
     });
+
+    async function asegurarSlidesStorage(passwordLectura) {
+      if (storageSlidesLoaded) {
+        return;
+      }
+
+      if (storageSlidesPromise) {
+        return storageSlidesPromise;
+      }
+
+      storageSlidesPromise = (async () => {
+        const archivos = await consultarArchivosStorage(
+          getPenultima(),
+          passwordLectura
+        );
+
+        agregarArchivosStorageASlides(archivos);
+        storageSlidesLoaded = true;
+      })();
+
+      try {
+        await storageSlidesPromise;
+      } catch (error) {
+        storageSlidesPromise = null;
+        throw error;
+      }
+    }
+
+    async function consultarArchivosStorage(carpeta, passwordLectura) {
+      const respuesta = await fetch(
+        "/.netlify/functions/obtener-slides-carpeta",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            carpeta,
+            passwordLectura
+          })
+        }
+      );
+
+      let datos = {};
+
+      try {
+        datos = await respuesta.json();
+      } catch {
+        datos = {};
+      }
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.error ||
+          `La consulta de archivos falló con estado ${respuesta.status}.`
+        );
+      }
+
+      if (Array.isArray(datos.archivos)) {
+        return datos.archivos;
+      }
+
+      return [
+        ...(Array.isArray(datos.imagenes) ? datos.imagenes : []),
+        ...(Array.isArray(datos.videos) ? datos.videos : [])
+      ];
+    }
+
+    function agregarArchivosStorageASlides(archivos) {
+      if (!Array.isArray(archivos)) {
+        return;
+      }
+
+      for (const archivo of archivos) {
+        if (!archivo || typeof archivo.url !== "string") {
+          continue;
+        }
+
+        const url = archivo.url.trim();
+
+        if (!url) {
+          continue;
+        }
+
+        const categoria = obtenerCategoriaStorage(archivo);
+
+        if (!categoria) {
+          continue;
+        }
+
+        slides.push({
+          type: categoria === "imagen" ? "image" : "video",
+          file: url,
+          origen: "google-cloud-storage",
+          ruta: archivo.ruta || "",
+          nombre: archivo.nombre || ""
+        });
+      }
+    }
+
+    function obtenerCategoriaStorage(archivo) {
+      if (
+        archivo.categoria === "imagen" ||
+        archivo.categoria === "video"
+      ) {
+        return archivo.categoria;
+      }
+
+      const tipo = String(archivo.tipo || "").toLowerCase();
+
+      if (tipo.startsWith("image/")) {
+        return "imagen";
+      }
+
+      if (tipo.startsWith("video/")) {
+        return "video";
+      }
+
+      return "";
+    }
 
     function preloadSlides() {
       preloadedVideoElements = [];
@@ -892,7 +1057,7 @@ async function delayedTask() {
     // ----------------- Mostrar slides -----------------
     function showSlide(index, isManual) {
       if (!slides.length) {
-        showMessage("No hay slides configurados.");
+        showMessage("No hay slides configurados..");
         return;
       }
 
@@ -999,9 +1164,9 @@ async function delayedTask() {
 		const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
 		const isLocal = getIsLocal();
 		if (isLocal){
-		  window.open("http://localhost:3000/uploading2?cd=c" + thekey, "_blank");
+		  window.open("http://localhost:3000/config1?codigo=cc" + thekey, "_blank");
 		}else{
-		  window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
+		  window.open("https://navi111.netlify.app/config1?codigo=cc" + thekey, "_blank");
 		}
 		
 	}
