@@ -1348,16 +1348,16 @@
 	  document.getElementById("configurationPassword").addEventListener("blur", async () => {
 			//alert("a");		 
 		 
-		    if (document.getElementById("configurationPassword").value == "confff"){ 
+		    if (document.getElementById("configurationPassword").value == "ccff"){ 
 				// const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
-				const thekey = state.identificador;
+				const thekey = state.identificador.slice(1);
 				const isLocal = getIsLocal();
 				if (isLocal){
 				  alert("going");
-				  window.open("http://localhost:3000/uploading2?cd=c" + thekey, "_blank");
+				  window.open("http://localhost:3000/uploading2?cd=" + thekey, "_blank");
 				  //window.open("http://localhost:3000/config1?codigo=c" + thekey, "_blank");
 				}else{
-				  window.open("https://navi111.netlify.app/uploading2?cd=c" + thekey, "_blank");
+				  window.open("https://navi111.netlify.app/uploading2?cd=" + thekey, "_blank");
 				} 
             }
 	  });
