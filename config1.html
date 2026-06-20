@@ -581,6 +581,7 @@
         </div>
 
         <a
+          id="changePasswordLink"
           class="settings-link"
           href="https://ú.ws/changepwd.html"
           target="_blank"
@@ -700,6 +701,7 @@
         configurationPasswordError: document.getElementById("configurationPasswordError"),
         viewPassword: document.getElementById("viewPassword"),
         consultButton: document.getElementById("consultButton"),
+        changePasswordLink: document.getElementById("changePasswordLink"),
         saveButtonTop: document.getElementById("saveButtonTop"),
         saveButton: document.getElementById("saveButton"),
         mixedFiles: document.getElementById("mixedFiles"),
@@ -717,6 +719,7 @@
 
       function inicializar() {
         actualizarTitulo();
+        actualizarEnlaceCambioPassword();
         configurarEventos();
         renderizarArchivos();
         actualizarDisponibilidadAcciones();
@@ -767,6 +770,24 @@
         } catch {
           return "";
         }
+      }
+
+      function actualizarEnlaceCambioPassword() {
+        const enlaceBase = "https://ú.ws/changepwd.html";
+
+        if (!elements.changePasswordLink) {
+          return;
+        }
+
+        if (!state.identificador) {
+          elements.changePasswordLink.href = enlaceBase;
+          elements.changePasswordLink.hidden = true;
+          return;
+        }
+
+        elements.changePasswordLink.hidden = false;
+        elements.changePasswordLink.href =
+          `${enlaceBase}?codigo=${encodeURIComponent(state.identificador)}`;
       }
 
       function actualizarTitulo() {

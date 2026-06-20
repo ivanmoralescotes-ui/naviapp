@@ -114,7 +114,10 @@
       <button id="saveButton" class="save" type="submit">Guardar</button>
     </form>
 
-    <p class="footer">Esta versión solo valida los campos en el navegador. Todavía no realiza cambios en el servidor.</p>
+    <p class="footer">
+      La contraseña se actualizará únicamente después de validar correctamente
+      la contraseña actual.
+    </p>
   </main>
 
   <script>
@@ -140,103 +143,285 @@
         }
       };
 
-      document.querySelectorAll("[data-target]").forEach(button => {
-        button.addEventListener("click", () => {
-          const input = document.getElementById(button.dataset.target);
-          const show = input.type === "password";
-          input.type = show ? "text" : "password";
-          button.textContent = show ? "Ocultar" : "Ver";
+      const identificador = obtenerIdentificador();
+      const carpeta = decodificarIdentificador(identificador);
+
+      inicializar();
+
+      function inicializar() {
+        document.querySelectorAll("[data-target]").forEach((button) => {
+          button.addEventListener("click", alternarVisibilidad);
         });
-      });
 
-      Object.values(fields).forEach(({ input }) => {
-        input.addEventListener("input", () => {
-          clearError(input.id);
-          hideNotice();
+        Object.values(fields).forEach(({ input }) => {
+          input.addEventListener("input", () => {
+            limpiarError(input.id);
+            ocultarNotificacion();
+          });
         });
-      });
 
-      form.addEventListener("submit", event => {
-        event.preventDefault();
+        form.addEventListener("submit", guardarCambio);
 
-        if (!validate()) {
-          showNotice("Revisa los campos marcados antes de guardar.", "error");
+        if (!carpeta) {
+          saveButton.disabled = true;
+          mostrarNotificacion(
+            "No se recibió un código válido para cambiar la contraseña.",
+            "error"
+          );
+        }
+      }
+
+      function obtenerIdentificador() {
+        const parametros = new URLSearchParams(window.location.search);
+        const codigo =
+          parametros.get("codigo") ||
+          parametros.get("cd") ||
+          "";
+
+        return codigo.trim();
+      }
+
+      function decodificarIdentificador(valor) {
+        const prefijo = "ccW";
+        const sufijo = "i";
+
+        if (
+          typeof valor !== "string" ||
+          !valor.startsWith(prefijo) ||
+          !valor.endsWith(sufijo)
+        ) {
+          return "";
+        }
+
+        const textoBase64 = valor.slice(
+          prefijo.length,
+          -sufijo.length
+        );
+
+        try {
+          const resultado = atob(textoBase64);
+
+          return /^[a-zA-Z0-9_-]+$/.test(resultado)
+            ? resultado
+            : "";
+        } catch {
+          return "";
+        }
+      }
+
+      function alternarVisibilidad(event) {
+        const button = event.currentTarget;
+        const input = document.getElementById(
+          button.dataset.target
+        );
+
+        if (!input) {
           return;
         }
 
-        saveButton.disabled = true;
-        saveButton.textContent = "Guardando...";
+        const mostrar = input.type === "password";
+        input.type = mostrar ? "text" : "password";
+        button.textContent = mostrar ? "Ocultar" : "Ver";
+        button.setAttribute("aria-pressed", String(mostrar));
+      }
 
-        setTimeout(() => {
-          showNotice(
-            "Validación exitosa. El cambio de contraseña está listo para conectarse al backend.",
+      async function guardarCambio(event) {
+        event.preventDefault();
+
+        if (!carpeta) {
+          mostrarNotificacion(
+            "No se recibió un código válido para cambiar la contraseña.",
+            "error"
+          );
+          return;
+        }
+
+        if (!validarFormulario()) {
+          mostrarNotificacion(
+            "Revisa los campos marcados antes de guardar.",
+            "error"
+          );
+          return;
+        }
+
+        establecerProcesando(true);
+
+        try {
+          await solicitarJson(
+            "/.netlify/functions/cambiar-clave-configuracion",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                carpeta,
+                passwordActual:
+                  fields.currentPassword.input.value,
+                passwordNueva:
+                  fields.newPassword.input.value
+              })
+            }
+          );
+
+          form.reset();
+          limpiarTodosLosErrores();
+
+          mostrarNotificacion(
+            "Contraseña actualizada correctamente.",
             "success"
           );
-          saveButton.disabled = false;
-          saveButton.textContent = "Guardar";
-        }, 600);
-      });
+        } catch (error) {
+          console.error(error);
 
-      function validate() {
-        Object.keys(fields).forEach(clearError);
+          mostrarNotificacion(
+            error.message ||
+              "No fue posible cambiar la contraseña.",
+            "error"
+          );
+        } finally {
+          establecerProcesando(false);
+        }
+      }
 
-        const current = fields.currentPassword.input.value;
-        const next = fields.newPassword.input.value;
-        const confirm = fields.confirmPassword.input.value;
-        let firstInvalid = null;
+      function validarFormulario() {
+        limpiarTodosLosErrores();
 
-        if (!current.trim()) {
-          setError("currentPassword", "La contraseña actual es obligatoria.");
-          firstInvalid ||= fields.currentPassword.input;
+        const actual = fields.currentPassword.input.value;
+        const nueva = fields.newPassword.input.value;
+        const confirmacion = fields.confirmPassword.input.value;
+
+        let primerCampoConError = null;
+
+        if (!actual.trim()) {
+          mostrarError(
+            "currentPassword",
+            "La contraseña actual es obligatoria."
+          );
+          primerCampoConError ||= fields.currentPassword.input;
         }
 
-        if (!next) {
-          setError("newPassword", "La nueva contraseña es obligatoria.");
-          firstInvalid ||= fields.newPassword.input;
-        } else if (next.length < 3) {
-          setError("newPassword", "La nueva contraseña debe tener al menos 3 caracteres.");
-          firstInvalid ||= fields.newPassword.input;
+        if (!nueva) {
+          mostrarError(
+            "newPassword",
+            "La nueva contraseña es obligatoria."
+          );
+          primerCampoConError ||= fields.newPassword.input;
+        } else if (nueva.length < 3) {
+          mostrarError(
+            "newPassword",
+            "La nueva contraseña debe tener al menos 3 caracteres."
+          );
+          primerCampoConError ||= fields.newPassword.input;
         }
 
-        if (!confirm) {
-          setError("confirmPassword", "Debes repetir la nueva contraseña.");
-          firstInvalid ||= fields.confirmPassword.input;
-        } else if (next !== confirm) {
-          setError("confirmPassword", "Las nuevas contraseñas no coinciden.");
-          firstInvalid ||= fields.confirmPassword.input;
+        if (!confirmacion) {
+          mostrarError(
+            "confirmPassword",
+            "Debes repetir la nueva contraseña."
+          );
+          primerCampoConError ||= fields.confirmPassword.input;
+        } else if (nueva !== confirmacion) {
+          mostrarError(
+            "confirmPassword",
+            "Las nuevas contraseñas no coinciden."
+          );
+          primerCampoConError ||= fields.confirmPassword.input;
         }
 
-        if (current && next && current === next) {
-          setError("newPassword", "La nueva contraseña debe ser diferente de la actual.");
-          firstInvalid ||= fields.newPassword.input;
+        if (actual && nueva && actual === nueva) {
+          mostrarError(
+            "newPassword",
+            "La nueva contraseña debe ser diferente de la actual."
+          );
+          primerCampoConError ||= fields.newPassword.input;
         }
 
-        if (firstInvalid) {
-          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => firstInvalid.focus({ preventScroll: true }), 200);
+        if (primerCampoConError) {
+          primerCampoConError.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          window.setTimeout(() => {
+            primerCampoConError.focus({
+              preventScroll: true
+            });
+          }, 200);
+
           return false;
         }
 
         return true;
       }
 
-      function setError(name, message) {
-        fields[name].input.setAttribute("aria-invalid", "true");
-        fields[name].error.textContent = message;
+      async function solicitarJson(url, opciones) {
+        const respuesta = await fetch(url, opciones);
+        let datos = {};
+
+        try {
+          datos = await respuesta.json();
+        } catch {
+          datos = {};
+        }
+
+        if (!respuesta.ok) {
+          throw new Error(
+            datos.error ||
+            `La solicitud falló con estado ${respuesta.status}.`
+          );
+        }
+
+        return datos;
       }
 
-      function clearError(name) {
-        if (!fields[name]) return;
-        fields[name].input.removeAttribute("aria-invalid");
-        fields[name].error.textContent = "";
+      function establecerProcesando(procesando) {
+        saveButton.disabled = procesando || !carpeta;
+        saveButton.textContent =
+          procesando ? "Guardando..." : "Guardar";
+
+        Object.values(fields).forEach(({ input }) => {
+          input.disabled = procesando;
+        });
+
+        document.querySelectorAll("[data-target]").forEach(
+          (button) => {
+            button.disabled = procesando;
+          }
+        );
       }
 
-      function showNotice(message, type) {
-        notice.className = `notice show ${type}`;
-        notice.textContent = message;
+      function mostrarError(nombre, mensaje) {
+        fields[nombre].input.setAttribute(
+          "aria-invalid",
+          "true"
+        );
+        fields[nombre].error.textContent = mensaje;
       }
 
-      function hideNotice() {
+      function limpiarError(nombre) {
+        if (!fields[nombre]) {
+          return;
+        }
+
+        fields[nombre].input.removeAttribute("aria-invalid");
+        fields[nombre].error.textContent = "";
+      }
+
+      function limpiarTodosLosErrores() {
+        Object.keys(fields).forEach(limpiarError);
+      }
+
+      function mostrarNotificacion(mensaje, tipo) {
+        notice.className = `notice show ${tipo}`;
+        notice.textContent = mensaje;
+        notice.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest"
+        });
+      }
+
+      function ocultarNotificacion() {
         notice.className = "notice";
         notice.textContent = "";
       }
