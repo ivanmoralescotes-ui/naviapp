@@ -409,7 +409,7 @@
 		displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
 
 		if (!slides.length) {
-		  //showMessage("No hay slides configurados.");
+		  loadingOverlay.textContent = "No hay datos.";
 		  return;
 		}
 
