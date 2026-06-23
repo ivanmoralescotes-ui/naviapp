@@ -4,7 +4,7 @@ const { Firestore } = require("@google-cloud/firestore");
 const FIRESTORE_PROJECT_ID = "qrpro-f4709";
 const FIRESTORE_COLLECTION = "configg";
 const HASH_CLAVE_MAESTRA = 1691068;
-const MAX_IMAGES = 7;
+const MAX_IMAGES = 20;
 const MAX_VIDEOS = 2;
 const MAX_PASSWORD_VISUALIZACION = 20;
 
