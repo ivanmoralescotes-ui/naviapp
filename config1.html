@@ -648,7 +648,7 @@
         </div>
 
         <div class="counter-row" aria-live="polite">
-          <div id="imageCounter" class="counter">Imágenes: 0 de 7</div>
+          <div id="imageCounter" class="counter">Imágenes: 0 de 20</div>
           <div id="videoCounter" class="counter">Videos: 0 de 2</div>
         </div>
 
@@ -682,7 +682,7 @@
     (() => {
       "use strict";
 
-      const MAX_IMAGES = 7;
+      const MAX_IMAGES = 20;
       const MAX_VIDEOS = 2;
       const SIMULATED_DELAY_MS = 650;
 
@@ -1291,7 +1291,7 @@
           }
 
           if (tipo === "imagen" && cantidadImagenes >= MAX_IMAGES) {
-            rechazos.push(`${archivo.name}: solo puedes agregar un máximo de 7 imágenes.`);
+            rechazos.push(`${archivo.name}: solo puedes agregar un máximo de 20 imágenes.`);
             continue;
           }
 
