@@ -1480,22 +1480,109 @@
         return article;
       }
 	  
-	  document.getElementById("configurationPassword").addEventListener("blur", async () => {
-			//alert("a");		 
-		 
-		    if (document.getElementById("configurationPassword").value == "ccff"){ 
-				// const thekey = urlCode; //"cWMTExMjExOTc=I" //urlCode
-				const thekey = state.identificador.slice(1);
-				const isLocal = getIsLocal();
-				if (isLocal){
-				  alert("going");
-				  window.open("http://localhost:3000/uploading2?cd=" + thekey, "_blank");
-				  //window.open("http://localhost:3000/config1?codigo=c" + thekey, "_blank");
-				}else{
-				  window.open("https://navi111.netlify.app/uploading2?cd=" + thekey, "_blank");
-				} 
-            }
-	  });
+      // Secuencia oculta: doble clic o doble toque en la parte superior
+      // y después un clic en el campo configurationPassword.
+      const DOUBLE_TAP_MAX_DELAY_MS = 450;
+      const DOUBLE_TAP_MAX_DISTANCE_PX = 45;
+      const ACCESS_SEQUENCE_TIMEOUT_MS = 2500;
+
+      let accesoUploading2Armado = false;
+      let accesoUploading2Timer = null;
+      let ultimoToqueSuperior = null;
+
+      function estaEnParteSuperior(clientY) {
+        return clientY >= 0 && clientY < window.innerHeight / 3;
+      }
+
+      function desarmarAccesoUploading2() {
+        accesoUploading2Armado = false;
+
+        if (accesoUploading2Timer) {
+          window.clearTimeout(accesoUploading2Timer);
+          accesoUploading2Timer = null;
+        }
+      }
+
+      function armarAccesoUploading2() {
+        desarmarAccesoUploading2();
+        accesoUploading2Armado = true;
+
+        accesoUploading2Timer = window.setTimeout(() => {
+          desarmarAccesoUploading2();
+        }, ACCESS_SEQUENCE_TIMEOUT_MS);
+      }
+
+      // Escritorio: doble clic normal.
+      document.addEventListener("dblclick", (event) => {
+        if (
+          event.target === elements.configurationPassword ||
+          !estaEnParteSuperior(event.clientY)
+        ) {
+          return;
+        }
+
+        armarAccesoUploading2();
+      });
+
+      // Celular: detecta un doble toque, porque dblclick no siempre es fiable.
+      document.addEventListener("pointerup", (event) => {
+        if (
+          event.pointerType === "mouse" ||
+          event.target === elements.configurationPassword ||
+          accesoUploading2Armado
+        ) {
+          return;
+        }
+
+        if (!estaEnParteSuperior(event.clientY)) {
+          ultimoToqueSuperior = null;
+          return;
+        }
+
+        const ahora = Date.now();
+        const toqueActual = {
+          tiempo: ahora,
+          x: event.clientX,
+          y: event.clientY
+        };
+
+        if (ultimoToqueSuperior) {
+          const demora = ahora - ultimoToqueSuperior.tiempo;
+          const distancia = Math.hypot(
+            event.clientX - ultimoToqueSuperior.x,
+            event.clientY - ultimoToqueSuperior.y
+          );
+
+          if (
+            demora <= DOUBLE_TAP_MAX_DELAY_MS &&
+            distancia <= DOUBLE_TAP_MAX_DISTANCE_PX
+          ) {
+            ultimoToqueSuperior = null;
+            armarAccesoUploading2();
+            return;
+          }
+        }
+
+        ultimoToqueSuperior = toqueActual;
+      }, { passive: true });
+
+      elements.configurationPassword.addEventListener("click", () => {
+        if (!accesoUploading2Armado) {
+          return;
+        }
+
+        desarmarAccesoUploading2();
+
+        const thekey = state.identificador.slice(1);
+        const isLocal = getIsLocal();
+        if (isLocal){
+          alert("going");
+          window.open("http://localhost:3000/uploading2?cd=" + thekey, "_blank");
+          //window.open("http://localhost:3000/config1?codigo=c" + thekey, "_blank");
+        }else{
+          window.open("https://navi111.netlify.app/uploading2?cd=" + thekey, "_blank");
+        }
+      });
 
       function moverArchivo(id, desplazamiento) {
         const indiceActual = state.archivos.findIndex(
