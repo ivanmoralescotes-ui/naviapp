@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <title>Documentos modificados</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d8e0ea;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --success: #067647;
+      --success-bg: #ecfdf3;
+      --focus: rgba(37, 99, 235, 0.22);
+      --shadow: 0 12px 35px rgba(23, 32, 51, 0.09);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.11), transparent 34rem),
+        var(--background);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .page-shell {
+      width: min(100%, 1000px);
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) 16px max(36px, env(safe-area-inset-bottom));
+    }
+
+    .page-header {
+      padding: 6px 4px 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      line-height: 1.18;
+    }
+
+    .subtitle {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid rgba(216, 224, 234, 0.92);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: var(--shadow);
+    }
+
+    .card + .card {
+      margin-top: 16px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .card-description {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    label {
+      font-size: 0.92rem;
+      font-weight: 750;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input[type="password"] {
+      padding-right: 70px;
+    }
+
+    input:hover {
+      border-color: #aab7c5;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    input[aria-invalid="true"] {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(180, 35, 24, 0.12);
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 7px;
+      min-height: 38px;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--primary-dark);
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 750;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    .password-toggle:hover {
+      background: #eff6ff;
+    }
+
+    .help-text,
+    .error-text {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .help-text {
+      color: var(--muted);
+    }
+
+    .error-text {
+      min-height: 1.15em;
+      color: var(--danger);
+      font-weight: 650;
+    }
+
+    .button {
+      min-height: 50px;
+      padding: 12px 17px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      color: #fff;
+      background: var(--primary);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 120ms ease, background-color 160ms ease, opacity 160ms ease;
+    }
+
+    .button:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    .button:active:not(:disabled) {
+      transform: translateY(1px) scale(0.996);
+    }
+
+    .button:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+
+    .button:focus-visible,
+    .password-toggle:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .notification {
+      display: none;
+      margin-bottom: 16px;
+      padding: 13px 15px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 720;
+      line-height: 1.45;
+    }
+
+    .notification.is-visible {
+      display: block;
+    }
+
+    .notification.error {
+      color: var(--danger);
+      border-color: #f7b6b2;
+      background: var(--danger-bg);
+    }
+
+    .notification.success {
+      color: var(--success);
+      border-color: #a6f4c5;
+      background: var(--success-bg);
+    }
+
+    .results-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 4px;
+    }
+
+    .summary strong {
+      font-size: 1rem;
+    }
+
+    .summary span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e8edf3;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #344054;
+      background: var(--surface-soft);
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    td {
+      font-size: 0.9rem;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+    }
+
+    .document-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 720;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-state {
+      margin: 0;
+      padding: 24px 16px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (min-width: 650px) {
+      .page-shell {
+        padding-inline: 24px;
+      }
+
+      .card {
+        padding: 24px;
+      }
+
+      .form-grid.horizontal {
+        grid-template-columns: minmax(220px, 1fr) auto;
+        align-items: end;
+      }
+
+      .form-grid.horizontal .button {
+        min-width: 150px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <p class="eyebrow">Firestore · configg</p>
+      <h1>Documentos modificados recientemente</h1>
+      <p class="subtitle">
+        Consulta los documentos cuyo campo <strong>lastupdate</strong> corresponde a los últimos N días.
+      </p>
+    </header>
+
+    <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <section id="accessSection" class="card" aria-labelledby="accessTitle">
+      <h2 id="accessTitle" class="card-title">Acceso</h2>
+      <p class="card-description">Escribe la contraseña para habilitar la consulta.</p>
+
+      <form id="accessForm" class="form-grid" novalidate>
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <div class="input-wrap">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="100"
+              required
+              aria-describedby="passwordError"
+            >
+            <button id="passwordToggle" class="password-toggle" type="button" aria-controls="password">
+              Mostrar
+            </button>
+          </div>
+          <p id="passwordError" class="error-text" aria-live="polite"></p>
+        </div>
+
+        <button id="accessButton" class="button" type="submit">Continuar</button>
+      </form>
+    </section>
+
+    <section id="querySection" class="card" aria-labelledby="queryTitle" hidden>
+      <h2 id="queryTitle" class="card-title">Periodo de consulta</h2>
+      <p class="card-description">Indica cuántos días hacia atrás deseas revisar.</p>
+
+      <form id="queryForm" class="form-grid horizontal" novalidate>
+        <div class="field">
+          <label for="days">Cantidad de días</label>
+          <input
+            id="days"
+            name="days"
+            type="number"
+            inputmode="decimal"
+            min="0.01"
+            step="any"
+            placeholder="Ejemplo: 7"
+            required
+            aria-describedby="daysHelp daysError"
+          >
+          <p id="daysHelp" class="help-text">Se permiten enteros o decimales positivos.</p>
+          <p id="daysError" class="error-text" aria-live="polite"></p>
+        </div>
+
+        <button id="queryButton" class="button" type="submit">Consultar</button>
+      </form>
+    </section>
+
+    <section id="resultsSection" class="card" aria-labelledby="resultsTitle" hidden>
+      <div class="results-header">
+        <div class="summary">
+          <strong id="resultsTitle">Resultados</strong>
+          <span id="rangeText"></span>
+        </div>
+        <strong id="totalText">Total: 0</strong>
+      </div>
+
+      <div id="tableWrap" class="table-wrap" hidden>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Documento</th>
+              <th scope="col">Lastupdate (Bogotá)</th>
+              <th scope="col">Lastupdate (ISO)</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+
+      <p id="emptyState" class="empty-state">No se encontraron documentos dentro de ese periodo.</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      initializeFirestore,
+      collection,
+      getDocs,
+      orderBy,
+      query,
+      Timestamp,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import {
+      getAuth,
+      signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const HASH_AUTORIZADO = 1477632;
+    const COLECCION = "configg";
+    const CAMPO_FECHA = "lastupdate";
+    const MILISEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+
+    const elements = {
+      notification: document.getElementById("notification"),
+      accessSection: document.getElementById("accessSection"),
+      accessForm: document.getElementById("accessForm"),
+      password: document.getElementById("password"),
+      passwordToggle: document.getElementById("passwordToggle"),
+      passwordError: document.getElementById("passwordError"),
+      accessButton: document.getElementById("accessButton"),
+      querySection: document.getElementById("querySection"),
+      queryForm: document.getElementById("queryForm"),
+      days: document.getElementById("days"),
+      daysError: document.getElementById("daysError"),
+      queryButton: document.getElementById("queryButton"),
+      resultsSection: document.getElementById("resultsSection"),
+      rangeText: document.getElementById("rangeText"),
+      totalText: document.getElementById("totalText"),
+      tableWrap: document.getElementById("tableWrap"),
+      resultsBody: document.getElementById("resultsBody"),
+      emptyState: document.getElementById("emptyState")
+    };
+
+    let dbPromise = null;
+
+    elements.accessForm.addEventListener("submit", manejarAcceso);
+    elements.queryForm.addEventListener("submit", manejarConsulta);
+    elements.passwordToggle.addEventListener("click", alternarPassword);
+
+    elements.password.addEventListener("input", () => {
+      limpiarErrorCampo(elements.password, elements.passwordError);
+      ocultarNotificacion();
+    });
+
+    elements.days.addEventListener("input", () => {
+      limpiarErrorCampo(elements.days, elements.daysError);
+      ocultarNotificacion();
+    });
+
+    async function manejarAcceso(event) {
+      event.preventDefault();
+      ocultarNotificacion();
+      limpiarErrorCampo(elements.password, elements.passwordError);
+
+      const passwordIngresado = elements.password.value;
+
+      if (!passwordIngresado) {
+        mostrarErrorCampo(
+          elements.password,
+          elements.passwordError,
+          "Escribe la contraseña."
+        );
+        return;
+      }
+
+      const hashIngresado = simpleStringHash(passwordIngresado);
+
+      if (hashIngresado !== HASH_AUTORIZADO) {
+        mostrarErrorCampo(
+          elements.password,
+          elements.passwordError,
+          "La contraseña no es correcta."
+        );
+        elements.password.select();
+        return;
+      }
+
+      // Cuando el hash coincide, se continúa sin mostrar mensajes de error.
+      elements.password.value = "";
+      elements.accessSection.hidden = true;
+      elements.querySection.hidden = false;
+      elements.days.focus();
+    }
+
+    async function manejarConsulta(event) {
+      event.preventDefault();
+      ocultarNotificacion();
+      limpiarErrorCampo(elements.days, elements.daysError);
+
+      const dias = normalizarNumero(elements.days.value);
+
+      if (!Number.isFinite(dias) || dias <= 0) {
+        mostrarErrorCampo(
+          elements.days,
+          elements.daysError,
+          "Digita un número de días mayor que cero."
+        );
+        return;
+      }
+
+      establecerConsultando(true);
+
+      try {
+        const db = await obtenerFirestore();
+        const ahora = new Date();
+        const fechaLimite = new Date(
+          ahora.getTime() - dias * MILISEGUNDOS_POR_DIA
+        );
+
+        const consulta = query(
+          collection(db, COLECCION),
+          where(CAMPO_FECHA, ">=", Timestamp.fromDate(fechaLimite)),
+          orderBy(CAMPO_FECHA, "desc")
+        );
+
+        const snapshot = await getDocs(consulta);
+        const resultados = snapshot.docs.map((documento) => ({
+          id: documento.id,
+          lastupdate: convertirFechaFirestore(
+            documento.data()?.[CAMPO_FECHA]
+          )
+        }));
+
+        renderizarResultados(resultados, fechaLimite, ahora);
+      } catch (error) {
+        console.error("Error consultando Firestore:", error);
+        mostrarNotificacion(obtenerMensajeError(error), "error");
+        elements.resultsSection.hidden = true;
+      } finally {
+        establecerConsultando(false);
+      }
+    }
+
+    async function obtenerFirestore() {
+      if (!dbPromise) {
+        dbPromise = inicializarFirestore().catch((error) => {
+          dbPromise = null;
+          throw error;
+        });
+      }
+
+      return dbPromise;
+    }
+
+    async function inicializarFirestore() {
+      const apiKey = await obtenerApiKey();
+
+      const firebaseConfig = {
+        apiKey,
+        authDomain: "qrpro-f4709.firebaseapp.com",
+        projectId: "qrpro-f4709",
+        storageBucket: "qrpro-f4709.firebasestorage.app",
+        messagingSenderId: "625303344201",
+        appId: "1:625303344201:web:cfac300229e2e48a6a5b98"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      await signInAnonymously(auth);
+
+      return initializeFirestore(app, {
+        experimentalForceLongPolling: true,
+        useFetchStreams: false
+      });
+    }
+
+    async function obtenerApiKey() {
+      const rutas = esEntornoLocal()
+        ? [
+            "/.netlify/functions/getApiK",
+            "https://navi111.netlify.app/.netlify/functions/getApiK"
+          ]
+        : ["/.netlify/functions/getApiK"];
+
+      let ultimoError = null;
+
+      for (const ruta of rutas) {
+        try {
+          const respuesta = await fetch(ruta, {
+            headers: { Accept: "application/json" },
+            cache: "no-store"
+          });
+
+          if (!respuesta.ok) {
+            throw new Error(`La función getApiK respondió ${respuesta.status}.`);
+          }
+
+          const datos = await respuesta.json();
+
+          if (!datos?.apik) {
+            throw new Error("La función getApiK no devolvió la API key.");
+          }
+
+          return datos.apik;
+        } catch (error) {
+          ultimoError = error;
+        }
+      }
+
+      throw ultimoError || new Error("No fue posible obtener la API key.");
+    }
+
+    function simpleStringHash(valor) {
+      let hash = 0;
+
+      for (let indice = 0; indice < valor.length; indice += 1) {
+        const caracter = valor.charCodeAt(indice);
+        hash = (hash << 5) - hash + caracter;
+        hash |= 0;
+      }
+
+      return hash;
+    }
+
+    function convertirFechaFirestore(valor) {
+      if (valor instanceof Timestamp) {
+        return valor.toDate();
+      }
+
+      if (valor && typeof valor.toDate === "function") {
+        return valor.toDate();
+      }
+
+      if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+        return valor;
+      }
+
+      if (typeof valor === "string") {
+        const fecha = new Date(valor);
+        return Number.isNaN(fecha.getTime()) ? null : fecha;
+      }
+
+      return null;
+    }
+
+    function renderizarResultados(resultados, fechaLimite, ahora) {
+      elements.resultsBody.replaceChildren();
+      elements.resultsSection.hidden = false;
+      elements.totalText.textContent = `Total: ${resultados.length}`;
+      elements.rangeText.textContent =
+        `${formatearFechaBogota(fechaLimite)} hasta ${formatearFechaBogota(ahora)} · America/Bogota`;
+
+      if (resultados.length === 0) {
+        elements.tableWrap.hidden = true;
+        elements.emptyState.hidden = false;
+        elements.resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const fragmento = document.createDocumentFragment();
+
+      resultados.forEach((resultado) => {
+        const fila = document.createElement("tr");
+
+        const celdaId = document.createElement("td");
+        celdaId.className = "document-id";
+        celdaId.textContent = resultado.id;
+
+        const celdaBogota = document.createElement("td");
+        celdaBogota.textContent = resultado.lastupdate
+          ? formatearFechaBogota(resultado.lastupdate)
+          : "Fecha no reconocida";
+
+        const celdaIso = document.createElement("td");
+        celdaIso.textContent = resultado.lastupdate
+          ? resultado.lastupdate.toISOString()
+          : "—";
+
+        fila.append(celdaId, celdaBogota, celdaIso);
+        fragmento.append(fila);
+      });
+
+      elements.resultsBody.append(fragmento);
+      elements.emptyState.hidden = true;
+      elements.tableWrap.hidden = false;
+      elements.resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function formatearFechaBogota(fecha) {
+      return new Intl.DateTimeFormat("es-CO", {
+        timeZone: "America/Bogota",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).format(fecha);
+    }
+
+    function normalizarNumero(valor) {
+      return Number(String(valor).trim().replace(",", "."));
+    }
+
+    function alternarPassword() {
+      const seMuestra = elements.password.type === "text";
+      elements.password.type = seMuestra ? "password" : "text";
+      elements.passwordToggle.textContent = seMuestra ? "Mostrar" : "Ocultar";
+      elements.password.focus();
+    }
+
+    function establecerConsultando(consultando) {
+      elements.queryButton.disabled = consultando;
+      elements.days.disabled = consultando;
+      elements.queryButton.textContent = consultando
+        ? "Consultando..."
+        : "Consultar";
+    }
+
+    function mostrarErrorCampo(input, contenedor, mensaje) {
+      input.setAttribute("aria-invalid", "true");
+      contenedor.textContent = mensaje;
+      input.focus();
+    }
+
+    function limpiarErrorCampo(input, contenedor) {
+      input.removeAttribute("aria-invalid");
+      contenedor.textContent = "";
+    }
+
+    function mostrarNotificacion(mensaje, tipo) {
+      elements.notification.className = `notification is-visible ${tipo}`;
+      elements.notification.textContent = mensaje;
+      elements.notification.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function ocultarNotificacion() {
+      elements.notification.className = "notification";
+      elements.notification.textContent = "";
+    }
+
+    function obtenerMensajeError(error) {
+      const codigo = String(error?.code || "");
+
+      if (codigo.includes("permission-denied")) {
+        return "Firestore rechazó la consulta. Revisa que las reglas permitan al usuario anónimo listar documentos de configg.";
+      }
+
+      if (codigo.includes("failed-precondition")) {
+        return "Firestore requiere un índice para esta consulta. Revisa el enlace de creación del índice que aparece en la consola del navegador.";
+      }
+
+      if (codigo.includes("unauthenticated")) {
+        return "No fue posible iniciar la sesión anónima de Firebase.";
+      }
+
+      return error?.message || "No fue posible consultar los documentos.";
+    }
+
+    function esEntornoLocal() {
+      return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    }
+  </script>
+</body>
+</html>
