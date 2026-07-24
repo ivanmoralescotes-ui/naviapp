@@ -379,10 +379,10 @@
 <body>
   <main class="page-shell">
     <header class="page-header">
-      <p class="eyebrow">Firestore · configg</p>
+      <p class="eyebrow">Data</p>
       <h1>Documentos modificados recientemente</h1>
       <p class="subtitle">
-        Consulta los documentos cuyo campo <strong>lastupdate</strong> corresponde a las últimas N horas.
+        Consulta los documentos cuya modificación corresponde a las últimas N horas.
       </p>
     </header>
 
@@ -434,7 +434,7 @@
             required
             aria-describedby="hoursHelp hoursError"
           >
-          <p id="hoursHelp" class="help-text">Se permiten enteros o decimales positivos.</p>
+          <p id="hoursHelp" class="help-text">Se permiten enteros.</p>
           <p id="hoursError" class="error-text" aria-live="polite"></p>
         </div>
 
@@ -494,7 +494,9 @@
     const DOCUMENTOS_DESTACADOS = [
         "propfly"
        ,"propqxb", "prophxk", "propceo"
-	   ,"propgay", "propfpk"
+	   ,"propgay", "propfpk", "propkjl"
+	   ,"proprzi" 
+	   
     ];
 
     const DOCUMENTOS_DESTACADOS_SET = new Set(DOCUMENTOS_DESTACADOS);
