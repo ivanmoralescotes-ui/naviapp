@@ -317,6 +317,18 @@
       background: #f8fbff;
     }
 
+    tbody tr.documento-destacado {
+      background: #fff4cc;
+    }
+
+    tbody tr.documento-destacado:hover {
+      background: #ffeaa3;
+    }
+
+    tbody tr.documento-destacado .document-id {
+      color: #7a4b00;
+    }
+
     .document-id {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-weight: 720;
@@ -370,7 +382,7 @@
       <p class="eyebrow">Firestore · configg</p>
       <h1>Documentos modificados recientemente</h1>
       <p class="subtitle">
-        Consulta los documentos cuyo campo <strong>lastupdate</strong> corresponde a los últimos N días.
+        Consulta los documentos cuyo campo <strong>lastupdate</strong> corresponde a las últimas N horas.
       </p>
     </header>
 
@@ -406,24 +418,24 @@
 
     <section id="querySection" class="card" aria-labelledby="queryTitle" hidden>
       <h2 id="queryTitle" class="card-title">Periodo de consulta</h2>
-      <p class="card-description">Indica cuántos días hacia atrás deseas revisar.</p>
+      <p class="card-description">Indica cuántas horas hacia atrás deseas revisar.</p>
 
       <form id="queryForm" class="form-grid horizontal" novalidate>
         <div class="field">
-          <label for="days">Cantidad de días</label>
+          <label for="hours">Cantidad de horas</label>
           <input
-            id="days"
-            name="days"
+            id="hours"
+            name="hours"
             type="number"
             inputmode="decimal"
             min="0.01"
             step="any"
-            placeholder="Ejemplo: 7"
+            placeholder="Ejemplo: 12"
             required
-            aria-describedby="daysHelp daysError"
+            aria-describedby="hoursHelp hoursError"
           >
-          <p id="daysHelp" class="help-text">Se permiten enteros o decimales positivos.</p>
-          <p id="daysError" class="error-text" aria-live="polite"></p>
+          <p id="hoursHelp" class="help-text">Se permiten enteros o decimales positivos.</p>
+          <p id="hoursError" class="error-text" aria-live="polite"></p>
         </div>
 
         <button id="queryButton" class="button" type="submit">Consultar</button>
@@ -444,8 +456,8 @@
           <thead>
             <tr>
               <th scope="col">Documento</th>
-              <th scope="col">Lastupdate (Bogotá)</th>
-              <th scope="col">Lastupdate (ISO)</th>
+              <th scope="col">Última modificación</th>
+              <th scope="col">Elementos</th>
             </tr>
           </thead>
           <tbody id="resultsBody"></tbody>
@@ -472,10 +484,19 @@
       signInAnonymously
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const HASH_AUTORIZADO = 1477632;
+    const HASH_AUTORIZADO = 1509383; //1477632
     const COLECCION = "configg";
     const CAMPO_FECHA = "lastupdate";
-    const MILISEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+    const MILISEGUNDOS_POR_HORA = 60 * 60 * 1000;
+
+    // Agrega aquí los IDs exactos de los documentos que deseas destacar.
+    // Ejemplo: ["propfly", "propqxb", "proprzi"]
+    const DOCUMENTOS_DESTACADOS = [
+      // "propfly",
+      // "propqxb"
+    ];
+
+    const DOCUMENTOS_DESTACADOS_SET = new Set(DOCUMENTOS_DESTACADOS);
 
     const elements = {
       notification: document.getElementById("notification"),
@@ -487,8 +508,8 @@
       accessButton: document.getElementById("accessButton"),
       querySection: document.getElementById("querySection"),
       queryForm: document.getElementById("queryForm"),
-      days: document.getElementById("days"),
-      daysError: document.getElementById("daysError"),
+      hours: document.getElementById("hours"),
+      hoursError: document.getElementById("hoursError"),
       queryButton: document.getElementById("queryButton"),
       resultsSection: document.getElementById("resultsSection"),
       rangeText: document.getElementById("rangeText"),
@@ -509,8 +530,8 @@
       ocultarNotificacion();
     });
 
-    elements.days.addEventListener("input", () => {
-      limpiarErrorCampo(elements.days, elements.daysError);
+    elements.hours.addEventListener("input", () => {
+      limpiarErrorCampo(elements.hours, elements.hoursError);
       ocultarNotificacion();
     });
 
@@ -546,21 +567,21 @@
       elements.password.value = "";
       elements.accessSection.hidden = true;
       elements.querySection.hidden = false;
-      elements.days.focus();
+      elements.hours.focus();
     }
 
     async function manejarConsulta(event) {
       event.preventDefault();
       ocultarNotificacion();
-      limpiarErrorCampo(elements.days, elements.daysError);
+      limpiarErrorCampo(elements.hours, elements.hoursError);
 
-      const dias = normalizarNumero(elements.days.value);
+      const horas = normalizarNumero(elements.hours.value);
 
-      if (!Number.isFinite(dias) || dias <= 0) {
+      if (!Number.isFinite(horas) || horas <= 0) {
         mostrarErrorCampo(
-          elements.days,
-          elements.daysError,
-          "Digita un número de días mayor que cero."
+          elements.hours,
+          elements.hoursError,
+          "Digita un número de horas mayor que cero."
         );
         return;
       }
@@ -571,7 +592,7 @@
         const db = await obtenerFirestore();
         const ahora = new Date();
         const fechaLimite = new Date(
-          ahora.getTime() - dias * MILISEGUNDOS_POR_DIA
+          ahora.getTime() - horas * MILISEGUNDOS_POR_HORA
         );
 
         const consulta = query(
@@ -581,12 +602,17 @@
         );
 
         const snapshot = await getDocs(consulta);
-        const resultados = snapshot.docs.map((documento) => ({
-          id: documento.id,
-          lastupdate: convertirFechaFirestore(
-            documento.data()?.[CAMPO_FECHA]
-          )
-        }));
+        const resultados = snapshot.docs.map((documento) => {
+          const datos = documento.data();
+
+          return {
+            id: documento.id,
+            lastupdate: convertirFechaFirestore(datos?.[CAMPO_FECHA]),
+            elementos: Array.isArray(datos?.ordenArchivosStorage)
+              ? datos.ordenArchivosStorage.length
+              : 0
+          };
+        });
 
         renderizarResultados(resultados, fechaLimite, ahora);
       } catch (error) {
@@ -705,7 +731,7 @@
       elements.resultsSection.hidden = false;
       elements.totalText.textContent = `Total: ${resultados.length}`;
       elements.rangeText.textContent =
-        `${formatearFechaBogota(fechaLimite)} hasta ${formatearFechaBogota(ahora)} · America/Bogota`;
+        `${formatearFecha(fechaLimite)} hasta ${formatearFecha(ahora)}`;
 
       if (resultados.length === 0) {
         elements.tableWrap.hidden = true;
@@ -719,21 +745,24 @@
       resultados.forEach((resultado) => {
         const fila = document.createElement("tr");
 
+        if (DOCUMENTOS_DESTACADOS_SET.has(resultado.id)) {
+          fila.classList.add("documento-destacado");
+          fila.title = "Documento incluido en DOCUMENTOS_DESTACADOS";
+        }
+
         const celdaId = document.createElement("td");
         celdaId.className = "document-id";
         celdaId.textContent = resultado.id;
 
-        const celdaBogota = document.createElement("td");
-        celdaBogota.textContent = resultado.lastupdate
-          ? formatearFechaBogota(resultado.lastupdate)
+        const celdaFecha = document.createElement("td");
+        celdaFecha.textContent = resultado.lastupdate
+          ? formatearFecha(resultado.lastupdate)
           : "Fecha no reconocida";
 
-        const celdaIso = document.createElement("td");
-        celdaIso.textContent = resultado.lastupdate
-          ? resultado.lastupdate.toISOString()
-          : "—";
+        const celdaElementos = document.createElement("td");
+        celdaElementos.textContent = String(resultado.elementos);
 
-        fila.append(celdaId, celdaBogota, celdaIso);
+        fila.append(celdaId, celdaFecha, celdaElementos);
         fragmento.append(fila);
       });
 
@@ -743,7 +772,7 @@
       elements.resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    function formatearFechaBogota(fecha) {
+    function formatearFecha(fecha) {
       return new Intl.DateTimeFormat("es-CO", {
         timeZone: "America/Bogota",
         year: "numeric",
@@ -769,7 +798,7 @@
 
     function establecerConsultando(consultando) {
       elements.queryButton.disabled = consultando;
-      elements.days.disabled = consultando;
+      elements.hours.disabled = consultando;
       elements.queryButton.textContent = consultando
         ? "Consultando..."
         : "Consultar";
