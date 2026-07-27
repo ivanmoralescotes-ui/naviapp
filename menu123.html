@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>Menú principal</title>
+
+  <style>
+    :root {
+      --fondo: #f1f5f9;
+      --tarjeta: #ffffff;
+      --texto: #0f172a;
+      --texto-suave: #64748b;
+      --primario: #2563eb;
+      --primario-hover: #1d4ed8;
+      --borde: #dbe3ee;
+      --sombra: 0 18px 45px rgba(15, 23, 42, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--texto);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 32rem),
+        var(--fondo);
+    }
+
+    .menu {
+      width: min(100%, 460px);
+      padding: 28px;
+      border: 1px solid var(--borde);
+      border-radius: 22px;
+      background: var(--tarjeta);
+      box-shadow: var(--sombra);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 5vw, 2rem);
+      text-align: center;
+    }
+
+    .descripcion {
+      margin: 10px 0 24px;
+      color: var(--texto-suave);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .opciones {
+      display: grid;
+      gap: 14px;
+    }
+
+    .opcion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 58px;
+      padding: 15px 18px;
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      color: var(--texto);
+      background: #f8fafc;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 120ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .opcion:hover {
+      border-color: var(--primario);
+      background: #eff6ff;
+      transform: translateY(-1px);
+    }
+
+    .opcion:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.25);
+      outline-offset: 3px;
+    }
+
+    .flecha {
+      color: var(--primario);
+      font-size: 1.25rem;
+    }
+
+    .pie {
+      margin: 22px 0 0;
+      color: var(--texto-suave);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="menu">
+    <h1>Menú principal</h1>
+    <p class="descripcion">Selecciona una opción para continuar.</p>
+
+    <nav class="opciones" aria-label="Menú principal">
+      <!-- Para agregar una opción nueva, copia uno de estos enlaces y cambia el texto y la ruta. -->
+
+      <a class="opcion" href="/listUpdated.html">
+        <span>Documentos modificados</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+
+      <a class="opcion" href="/fly">
+        <span>Contacto</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+	  
+	  <a class="opcion" href="/qxb">
+        <span>Manual</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+	  
+	  <a class="opcion" href="/kjl">
+        <span>Ejemplo</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+	  
+	  <a class="opcion" href="/hxk">
+        <span>Base</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+
+      <!-- Ejemplo para agregar otra opción:
+      <a class="opcion" href="/otra-ruta.html">
+        <span>Otra opción</span>
+        <span class="flecha" aria-hidden="true">→</span>
+      </a>
+      -->
+    </nav>
+
+    <p class="pie">NaviArt</p>
+  </main>
+</body>
+</html>
