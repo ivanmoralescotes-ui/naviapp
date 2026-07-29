@@ -246,6 +246,21 @@ body {
       font-size: 14px;
       color: #ff9f9f;
     }
+	
+	.whatsapp-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:12px 24px;
+    color:#25D366;
+    border:2px solid #25D366;
+    border-radius:40px;
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(8px);
+    text-decoration:none;
+    font-size:22px;
+    font-weight:600;
+}
 
   </style>
 </head>
@@ -286,7 +301,7 @@ body {
         <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Spotify</a><br>
         
         <p id="quote-text" style="display: none;" >Aquí va la frase.</p>
-        <br>
+        
 
         <p id="yourwords-text" style="display: none;" >Aquí van las palabras.</p>
         <br>
@@ -303,8 +318,13 @@ body {
 		<a id="verse-link4" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" ><i>Ad</i></a><br>
 		
 		<a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Instagram</a>
-        <a id="verse-link3" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >whatsapp</a>
-        
+		
+        <a id="verse-link3" href="#" target="_blank" class="whatsapp-btn" 
+		    rel="noopener noreferrer" style="display: none;" >
+			<img src="whatsapp.svg" width="26">Whatsapp</a>
+            
+            
+</a>
       </div>
     </div>
 
