@@ -335,6 +335,44 @@
       overflow-wrap: anywhere;
     }
 
+    .document-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      margin-left: 7px;
+      border-radius: 7px;
+      color: var(--primary);
+      text-decoration: none;
+      vertical-align: middle;
+      transition: background-color 160ms ease, color 160ms ease, transform 120ms ease;
+    }
+
+    .document-link:hover {
+      color: var(--primary-dark);
+      background: #eff6ff;
+    }
+
+    .document-link:active {
+      transform: translateY(1px);
+    }
+
+    .document-link:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .document-link svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     .empty-state {
       margin: 0;
       padding: 24px 16px;
@@ -755,7 +793,35 @@
 
         const celdaId = document.createElement("td");
         celdaId.className = "document-id";
-        celdaId.textContent = resultado.id;
+
+        const textoDocumento = document.createElement("span");
+        textoDocumento.textContent = resultado.id;
+        celdaId.append(textoDocumento);
+
+        const codigoDocumento = String(resultado.id).startsWith("props")
+          ? String(resultado.id).slice(5)
+          : "";
+
+        if (codigoDocumento) {
+          const enlaceDocumento = document.createElement("a");
+          enlaceDocumento.className = "document-link";
+          enlaceDocumento.href = `https://ú.ws/${encodeURIComponent(codigoDocumento)}`;
+          enlaceDocumento.target = "_blank";
+          enlaceDocumento.rel = "noopener noreferrer";
+          enlaceDocumento.title = `Abrir https://ú.ws/${codigoDocumento}`;
+          enlaceDocumento.setAttribute(
+            "aria-label",
+            `Abrir la página correspondiente al documento ${resultado.id} en otra pestaña`
+          );
+          enlaceDocumento.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 5h5v5"></path>
+              <path d="M10 14 19 5"></path>
+              <path d="M19 13v6H5V5h6"></path>
+            </svg>
+          `;
+          celdaId.append(enlaceDocumento);
+        }
 
         const celdaFecha = document.createElement("td");
         celdaFecha.textContent = resultado.lastupdate
