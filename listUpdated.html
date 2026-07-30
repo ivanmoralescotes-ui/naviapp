@@ -286,7 +286,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 600px;
+      min-width: 760px;
     }
 
     th,
@@ -371,6 +371,12 @@
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
+    }
+
+    .document-description {
+      color: var(--muted);
+      line-height: 1.45;
+      min-width: 180px;
     }
 
     .empty-state {
@@ -529,6 +535,7 @@
               <th scope="col">Documento</th>
               <th scope="col">Modificación</th>
               <th scope="col">Elementos</th>
+              <th scope="col">Descripción</th>
             </tr>
           </thead>
           <tbody id="resultsBody"></tbody>
@@ -561,17 +568,25 @@
     const CAMPO_FECHA = "lastupdate";
     const MILISEGUNDOS_POR_HORA = 60 * 60 * 1000;
 
-    // Agrega aquí los IDs exactos de los documentos que deseas destacar.
-    // Ejemplo: ["propfly", "propqxb", "proprzi"]
+    // Cada objeto tiene el ID exacto del documento y su descripción.
+    // Completa las descripciones según corresponda.
     const DOCUMENTOS_DESTACADOS = [
-        "propfly"
-       ,"propqxb", "prophxk", "propceo"
-	   ,"propgay", "propfpk", "propkjl"
-	   ,"proprzi" 
-	   
+      { documento: "propfly", descripcion: "contacto" },
+      { documento: "propqxb", descripcion: "manual" },
+      { documento: "prophxk", descripcion: "ejemplo" },
+      { documento: "propceo", descripcion: "I" },
+      { documento: "propgay", descripcion: "regalo" },
+      { documento: "propfpk", descripcion: "prueba" },
+      { documento: "propkjl", descripcion: "ejemplo" },
+      { documento: "proprzi", descripcion: "" }
     ];
 
-    const DOCUMENTOS_DESTACADOS_SET = new Set(DOCUMENTOS_DESTACADOS);
+    const DOCUMENTOS_DESTACADOS_MAP = new Map(
+      DOCUMENTOS_DESTACADOS.map(({ documento, descripcion }) => [
+        documento,
+        descripcion
+      ])
+    );
 
     const elements = {
       notification: document.getElementById("notification"),
@@ -862,9 +877,14 @@
       resultados.forEach((resultado) => {
         const fila = document.createElement("tr");
 
-        if (DOCUMENTOS_DESTACADOS_SET.has(resultado.id)) {
+        const esDestacado = DOCUMENTOS_DESTACADOS_MAP.has(resultado.id);
+        const descripcionDocumento =
+          DOCUMENTOS_DESTACADOS_MAP.get(resultado.id) || "";
+
+        if (esDestacado) {
           fila.classList.add("documento-destacado");
-          fila.title = "Documento incluido en DOCUMENTOS_DESTACADOS";
+          fila.title =
+            descripcionDocumento || "Documento incluido en DOCUMENTOS_DESTACADOS";
         }
 
         const celdaId = document.createElement("td");
@@ -904,7 +924,16 @@
         const celdaElementos = document.createElement("td");
         celdaElementos.textContent = String(resultado.elementos);
 
-        fila.append(celdaId, celdaFecha, celdaElementos);
+        const celdaDescripcion = document.createElement("td");
+        celdaDescripcion.className = "document-description";
+        celdaDescripcion.textContent = descripcionDocumento || "—";
+
+        fila.append(
+          celdaId,
+          celdaFecha,
+          celdaElementos,
+          celdaDescripcion
+        );
         fragmento.append(fila);
       });
 
