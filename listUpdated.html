@@ -395,7 +395,7 @@
       }
 
       .form-grid.horizontal {
-        grid-template-columns: minmax(220px, 1fr) auto;
+        grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
         align-items: end;
       }
 
@@ -460,6 +460,22 @@
 
       <form id="queryForm" class="form-grid horizontal" novalidate>
         <div class="field">
+          <label for="days">Cantidad de días</label>
+          <input
+            id="days"
+            name="days"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="Ejemplo: 2"
+            aria-describedby="daysHelp daysError"
+          >
+          <p id="daysHelp" class="help-text">Al escribir días, se calculan automáticamente las horas.</p>
+          <p id="daysError" class="error-text" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
           <label for="hours">Cantidad de horas</label>
           <input
             id="hours"
@@ -468,12 +484,29 @@
             inputmode="decimal"
             min="0.01"
             step="any"
-            placeholder="Ejemplo: 12"
+            placeholder="Ejemplo: 48"
             required
             aria-describedby="hoursHelp hoursError"
           >
-          <p id="hoursHelp" class="help-text">Se permiten enteros.</p>
+          <p id="hoursHelp" class="help-text">Este valor es el utilizado en la consulta.</p>
           <p id="hoursError" class="error-text" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="maxRows">Máximo de filas</label>
+          <input
+            id="maxRows"
+            name="maxRows"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            step="1"
+            value="50"
+            required
+            aria-describedby="maxRowsHelp maxRowsError"
+          >
+          <p id="maxRowsHelp" class="help-text">Valor predeterminado: 50.</p>
+          <p id="maxRowsError" class="error-text" aria-live="polite"></p>
         </div>
 
         <button id="queryButton" class="button" type="submit">Consultar</button>
@@ -512,6 +545,7 @@
       initializeFirestore,
       collection,
       getDocs,
+      limit,
       orderBy,
       query,
       Timestamp,
@@ -549,8 +583,12 @@
       accessButton: document.getElementById("accessButton"),
       querySection: document.getElementById("querySection"),
       queryForm: document.getElementById("queryForm"),
+      days: document.getElementById("days"),
+      daysError: document.getElementById("daysError"),
       hours: document.getElementById("hours"),
       hoursError: document.getElementById("hoursError"),
+      maxRows: document.getElementById("maxRows"),
+      maxRowsError: document.getElementById("maxRowsError"),
       queryButton: document.getElementById("queryButton"),
       resultsSection: document.getElementById("resultsSection"),
       rangeText: document.getElementById("rangeText"),
@@ -571,8 +609,33 @@
       ocultarNotificacion();
     });
 
+    elements.days.addEventListener("input", () => {
+      limpiarErrorCampo(elements.days, elements.daysError);
+      ocultarNotificacion();
+
+      const dias = normalizarNumero(elements.days.value);
+
+      if (elements.days.value.trim() === "") {
+        return;
+      }
+
+      if (!Number.isFinite(dias) || dias < 0) {
+        elements.hours.value = "";
+        return;
+      }
+
+      const horasCalculadas = Number((dias * 24).toFixed(8));
+      elements.hours.value = String(horasCalculadas);
+      limpiarErrorCampo(elements.hours, elements.hoursError);
+    });
+
     elements.hours.addEventListener("input", () => {
       limpiarErrorCampo(elements.hours, elements.hoursError);
+      ocultarNotificacion();
+    });
+
+    elements.maxRows.addEventListener("input", () => {
+      limpiarErrorCampo(elements.maxRows, elements.maxRowsError);
       ocultarNotificacion();
     });
 
@@ -608,21 +671,33 @@
       elements.password.value = "";
       elements.accessSection.hidden = true;
       elements.querySection.hidden = false;
-      elements.hours.focus();
+      elements.days.focus();
     }
 
     async function manejarConsulta(event) {
       event.preventDefault();
       ocultarNotificacion();
+      limpiarErrorCampo(elements.days, elements.daysError);
       limpiarErrorCampo(elements.hours, elements.hoursError);
+      limpiarErrorCampo(elements.maxRows, elements.maxRowsError);
 
       const horas = normalizarNumero(elements.hours.value);
+      const maximoFilas = Number(elements.maxRows.value);
 
       if (!Number.isFinite(horas) || horas <= 0) {
         mostrarErrorCampo(
           elements.hours,
           elements.hoursError,
           "Digita un número de horas mayor que cero."
+        );
+        return;
+      }
+
+      if (!Number.isInteger(maximoFilas) || maximoFilas <= 0) {
+        mostrarErrorCampo(
+          elements.maxRows,
+          elements.maxRowsError,
+          "Digita un número entero de filas mayor que cero."
         );
         return;
       }
@@ -639,7 +714,8 @@
         const consulta = query(
           collection(db, COLECCION),
           where(CAMPO_FECHA, ">=", Timestamp.fromDate(fechaLimite)),
-          orderBy(CAMPO_FECHA, "desc")
+          orderBy(CAMPO_FECHA, "desc"),
+          limit(maximoFilas)
         );
 
         const snapshot = await getDocs(consulta);
@@ -798,30 +874,27 @@
         textoDocumento.textContent = resultado.id;
         celdaId.append(textoDocumento);
 
-        const codigoDocumento = String(resultado.id).startsWith("props")
-          ? String(resultado.id).slice(5)
-          : "";
+        // Los documentos comienzan por "prop"; la ruta usa lo que sigue.
+        const codigoDocumento = String(resultado.id).slice(4);
 
-        if (codigoDocumento) {
-          const enlaceDocumento = document.createElement("a");
-          enlaceDocumento.className = "document-link";
-          enlaceDocumento.href = `https://ú.ws/${encodeURIComponent(codigoDocumento)}`;
-          enlaceDocumento.target = "_blank";
-          enlaceDocumento.rel = "noopener noreferrer";
-          enlaceDocumento.title = `Abrir https://ú.ws/${codigoDocumento}`;
-          enlaceDocumento.setAttribute(
-            "aria-label",
-            `Abrir la página correspondiente al documento ${resultado.id} en otra pestaña`
-          );
-          enlaceDocumento.innerHTML = `
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M14 5h5v5"></path>
-              <path d="M10 14 19 5"></path>
-              <path d="M19 13v6H5V5h6"></path>
-            </svg>
-          `;
-          celdaId.append(enlaceDocumento);
-        }
+        const enlaceDocumento = document.createElement("a");
+        enlaceDocumento.className = "document-link";
+        enlaceDocumento.href = `https://ú.ws/${encodeURIComponent(codigoDocumento)}`;
+        enlaceDocumento.target = "_blank";
+        enlaceDocumento.rel = "noopener noreferrer";
+        enlaceDocumento.title = `Abrir https://ú.ws/${codigoDocumento}`;
+        enlaceDocumento.setAttribute(
+          "aria-label",
+          `Abrir la página correspondiente al documento ${resultado.id} en otra pestaña`
+        );
+        enlaceDocumento.innerHTML = `
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 5h5v5"></path>
+            <path d="M10 14 19 5"></path>
+            <path d="M19 13v6H5V5h6"></path>
+          </svg>
+        `;
+        celdaId.append(enlaceDocumento);
 
         const celdaFecha = document.createElement("td");
         celdaFecha.textContent = resultado.lastupdate
@@ -867,7 +940,9 @@
 
     function establecerConsultando(consultando) {
       elements.queryButton.disabled = consultando;
+      elements.days.disabled = consultando;
       elements.hours.disabled = consultando;
+      elements.maxRows.disabled = consultando;
       elements.queryButton.textContent = consultando
         ? "Consultando..."
         : "Consultar";
