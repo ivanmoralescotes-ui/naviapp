@@ -996,9 +996,14 @@
           return "";
         }
 
-        return identificador.toLowerCase().startsWith("cc")
-          ? identificador.slice(2)
-          : identificador;
+        try {
+          // El identificador llega con el formato ccW<base64>i.
+          // Por ejemplo: ccWZmx5i -> fly.
+          return decodificarIdentificador(identificador);
+        } catch (error) {
+          console.error("No fue posible decodificar el identificador para el QR:", error);
+          return "";
+        }
       }
 
       function obtenerUrlQr() {
