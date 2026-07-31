@@ -518,6 +518,152 @@
         animation-iteration-count: 1 !important;
       }
     }
+
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .qr-icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(23, 32, 51, 0.08);
+      transition: transform 120ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .qr-icon-button:hover:not(:disabled) {
+      background: #eff6ff;
+      border-color: #bfd4ff;
+      color: var(--primary-dark);
+    }
+
+    .qr-icon-button:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .qr-icon-button:focus-visible,
+    .qr-close-button:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .qr-icon-button svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .qr-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.62);
+      backdrop-filter: blur(2px);
+    }
+
+    .qr-modal-card {
+      width: min(92vw, 360px);
+      padding: 20px;
+      border: 1px solid rgba(216, 224, 234, 0.92);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 42px rgba(23, 32, 51, 0.18);
+    }
+
+    .qr-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .qr-modal-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .qr-close-button {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      min-width: 36px;
+      min-height: 36px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .qr-target-url {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.87rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .qr-preview-box {
+      min-height: 248px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    }
+
+    .qr-preview-box > div,
+    .qr-preview-box canvas,
+    .qr-preview-box img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .qr-download-button {
+      width: 100%;
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .qr-download-button svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
   </style>
 </head>
 <body>
@@ -525,11 +671,55 @@
   <main class="page-shell">
     <header class="page-header">
       <!--<p class="eyebrow">Codigo QR</p>-->
-      <h1 id="pageTitle">Configuración</h1>
+      <div class="title-row">
+        <h1 id="pageTitle">Configuración</h1>
+        <button
+          id="qrPreviewButton"
+          class="qr-icon-button"
+          type="button"
+          title="Generar y visualizar el código QR"
+          aria-label="Generar y visualizar el código QR"
+          hidden
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h6v6H4z"></path>
+            <path d="M14 4h6v6h-6z"></path>
+            <path d="M4 14h6v6H4z"></path>
+            <path d="M14 14h2"></path>
+            <path d="M18 14h2v2"></path>
+            <path d="M14 18h2v2h-2z"></path>
+            <path d="M18 18h2v2h-2z"></path>
+          </svg>
+        </button>
+      </div>
       <p class="subtitle">Consulta y actualiza el contenido que aparecerá al escanear el código QR.</p>
     </header>
 
     <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="qrModal" class="qr-modal" hidden>
+      <div class="qr-modal-card" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+        <div class="qr-modal-header">
+          <h2 id="qrModalTitle" class="qr-modal-title">Código QR</h2>
+          <button id="qrModalClose" class="qr-close-button" type="button" aria-label="Cerrar vista del código QR">×</button>
+        </div>
+        <p id="qrTargetUrl" class="qr-target-url"></p>
+        <div id="qrPreviewContainer" class="qr-preview-box" aria-live="polite"></div>
+        <button
+          id="qrDownloadButton"
+          class="button button-primary qr-download-button"
+          type="button"
+          disabled
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+          Descargar PNG
+        </button>
+      </div>
+    </div>
 
     <form id="configurationForm" class="stack" novalidate>
       <section class="card" aria-labelledby="accessTitle">
@@ -678,6 +868,8 @@
 	<br>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <script>
     (() => {
       "use strict";
@@ -697,6 +889,12 @@
         form: document.getElementById("configurationForm"),
         pageTitle: document.getElementById("pageTitle"),
         notification: document.getElementById("notification"),
+        qrPreviewButton: document.getElementById("qrPreviewButton"),
+        qrModal: document.getElementById("qrModal"),
+        qrModalClose: document.getElementById("qrModalClose"),
+        qrTargetUrl: document.getElementById("qrTargetUrl"),
+        qrPreviewContainer: document.getElementById("qrPreviewContainer"),
+        qrDownloadButton: document.getElementById("qrDownloadButton"),
         configurationPassword: document.getElementById("configurationPassword"),
         configurationPasswordError: document.getElementById("configurationPasswordError"),
         viewPassword: document.getElementById("viewPassword"),
@@ -720,6 +918,7 @@
       function inicializar() {
         actualizarTitulo();
         actualizarEnlaceCambioPassword();
+        actualizarBotonQr();
         configurarEventos();
         renderizarArchivos();
         actualizarDisponibilidadAcciones();
@@ -772,6 +971,135 @@
         }
       }
 
+      function obtenerCodigoQrSinPrefijo() {
+        const identificador = String(state.identificador || "").trim();
+
+        if (!identificador) {
+          return "";
+        }
+
+        return identificador.toLowerCase().startsWith("cc")
+          ? identificador.slice(2)
+          : identificador;
+      }
+
+      function obtenerUrlQr() {
+        const codigoQr = obtenerCodigoQrSinPrefijo();
+        return codigoQr ? `https://ú.ws/${codigoQr}` : "";
+      }
+
+      function actualizarBotonQr() {
+        if (!elements.qrPreviewButton) {
+          return;
+        }
+
+        const urlQr = obtenerUrlQr();
+        elements.qrPreviewButton.hidden = !urlQr;
+        elements.qrPreviewButton.disabled = !urlQr;
+
+        if (urlQr) {
+          elements.qrPreviewButton.title = `Generar y visualizar el código QR de ${urlQr}`;
+          elements.qrPreviewButton.setAttribute(
+            "aria-label",
+            `Generar y visualizar el código QR de ${urlQr}`
+          );
+        }
+      }
+
+      function abrirModalQr() {
+        const urlQr = obtenerUrlQr();
+
+        if (!urlQr) {
+          mostrarNotificacion(
+            "No se encontró un código válido para generar el QR.",
+            "error"
+          );
+          return;
+        }
+
+        if (!elements.qrModal || !elements.qrPreviewContainer) {
+          return;
+        }
+
+        elements.qrTargetUrl.textContent = urlQr;
+        elements.qrPreviewContainer.replaceChildren();
+
+        if (elements.qrDownloadButton) {
+          elements.qrDownloadButton.disabled = true;
+        }
+
+        const contenedorQr = document.createElement("div");
+        elements.qrPreviewContainer.append(contenedorQr);
+
+        if (typeof QRCode === "function") {
+          new QRCode(contenedorQr, {
+            text: urlQr,
+            width: 512,
+            height: 512,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+
+          if (elements.qrDownloadButton) {
+            elements.qrDownloadButton.disabled = false;
+          }
+        } else {
+          contenedorQr.textContent = "No fue posible cargar la librería para generar el código QR.";
+        }
+
+        elements.qrModal.hidden = false;
+        document.body.classList.add("modal-open");
+      }
+
+      function descargarQrPng() {
+        const canvas = elements.qrPreviewContainer?.querySelector("canvas");
+        const codigoQr = obtenerCodigoQrSinPrefijo();
+
+        if (!canvas || !codigoQr) {
+          mostrarNotificacion(
+            "No fue posible preparar la imagen PNG del código QR.",
+            "error"
+          );
+          return;
+        }
+
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            mostrarNotificacion(
+              "No fue posible generar el archivo PNG del código QR.",
+              "error"
+            );
+            return;
+          }
+
+          const nombreSeguro = codigoQr
+            .replace(/[^a-z0-9_-]+/gi, "-")
+            .replace(/^-+|-+$/g, "") || "codigo";
+
+          const urlTemporal = URL.createObjectURL(blob);
+          const enlaceDescarga = document.createElement("a");
+          enlaceDescarga.href = urlTemporal;
+          enlaceDescarga.download = `qr-${nombreSeguro}.png`;
+          enlaceDescarga.hidden = true;
+
+          document.body.append(enlaceDescarga);
+          enlaceDescarga.click();
+          enlaceDescarga.remove();
+
+          window.setTimeout(() => URL.revokeObjectURL(urlTemporal), 1000);
+        }, "image/png");
+      }
+
+      function cerrarModalQr() {
+        if (!elements.qrModal) {
+          return;
+        }
+
+        elements.qrModal.hidden = true;
+        document.body.classList.remove("modal-open");
+      }
+
       function actualizarEnlaceCambioPassword() {
         const enlaceBase = "https://ú.ws/changepwd.html";
 
@@ -806,6 +1134,32 @@
         elements.form.addEventListener("submit", (event) => {
           event.preventDefault();
           guardarDatos();
+        });
+
+        if (elements.qrPreviewButton) {
+          elements.qrPreviewButton.addEventListener("click", abrirModalQr);
+        }
+
+        if (elements.qrModalClose) {
+          elements.qrModalClose.addEventListener("click", cerrarModalQr);
+        }
+
+        if (elements.qrDownloadButton) {
+          elements.qrDownloadButton.addEventListener("click", descargarQrPng);
+        }
+
+        if (elements.qrModal) {
+          elements.qrModal.addEventListener("click", (event) => {
+            if (event.target === elements.qrModal) {
+              cerrarModalQr();
+            }
+          });
+        }
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && elements.qrModal && !elements.qrModal.hidden) {
+            cerrarModalQr();
+          }
         });
 
         [elements.mixedFiles, elements.cameraPhoto, elements.cameraVideo].forEach((input) => {
