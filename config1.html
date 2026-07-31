@@ -568,6 +568,10 @@
       stroke-linejoin: round;
     }
 
+    .qr-modal[hidden] {
+      display: none !important;
+    }
+
     .qr-modal {
       position: fixed;
       inset: 0;
@@ -660,6 +664,14 @@
       stroke-linejoin: round;
     }
 
+    .qr-footer-action {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 8px;
+      padding: 4px;
+    }
+
     body.modal-open {
       overflow: hidden;
     }
@@ -671,27 +683,7 @@
   <main class="page-shell">
     <header class="page-header">
       <!--<p class="eyebrow">Codigo QR</p>-->
-      <div class="title-row">
-        <h1 id="pageTitle">Configuración</h1>
-        <button
-          id="qrPreviewButton"
-          class="qr-icon-button"
-          type="button"
-          title="Generar y visualizar el código QR"
-          aria-label="Generar y visualizar el código QR"
-          hidden
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 4h6v6H4z"></path>
-            <path d="M14 4h6v6h-6z"></path>
-            <path d="M4 14h6v6H4z"></path>
-            <path d="M14 14h2"></path>
-            <path d="M18 14h2v2"></path>
-            <path d="M14 18h2v2h-2z"></path>
-            <path d="M18 18h2v2h-2z"></path>
-          </svg>
-        </button>
-      </div>
+      <h1 id="pageTitle">Configuración</h1>
       <p class="subtitle">Consulta y actualiza el contenido que aparecerá al escanear el código QR.</p>
     </header>
 
@@ -864,6 +856,27 @@
       </section>
     </form>
 
+    <div class="qr-footer-action">
+      <button
+        id="qrPreviewButton"
+        class="qr-icon-button"
+        type="button"
+        title="Generar y visualizar el código QR"
+        aria-label="Generar y visualizar el código QR"
+        hidden
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h6v6H4z"></path>
+          <path d="M14 4h6v6h-6z"></path>
+          <path d="M4 14h6v6H4z"></path>
+          <path d="M14 14h2"></path>
+          <path d="M18 14h2v2"></path>
+          <path d="M14 18h2v2h-2z"></path>
+          <path d="M18 18h2v2h-2z"></path>
+        </svg>
+      </button>
+    </div>
+
     <!--<p class="footer-note">Los archivos permanecen únicamente en este navegador hasta que se conecte el backend.</p>-->
 	<br>
   </main>
@@ -916,6 +929,11 @@
       inicializar();
 
       function inicializar() {
+        if (elements.qrModal) {
+          elements.qrModal.hidden = true;
+        }
+        document.body.classList.remove("modal-open");
+
         actualizarTitulo();
         actualizarEnlaceCambioPassword();
         actualizarBotonQr();
@@ -985,7 +1003,24 @@
 
       function obtenerUrlQr() {
         const codigoQr = obtenerCodigoQrSinPrefijo();
-        return codigoQr ? `https://ú.ws/${codigoQr}` : "";
+        return codigoQr
+          ? `https://ú.ws/${encodeURIComponent(codigoQr)}`
+          : "";
+      }
+
+      function obtenerUrlQrCodificable() {
+        const urlQr = obtenerUrlQr();
+
+        if (!urlQr) {
+          return "";
+        }
+
+        try {
+          // URL convierte automáticamente ú.ws a su equivalente punycode.
+          return new URL(urlQr).href;
+        } catch {
+          return urlQr;
+        }
       }
 
       function actualizarBotonQr() {
@@ -1008,8 +1043,9 @@
 
       function abrirModalQr() {
         const urlQr = obtenerUrlQr();
+        const urlQrCodificable = obtenerUrlQrCodificable();
 
-        if (!urlQr) {
+        if (!urlQr || !urlQrCodificable) {
           mostrarNotificacion(
             "No se encontró un código válido para generar el QR.",
             "error"
@@ -1033,9 +1069,9 @@
 
         if (typeof QRCode === "function") {
           new QRCode(contenedorQr, {
-            text: urlQr,
-            width: 512,
-            height: 512,
+            text: urlQrCodificable,
+            width: 240,
+            height: 240,
             colorDark: "#000000",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.M
@@ -1064,7 +1100,26 @@
           return;
         }
 
-        canvas.toBlob((blob) => {
+        const canvasDescarga = document.createElement("canvas");
+        canvasDescarga.width = 512;
+        canvasDescarga.height = 512;
+
+        const contexto = canvasDescarga.getContext("2d");
+
+        if (!contexto) {
+          mostrarNotificacion(
+            "No fue posible preparar el archivo PNG del código QR.",
+            "error"
+          );
+          return;
+        }
+
+        contexto.imageSmoothingEnabled = false;
+        contexto.fillStyle = "#ffffff";
+        contexto.fillRect(0, 0, 512, 512);
+        contexto.drawImage(canvas, 0, 0, 512, 512);
+
+        canvasDescarga.toBlob((blob) => {
           if (!blob) {
             mostrarNotificacion(
               "No fue posible generar el archivo PNG del código QR.",
