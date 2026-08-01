@@ -64,7 +64,15 @@ exports.handler = async function (event) {
     const { storage, bucketName } = crearClienteStorage();
     const bucket = storage.bucket(bucketName);
     const prefijo = `${carpeta}/`;
-    const [objetos] = await bucket.getFiles({ prefix: prefijo });
+    const carpetaAr = `${carpeta}_ar`;
+    const prefijoAr = `${carpetaAr}/`;
+
+    // La contraseña ya fue validada arriba. Desde este punto se consulta
+    // Storage con las mismas credenciales privadas utilizadas por la función.
+    const [[objetos], [objetosAr]] = await Promise.all([
+      bucket.getFiles({ prefix: prefijo }),
+      bucket.getFiles({ prefix: prefijoAr })
+    ]);
 
     const objetosMultimedia = objetos
       .map((archivo) => ({
@@ -122,6 +130,57 @@ exports.handler = async function (event) {
       (item) => item.categoria === "video"
     );
 
+    // En la carpeta *_ar solo interesan imágenes ubicadas directamente
+    // dentro de ella. Se ignoran videos, otros tipos y subcarpetas.
+    const objetosImagenesAr = objetosAr
+      .map((archivo) => ({
+        archivo,
+        categoria: obtenerCategoria(archivo)
+      }))
+      .filter(({ archivo, categoria }) => {
+        const nombreRelativo = archivo.name.slice(prefijoAr.length);
+
+        return Boolean(
+          categoria === "imagen" &&
+          nombreRelativo &&
+          !nombreRelativo.includes("/") &&
+          !archivo.name.endsWith("/")
+        );
+      });
+
+    const imagenesAr = await Promise.all(
+      objetosImagenesAr.map(async ({ archivo }) => {
+        const nombre = archivo.name.slice(prefijoAr.length);
+        const expiracion = Date.now() + 15 * 60 * 1000;
+
+        const [[url], [urlDescarga]] = await Promise.all([
+          archivo.getSignedUrl({
+            version: "v4",
+            action: "read",
+            expires: expiracion
+          }),
+          archivo.getSignedUrl({
+            version: "v4",
+            action: "read",
+            expires: expiracion,
+            promptSaveAs: nombre
+          })
+        ]);
+
+        return {
+          nombre,
+          ruta: archivo.name,
+          tipo:
+            archivo.metadata?.contentType ||
+            inferirContentType(archivo.name, "imagen"),
+          categoria: "imagen",
+          tamanoBytes: obtenerNumeroSeguro(archivo.metadata?.size),
+          url,
+          urlDescarga
+        };
+      })
+    );
+
     return responder(200, {
       carpeta,
       cantidad: archivos.length,
@@ -129,7 +188,11 @@ exports.handler = async function (event) {
       cantidadVideos: videos.length,
       archivos,
       imagenes,
-      videos
+      videos,
+      carpetaAr,
+      cantidadImagenesAr: imagenesAr.length,
+      tieneImagenesAr: imagenesAr.length > 0,
+      imagenesAr
     });
   } catch (error) {
     console.error(
