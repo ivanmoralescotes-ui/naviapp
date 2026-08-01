@@ -1008,6 +1008,8 @@
 	<br>
   </main>
 
+  <!-- Convierte HEIC/HEIF seleccionados localmente a JPEG antes de subirlos. -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
@@ -1973,22 +1975,126 @@
         elements.saveButton.disabled = guardarDeshabilitado;
       }
 
-      function manejarSeleccionArchivos(event) {
+      async function manejarSeleccionArchivos(event) {
         const input = event.currentTarget;
         const seleccionados = Array.from(input.files || []);
+        input.value = "";
 
         if (seleccionados.length === 0) {
           return;
         }
 
-        agregarArchivos(seleccionados);
-        input.value = "";
+        input.disabled = true;
+
+        try {
+          const { archivos, errores, convertidos } =
+            await prepararArchivosSeleccionados(seleccionados);
+
+          agregarArchivos(archivos, errores);
+
+          if (convertidos > 0 && errores.length === 0) {
+            mostrarNotificacion(
+              `${convertidos} imagen(es) HEIC/HEIF convertida(s) automáticamente a JPEG.`,
+              "success"
+            );
+          }
+        } finally {
+          input.disabled = state.procesando;
+        }
       }
 
-      function agregarArchivos(archivos) {
+      async function prepararArchivosSeleccionados(archivosOriginales) {
+        const archivos = [];
+        const errores = [];
+        let convertidos = 0;
+
+        for (const archivoOriginal of archivosOriginales) {
+          if (!esArchivoHeicHeif(archivoOriginal)) {
+            archivos.push(archivoOriginal);
+            continue;
+          }
+
+          try {
+            const archivoJpeg = await convertirHeicHeifAJpeg(archivoOriginal);
+            archivos.push(archivoJpeg);
+            convertidos += 1;
+          } catch (error) {
+            console.error(
+              `No fue posible convertir ${archivoOriginal.name}:`,
+              error
+            );
+            errores.push(
+              `${archivoOriginal.name}: no fue posible convertir la imagen HEIC/HEIF a JPEG.`
+            );
+          }
+        }
+
+        return { archivos, errores, convertidos };
+      }
+
+      function esArchivoHeicHeif(archivo) {
+        if (!(archivo instanceof File)) {
+          return false;
+        }
+
+        const tipoMime = String(archivo.type || "").toLowerCase();
+        const nombre = String(archivo.name || "").toLowerCase();
+
+        return (
+          tipoMime === "image/heic" ||
+          tipoMime === "image/heif" ||
+          tipoMime === "image/heic-sequence" ||
+          tipoMime === "image/heif-sequence" ||
+          nombre.endsWith(".heic") ||
+          nombre.endsWith(".heif")
+        );
+      }
+
+      async function convertirHeicHeifAJpeg(archivo) {
+        if (typeof window.heic2any !== "function") {
+          throw new Error("La librería heic2any no está disponible.");
+        }
+
+        const resultado = await window.heic2any({
+          blob: archivo,
+          toType: "image/jpeg",
+          quality: 0.92
+        });
+
+        const blobJpeg = Array.isArray(resultado)
+          ? resultado[0]
+          : resultado;
+
+        if (!(blobJpeg instanceof Blob)) {
+          throw new Error("La conversión HEIC/HEIF no devolvió una imagen válida.");
+        }
+
+        const nombreJpeg = cambiarExtensionAJpg(archivo.name);
+
+        return new File(
+          [blobJpeg],
+          nombreJpeg,
+          {
+            type: "image/jpeg",
+            lastModified: archivo.lastModified || Date.now()
+          }
+        );
+      }
+
+      function cambiarExtensionAJpg(nombreOriginal) {
+        const nombre = String(nombreOriginal || "imagen").trim() || "imagen";
+
+        if (/\.(heic|heif)$/i.test(nombre)) {
+          return nombre.replace(/\.(heic|heif)$/i, ".jpg");
+        }
+
+        return `${nombre}.jpg`;
+      }
+
+      function agregarArchivos(archivos, erroresPrevios = []) {
         let cantidadImagenes = contarTipo("imagen");
         let cantidadVideos = contarTipo("video");
-        const rechazos = [];
+        const rechazos = [...erroresPrevios];
 
         for (const archivo of archivos) {
           const tipo = clasificarArchivo(archivo);
@@ -2039,17 +2145,25 @@
 
         if (rechazos.length > 0) {
           mostrarNotificacion(rechazos.join(" "), "warning");
-        } else {
+        } else if (archivos.length > 0) {
           mostrarNotificacion("Archivos agregados correctamente.", "success");
         }
       }
 
       function clasificarArchivo(archivo) {
-        if (archivo.type.startsWith("image/")) {
+        const tipoMime = String(archivo?.type || "").toLowerCase();
+        const nombre = String(archivo?.name || "").toLowerCase();
+
+        if (tipoMime.startsWith("image/")) {
           return "imagen";
         }
 
-        if (archivo.type.startsWith("video/")) {
+        // Algunos navegadores entregan ciertos archivos con MIME vacío.
+        if (/\.(jpg|jpeg|png|gif|webp|avif|bmp|svg)$/i.test(nombre)) {
+          return "imagen";
+        }
+
+        if (tipoMime.startsWith("video/")) {
           return "video";
         }
 
