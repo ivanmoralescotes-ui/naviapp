@@ -715,31 +715,25 @@
     .ar-images-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 14px;
+      gap: 10px;
     }
 
     .ar-image-card {
-      overflow: hidden;
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       background: var(--surface);
     }
 
-    .ar-image-preview {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      display: block;
-      object-fit: contain;
-      background: #eef2f7;
-    }
-
     .ar-image-info {
-      display: grid;
-      gap: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       padding: 12px;
     }
 
     .ar-image-name {
+      min-width: 0;
       margin: 0;
       overflow-wrap: anywhere;
       font-size: 0.88rem;
@@ -748,6 +742,7 @@
     }
 
     .ar-download-button {
+      flex: 0 0 auto;
       min-height: 42px;
       padding: 9px 12px;
       border: 1px solid #b9cdfd;
@@ -767,9 +762,14 @@
       outline-offset: 2px;
     }
 
-    @media (min-width: 560px) {
-      .ar-images-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 420px) {
+      .ar-image-info {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .ar-download-button {
+        width: 100%;
       }
     }
 
@@ -1352,12 +1352,6 @@
           const tarjeta = document.createElement("article");
           tarjeta.className = "ar-image-card";
 
-          const imagen = document.createElement("img");
-          imagen.className = "ar-image-preview";
-          imagen.src = item.url;
-          imagen.alt = `Vista previa de ${item.nombre}`;
-          imagen.loading = "lazy";
-
           const info = document.createElement("div");
           info.className = "ar-image-info";
 
@@ -1376,7 +1370,7 @@
           descargar.addEventListener("click", () => descargarImagenAr(item));
 
           info.append(nombre, descargar);
-          tarjeta.append(imagen, info);
+          tarjeta.append(info);
           elements.arImagesGrid.append(tarjeta);
         });
       }
