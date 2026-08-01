@@ -1106,8 +1106,12 @@
         }
 
         const canvasDescarga = document.createElement("canvas");
-        canvasDescarga.width = 512;
-        canvasDescarga.height = 512;
+        const tamanoSalida = 512;
+        const margenBlanco = 20; // quiet zone extra para mejorar la lectura sobre fondos oscuros
+        const tamanoQr = tamanoSalida - (margenBlanco * 2);
+
+        canvasDescarga.width = tamanoSalida;
+        canvasDescarga.height = tamanoSalida;
 
         const contexto = canvasDescarga.getContext("2d");
 
@@ -1121,8 +1125,8 @@
 
         contexto.imageSmoothingEnabled = false;
         contexto.fillStyle = "#ffffff";
-        contexto.fillRect(0, 0, 512, 512);
-        contexto.drawImage(canvas, 0, 0, 512, 512);
+        contexto.fillRect(0, 0, tamanoSalida, tamanoSalida);
+        contexto.drawImage(canvas, margenBlanco, margenBlanco, tamanoQr, tamanoQr);
 
         canvasDescarga.toBlob((blob) => {
           if (!blob) {
