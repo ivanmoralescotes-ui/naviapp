@@ -37,7 +37,7 @@ body {
   overflow: hidden;
 }
 
-    #slide-img, #slide-video {
+    #slide-img, #slide-img-buffer, #slide-video {
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -105,7 +105,7 @@ body {
       line-height: 1.5;
     }
 
-    #slide-img.show, #slide-video.show, #slide-html.show { opacity: 1; }
+    #slide-img.show, #slide-img-buffer.show, #slide-video.show, #slide-html.show { opacity: 1; }
 
 
 
@@ -141,8 +141,8 @@ body {
     }
 
     /* Clave: lo oculto NO captura clics */
-    #slide-img, #slide-video, #slide-html { pointer-events: none; }
-    #slide-img.show, #slide-video.show, #slide-html.show { pointer-events: auto; }
+    #slide-img, #slide-img-buffer, #slide-video, #slide-html { pointer-events: none; }
+    #slide-img.show, #slide-img-buffer.show, #slide-video.show, #slide-html.show { pointer-events: auto; }
 
     /* ====== NUEVO: controles next/prev ====== */
     .nav-btn {
@@ -278,7 +278,9 @@ body {
     </div>
 
     <img id="slide-img" src="" alt="Imagen" 
-	    referrerpolicy="no-referrer" loading="eager" decoding="async" />  
+	    referrerpolicy="no-referrer" loading="eager" decoding="async" />
+    <img id="slide-img-buffer" src="" alt="Imagen"
+        referrerpolicy="no-referrer" loading="eager" decoding="async" />
 
     <!--	
 	<video id="slide-video" controls poster="https://i.imgur.com/mHZ0PKD.jpg" playsinline>-->
@@ -378,7 +380,6 @@ body {
 
 		  currentIndex = 0;
 		  showSlide(currentIndex, false);
-		  startSlideshow();
 	  } catch (e) {
 		  console.error("Error en initSlideshow:", e);
           showMessage("Error cargando datos");
@@ -429,12 +430,15 @@ body {
 	  authValidated = true;
 	  authFailed = false;
 	  preloadedVideoElements = [];
+	  imageLoadPromises = new Map();
+	  slideRenderToken += 1;
 	  storageSlidesLoaded = false;
 	  storageSlidesPromise = null;
 	  loadingOverlay.textContent = "Loading...";
 	  loadingOverlay.classList.remove("hide");
 	  resetAuthUI();
 	  hideAllSlides();
+	  activeImageElement = imgElement;
 	}
 
 	async function initSlideshowOnce() {
@@ -463,10 +467,6 @@ body {
 
 		currentIndex = 0;
 		showSlide(currentIndex, false);
-
-		if (!authRequired || authValidated) {
-		  startSlideshow();
-		}
 	  })().catch((e) => {
 		console.error("Error en initSlideshow:", e);
 		showMessage("Error cargando datos");
@@ -505,6 +505,8 @@ async function delayedTask() {
     ];
 
     const imgElement   = document.getElementById("slide-img");
+    const imgBufferElement = document.getElementById("slide-img-buffer");
+    let activeImageElement = imgElement;
     const videoElement = document.getElementById("slide-video");
 
     const videoSource  = videoElement.querySelector("source");
@@ -537,6 +539,8 @@ async function delayedTask() {
     let authValidated = true;
     let authFailed = false;
     let preloadedVideoElements = [];
+    let imageLoadPromises = new Map();
+    let slideRenderToken = 0;
     let storageSlidesLoaded = false;
     let storageSlidesPromise = null;
 
@@ -574,8 +578,7 @@ async function delayedTask() {
       videoElement.currentTime = 0;
 
       nextSlide(true);
-      // reinicia el timer para que no cambie de inmediato después del click
-      startSlideshow();
+      // showSlide reinicia el temporizador solamente cuando el nuevo slide ya está listo.
     }
 
     function goPrevManual() {
@@ -586,7 +589,7 @@ async function delayedTask() {
       videoElement.currentTime = 0;
 
       prevSlide(true);
-      startSlideshow();
+      // showSlide reinicia el temporizador solamente cuando el nuevo slide ya está listo.
     }
 
     btnNext.addEventListener("click", goNextManual);
@@ -606,7 +609,6 @@ async function delayedTask() {
 
     // Reanuda y pasa al siguiente slide cuando termina el video
     videoElement.addEventListener("ended", () => {
-      startSlideshow();
       nextSlide(false);
     });
 
@@ -617,6 +619,7 @@ async function delayedTask() {
 
     function hideAllSlides() {
       imgElement.classList.remove("show");
+      imgBufferElement.classList.remove("show");
       htmlElement.classList.remove("show");
       videoElement.classList.remove("show");
       videoElement.pause();
@@ -854,25 +857,79 @@ async function delayedTask() {
       return "";
     }
 
+    function cargarImagenEnCache(url) {
+      if (!url) {
+        return Promise.reject(new Error("La imagen no tiene una URL válida."));
+      }
+
+      if (imageLoadPromises.has(url)) {
+        return imageLoadPromises.get(url);
+      }
+
+      const promesa = new Promise((resolve, reject) => {
+        const preloadImg = new Image();
+        preloadImg.referrerPolicy = "no-referrer";
+        preloadImg.decoding = "async";
+
+        preloadImg.onload = async () => {
+          try {
+            if (typeof preloadImg.decode === "function") {
+              await preloadImg.decode();
+            }
+          } catch (error) {
+            // La descarga terminó; algunos navegadores pueden rechazar decode().
+            console.debug("decode() no estuvo disponible para:", url, error);
+          }
+
+          preloadImg.onload = null;
+          preloadImg.onerror = null;
+          resolve(true);
+        };
+
+        preloadImg.onerror = () => {
+          imageLoadPromises.delete(url);
+          reject(new Error("No se pudo cargar la imagen."));
+        };
+
+        preloadImg.src = url;
+      });
+
+      imageLoadPromises.set(url, promesa);
+      return promesa;
+    }
+
+    function precargarSiguienteImagen(desdeIndex) {
+      if (!slides.length) return;
+
+      for (let salto = 1; salto <= slides.length; salto += 1) {
+        const indice = (desdeIndex + salto + slides.length) % slides.length;
+        const siguiente = slides[indice];
+
+        if (siguiente?.type === "image" && siguiente.file) {
+          void cargarImagenEnCache(siguiente.file).catch((error) => {
+            console.debug("No fue posible precargar la próxima imagen:", error);
+          });
+          break;
+        }
+      }
+    }
+
     function preloadSlides() {
       preloadedVideoElements = [];
 
-      for (const slide of slides) {
-        if (!slide || !slide.file) continue;
+      // Con imágenes muy pesadas no conviene iniciar todas las descargas a la vez.
+      // Preparamos la próxima imagen y después cada slide prepara la siguiente.
+      precargarSiguienteImagen(-1);
 
-        if (slide.type === "image") {
-          const preloadImg = new Image();
-          preloadImg.referrerPolicy = "no-referrer";
-          preloadImg.decoding = "async";
-          preloadImg.src = slide.file;
-        } else if (slide.type === "video") {
-          const preloadVideo = document.createElement("video");
-          preloadVideo.preload = "auto";
-          preloadVideo.muted = true;
-          preloadVideo.playsInline = true;
-          preloadVideo.src = slide.file;
-          preloadedVideoElements.push(preloadVideo);
-        }
+      for (const slide of slides) {
+        if (!slide || !slide.file || slide.type !== "video") continue;
+
+        const preloadVideo = document.createElement("video");
+        preloadVideo.preload = "auto";
+        preloadVideo.muted = true;
+        preloadVideo.playsInline = true;
+        preloadVideo.src = slide.file;
+        preloadedVideoElements.push(preloadVideo);
       }
     }
 
@@ -1103,61 +1160,114 @@ async function delayedTask() {
 	}
 
     // ----------------- Mostrar slides -----------------
-    function showSlide(index, isManual) {
+    async function showSlide(index, isManual) {
       if (!slides.length) {
         showMessage("No hay slides configurados..");
         return;
       }
 
       const slide = slides[index];
+      const renderToken = ++slideRenderToken;
 
-      // Oculta todo (fade-out)
-      imgElement.classList.remove("show");
-      htmlElement.classList.remove("show");
-      videoElement.classList.remove("show");
+      // El tiempo del slide empieza cuando el contenido YA está visible.
+      // Si una imagen pesa mucho, el slide anterior permanece visible mientras carga.
+      stopSlideshow();
 
-      // Detén y resetea video al cambiar de slide
-      videoElement.pause();
-      videoElement.currentTime = 0;
+      if (slide.type === "image") {
+        try {
+          await cargarImagenEnCache(slide.file);
 
-      // Si NO es video, asegúrate de que el slideshow esté corriendo
-      //if (slide.type !== "video") startSlideshow();
+          if (renderToken !== slideRenderToken || currentIndex !== index) {
+            return;
+          }
 
-      setTimeout(() => {
-        if (slide.type === "image") {
-          //console.log("it is image");
+          // Dos capas de imagen: la nueva se prepara detrás de la actual.
+          // La anterior no se oculta hasta que la nueva terminó de cargar y decodificar.
+          const nextImageElement = activeImageElement === imgElement
+            ? imgBufferElement
+            : imgElement;
 
-          imgElement.onload = () => {
-            imgElement.classList.add("show");
-            if (!firstSlideLoaded) {
-              loadingOverlay.classList.add("hide");
-              firstSlideLoaded = true;
+          nextImageElement.classList.remove("show");
+          nextImageElement.onerror = null;
+          nextImageElement.src = slide.file;
+          nextImageElement.alt = slide.nombre || slide.file;
+
+          try {
+            if (typeof nextImageElement.decode === "function") {
+              await nextImageElement.decode();
             }
-          };
-          imgElement.src = slide.file;
-          imgElement.alt = slide.file;
-		  imgElement.onerror = () => {
-			console.log("Falla con imagen:", slide.file);
-			showMessage("No se pudo cargar una imagen.");
-		  };
+          } catch (error) {
+            console.debug("La imagen cargó, pero decode() no terminó:", error);
+          }
 
-        } else if (slide.type === "video") {
+          if (renderToken !== slideRenderToken || currentIndex !== index) {
+            return;
+          }
+
+          videoElement.pause();
+          videoElement.currentTime = 0;
+          htmlElement.classList.remove("show");
+          videoElement.classList.remove("show");
+
+          nextImageElement.classList.add("show");
+          activeImageElement.classList.remove("show");
+          activeImageElement = nextImageElement;
+
+          if (!firstSlideLoaded) {
+            loadingOverlay.classList.add("hide");
+            firstSlideLoaded = true;
+          }
+
+          precargarSiguienteImagen(index);
+          startSlideshow();
+        } catch (error) {
+          if (renderToken !== slideRenderToken || currentIndex !== index) {
+            return;
+          }
+
+          console.log("Falla con imagen:", slide.file, error);
+          showMessage("No se pudo cargar una imagen.");
+
+          // Si falla una foto, dejamos el slide anterior visible en vez de mostrar negro.
+          startSlideshow();
+        }
+        return;
+      }
+
+      // Para HTML y video se conserva el retardo de transición existente.
+      // El contenido anterior no se oculta hasta que el nuevo pueda mostrarse.
+      setTimeout(() => {
+        if (renderToken !== slideRenderToken || currentIndex !== index) {
+          return;
+        }
+
+        if (slide.type === "video") {
           console.log("it is video");
 
           videoElement.addEventListener("loadeddata", () => {
+            if (renderToken !== slideRenderToken || currentIndex !== index) {
+              return;
+            }
+
+            imgElement.classList.remove("show");
+            imgBufferElement.classList.remove("show");
+            htmlElement.classList.remove("show");
             videoElement.classList.add("show");
+
             if (!firstSlideLoaded) {
               loadingOverlay.classList.add("hide");
               firstSlideLoaded = true;
             }
+
+            precargarSiguienteImagen(index);
+            startSlideshow();
           }, { once: true });
 
-          //videoSource.src = slide.file;
-          //videoElement.load();
-		  setVideoSrc(slide.file);
+          setVideoSrc(slide.file);
+          return;
+        }
 
-
-        } else if (slide.type === "html") {
+        if (slide.type === "html") {
           console.log("it is html");
 
           verseLinkEl.href  = verseLink;
@@ -1165,28 +1275,34 @@ async function delayedTask() {
           verseLinkEl3.href = verseLink3;
           verseLinkEl4.href = verseLink4;
 
-          //quotesEnglish
-
           const quoteNumber = getRandomNumber(0, (quotes.length - 1));
           const versiculoNumber = getRandomNumber(0, (versiculos.length - 1));
 
-		  if (isEnglish == "si"){
-		      console.log("english");
-		      const quoteEnglishNumber = getRandomNumber(0, (quotesEnglish.length - 1));
-			  quoteTextEl.textContent = quotesEnglish[quoteEnglishNumber];              
-	      }else{
-		      quoteTextEl.textContent = quotes[quoteNumber];
-		  }
-		  
-          verseTextEl.textContent = versiculos[versiculoNumber];
+          if (isEnglish == "si") {
+            console.log("english");
+            const quoteEnglishNumber = getRandomNumber(0, (quotesEnglish.length - 1));
+            quoteTextEl.textContent = quotesEnglish[quoteEnglishNumber];
+          } else {
+            quoteTextEl.textContent = quotes[quoteNumber];
+          }
 
+          verseTextEl.textContent = versiculos[versiculoNumber];
           lucknumberTextEl.textContent = lucknumberText + obtenerNumeroAleatorio();
 
+          videoElement.pause();
+          videoElement.currentTime = 0;
+          imgElement.classList.remove("show");
+          imgBufferElement.classList.remove("show");
+          videoElement.classList.remove("show");
           htmlElement.classList.add("show");
+
           if (!firstSlideLoaded) {
             loadingOverlay.classList.add("hide");
             firstSlideLoaded = true;
           }
+
+          precargarSiguienteImagen(index);
+          startSlideshow();
         }
       }, 500);
     }
