@@ -449,7 +449,11 @@ body {
 
 	    const penultima = getPenultima();
 		console.log("starting");
-		await startAll(penultima);
+		const redirigiendo = await startAll(penultima);
+
+		if (redirigiendo) {
+		  return;
+		}
 
 		if (!authRequired) {
 		  await asegurarSlidesStorage("");
@@ -999,11 +1003,12 @@ async function delayedTask() {
 		//console.log("segundosslide:" + segundosslide);
       }
 
-      // window.location.href = rutaImagen
-	  if (props.linkdirecto != null && props.linkdirecto != "") {
+      // Redirección directa: si existe linkdirecto, no continuar cargando el slideshow
+	  if (props.linkdirecto != null && String(props.linkdirecto).trim() != "") {
         console.log("direct:" + props.linkdirecto);
-		window.location.href = props.linkdirecto;
-		
+
+        window.location.replace(String(props.linkdirecto).trim());
+        return true;
       }	
 	  
 	  // ... (aquí dejas tu bloque de images tal cual)
@@ -1098,6 +1103,8 @@ async function delayedTask() {
 	     verseLinkEl4.innerHTML = "Ad"; 
 	  
 	  } 
+
+	  return false;
 	}
 	 
     
