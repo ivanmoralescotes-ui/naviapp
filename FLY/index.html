@@ -449,11 +449,7 @@ body {
 
 	    const penultima = getPenultima();
 		console.log("starting");
-		const redirigiendo = await startAll(penultima);
-
-		if (redirigiendo) {
-		  return;
-		}
+		await startAll(penultima);
 
 		if (!authRequired) {
 		  await asegurarSlidesStorage("");
@@ -1003,12 +999,11 @@ async function delayedTask() {
 		//console.log("segundosslide:" + segundosslide);
       }
 
-      // Redirección directa: si existe linkdirecto, no continuar cargando el slideshow
-	  if (props.linkdirecto != null && String(props.linkdirecto).trim() != "") {
+      // window.location.href = rutaImagen
+	  if (props.linkdirecto != null && props.linkdirecto != "") {
         console.log("direct:" + props.linkdirecto);
-
-        window.location.replace(String(props.linkdirecto).trim());
-        return true;
+		window.location.href = props.linkdirecto;
+		
       }	
 	  
 	  // ... (aquí dejas tu bloque de images tal cual)
@@ -1076,7 +1071,8 @@ async function delayedTask() {
 	  
 	  if (thespotify != "" && thespotify != "no") { 
 	     verseLinkEl.style.display = "block"; 
-	     verseLink = "https://open.spotify.com/playlist/" + thespotify; 
+	     verseLink = thespotify; // "https://open.spotify.com/playlist/" + 
+		        
 	  } else { verseLinkEl.style.display = "none"; } 
 	  
 	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
@@ -1103,8 +1099,6 @@ async function delayedTask() {
 	     verseLinkEl4.innerHTML = "Ad"; 
 	  
 	  } 
-
-	  return false;
 	}
 	 
     

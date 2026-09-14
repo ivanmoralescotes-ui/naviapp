@@ -1071,7 +1071,8 @@ async function delayedTask() {
 	  
 	  if (thespotify != "" && thespotify != "no") { 
 	     verseLinkEl.style.display = "block"; 
-	     verseLink = "https://open.spotify.com/playlist/" + thespotify; 
+	     verseLink = thespotify; // "https://open.spotify.com/playlist/" + 
+		        
 	  } else { verseLinkEl.style.display = "none"; } 
 	  
 	  if (thewords != "" && thewords != "no") { yourwords.style.display = "block"; 
