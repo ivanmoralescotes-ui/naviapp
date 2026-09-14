@@ -507,6 +507,60 @@
       }
     }
 
+    .secondary-options {
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-soft);
+    }
+
+    .secondary-options summary {
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 14px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 750;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .secondary-options summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .secondary-options summary::after {
+      content: "+";
+      flex: 0 0 auto;
+      color: var(--primary-dark);
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .secondary-options[open] summary::after {
+      content: "−";
+    }
+
+    .secondary-options summary:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .secondary-options-body {
+      padding: 2px 14px 14px;
+      border-top: 1px solid rgba(216, 224, 234, 0.72);
+    }
+
+    .secondary-options-body .field {
+      margin-top: 12px;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -957,6 +1011,29 @@
           <p class="card-description">Revisa la información antes de actualizar la configuración.</p>
         </div>-->
 
+        <details class="secondary-options">
+          <summary>Opciones adicionales</summary>
+          <div class="secondary-options-body">
+            <div class="field">
+              <label for="spotify">
+                Spotify <span class="optional">(opcional)</span>
+              </label>
+              <input
+                id="spotify"
+                name="spotify"
+                type="text"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Enlace o ID de playlist"
+                aria-describedby="spotifyHelp"
+              >
+              <p id="spotifyHelp" class="help-text">
+                Opcional.
+              </p>
+            </div>
+          </div>
+        </details>
+
         <button
           id="saveButton"
           class="button button-primary"
@@ -1015,6 +1092,8 @@
     (() => {
       "use strict";
 
+      const firestoreHelpersPromise = import("../js/functionss.js");
+
       const MAX_IMAGES = 20;
       const MAX_VIDEOS = 2;
       const SIMULATED_DELAY_MS = 650;
@@ -1023,6 +1102,7 @@
         identificador: obtenerIdentificador(),
         archivos: [],
         imagenesAr: [],
+        spotifyOriginal: "",
         procesando: false,
         consultaExitosa: false
       };
@@ -1045,6 +1125,7 @@
         configurationPassword: document.getElementById("configurationPassword"),
         configurationPasswordError: document.getElementById("configurationPasswordError"),
         viewPassword: document.getElementById("viewPassword"),
+        spotify: document.getElementById("spotify"),
         consultButton: document.getElementById("consultButton"),
         changePasswordLink: document.getElementById("changePasswordLink"),
         saveButtonTop: document.getElementById("saveButtonTop"),
@@ -1620,6 +1701,7 @@
             elements.configurationPassword.value
           );
 
+          await cargarSpotifyActual(carpeta);
           cargarArchivosConsultados(archivosConsultados);
           state.consultaExitosa = true;
           actualizarBotonAr();
@@ -1765,6 +1847,7 @@
           const carpeta = decodificarIdentificador(state.identificador);
           const passwordConfiguracion = elements.configurationPassword.value;
           const passwordVisualizacion = elements.viewPassword.value;
+          const spotify = elements.spotify.value.trim();
 
           const preparacion = await solicitarPreparacionSubidas({
             carpeta,
@@ -1815,13 +1898,31 @@
             ordenArchivosStorage
           });
 
+          let spotifyGuardado = true;
+          if (spotify !== state.spotifyOriginal) {
+            try {
+              await guardarSpotify(carpeta, spotify);
+              state.spotifyOriginal = spotify;
+            } catch (errorSpotify) {
+              spotifyGuardado = false;
+              console.error("No fue posible guardar Spotify:", errorSpotify);
+            }
+          }
+
           const archivosActualizados = await consultarArchivos(
             carpeta,
             passwordConfiguracion
           );
           cargarArchivosConsultados(archivosActualizados);
 
-          mostrarNotificacion("Datos guardados", "success");
+          if (spotifyGuardado) {
+            mostrarNotificacion("Datos guardados", "success");
+          } else {
+            mostrarNotificacion(
+              "Los datos principales se guardaron, pero no fue posible actualizar Spotify.",
+              "warning"
+            );
+          }
         } catch (error) {
           console.error(error);
           mostrarNotificacion(
@@ -1896,6 +1997,56 @@
             ordenArchivosStorage
           })
         });
+      }
+
+      async function cargarSpotifyActual(carpeta) {
+        try {
+          const { consultarPorId } = await firestoreHelpersPromise;
+          const props = await consultarPorId(`prop${carpeta}`);
+          const valor = props?.spotify;
+          const spotifyActual =
+            typeof valor === "string" && valor !== "no" ? valor : "";
+
+          elements.spotify.value = spotifyActual;
+          state.spotifyOriginal = spotifyActual.trim();
+        } catch (error) {
+          console.warn("No fue posible cargar Spotify:", error);
+          elements.spotify.value = "";
+          state.spotifyOriginal = "";
+        }
+      }
+
+      async function guardarSpotify(carpeta, spotify) {
+        const { consultarPorId, upsertConId } = await firestoreHelpersPromise;
+        const idDocumento = `prop${carpeta}`;
+        const props = await consultarPorId(idDocumento);
+
+        if (!props) {
+          throw new Error("No fue posible consultar la configuración de Spotify.");
+        }
+
+        await upsertConId(
+          idDocumento,
+          props.nombre ?? "",
+          props.whatsapp ?? "",
+          props.instagram ?? "",
+          props.tipoIa ?? "",
+          props.lastupdate ?? new Date(),
+          props.isEnglish ?? props.esingles ?? "no",
+          props.segundosslide ?? "8",
+          props.palabras ?? "",
+          props.clave ?? "",
+          props.akey ?? "",
+          props.versiculo ?? "no",
+          props.motivacional ?? "no",
+          props.numerosuerte ?? "no",
+          spotify,
+          props.linkpublicidad ?? "",
+          props.nombrepublicidad ?? "",
+          Array.isArray(props.images) ? props.images : [],
+          props.linkdirecto ?? "",
+          props.claveLectura ?? ""
+        );
       }
 
       async function solicitarJson(url, opciones = {}) {
