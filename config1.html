@@ -1031,6 +1031,40 @@
                 Opcional.
               </p>
             </div>
+
+            <div class="field">
+              <label for="linkpublicidad">
+                Enlace adicional <span class="optional">(opcional)</span>
+              </label>
+              <input
+                id="linkpublicidad"
+                name="linkpublicidad"
+                type="text"
+                autocomplete="off"
+                placeholder="https://..."
+                aria-describedby="linkpublicidadHelp"
+              >
+              <!--<p id="linkpublicidadHelp" class="help-text">
+                Enlace que aparecerá como una opción adicional en la página del QR.
+              </p>-->
+            </div>
+
+            <div class="field">
+              <label for="nombrepublicidad">
+                Texto del enlace <span class="optional">(opcional)</span>
+              </label>
+              <input
+                id="nombrepublicidad"
+                name="nombrepublicidad"
+                type="text"
+                autocomplete="off"
+                placeholder="Ej. Reservar"
+                aria-describedby="nombrepublicidadHelp"
+              >
+              <p id="nombrepublicidadHelp" class="help-text">
+                Texto que verá la persona para abrir el enlace adicional.
+              </p>
+            </div>
           </div>
         </details>
 
@@ -1103,6 +1137,8 @@
         archivos: [],
         imagenesAr: [],
         spotifyOriginal: "",
+        linkpublicidadOriginal: "",
+        nombrepublicidadOriginal: "",
         procesando: false,
         consultaExitosa: false
       };
@@ -1126,6 +1162,8 @@
         configurationPasswordError: document.getElementById("configurationPasswordError"),
         viewPassword: document.getElementById("viewPassword"),
         spotify: document.getElementById("spotify"),
+        linkpublicidad: document.getElementById("linkpublicidad"),
+        nombrepublicidad: document.getElementById("nombrepublicidad"),
         consultButton: document.getElementById("consultButton"),
         changePasswordLink: document.getElementById("changePasswordLink"),
         saveButtonTop: document.getElementById("saveButtonTop"),
@@ -1701,7 +1739,7 @@
             elements.configurationPassword.value
           );
 
-          await cargarSpotifyActual(carpeta);
+          await cargarOpcionesAdicionalesActuales(carpeta);
           cargarArchivosConsultados(archivosConsultados);
           state.consultaExitosa = true;
           actualizarBotonAr();
@@ -1848,6 +1886,8 @@
           const passwordConfiguracion = elements.configurationPassword.value;
           const passwordVisualizacion = elements.viewPassword.value;
           const spotify = elements.spotify.value.trim();
+          const linkpublicidad = elements.linkpublicidad.value.trim();
+          const nombrepublicidad = elements.nombrepublicidad.value.trim();
 
           const preparacion = await solicitarPreparacionSubidas({
             carpeta,
@@ -1898,14 +1938,29 @@
             ordenArchivosStorage
           });
 
-          let spotifyGuardado = true;
-          if (spotify !== state.spotifyOriginal) {
+          let opcionesAdicionalesGuardadas = true;
+          const cambiaronOpcionesAdicionales =
+            spotify !== state.spotifyOriginal ||
+            linkpublicidad !== state.linkpublicidadOriginal ||
+            nombrepublicidad !== state.nombrepublicidadOriginal;
+
+          if (cambiaronOpcionesAdicionales) {
             try {
-              await guardarSpotify(carpeta, spotify);
+              await guardarOpcionesAdicionales(
+                carpeta,
+                spotify,
+                linkpublicidad,
+                nombrepublicidad
+              );
               state.spotifyOriginal = spotify;
-            } catch (errorSpotify) {
-              spotifyGuardado = false;
-              console.error("No fue posible guardar Spotify:", errorSpotify);
+              state.linkpublicidadOriginal = linkpublicidad;
+              state.nombrepublicidadOriginal = nombrepublicidad;
+            } catch (errorOpciones) {
+              opcionesAdicionalesGuardadas = false;
+              console.error(
+                "No fue posible guardar las opciones adicionales:",
+                errorOpciones
+              );
             }
           }
 
@@ -1915,11 +1970,11 @@
           );
           cargarArchivosConsultados(archivosActualizados);
 
-          if (spotifyGuardado) {
+          if (opcionesAdicionalesGuardadas) {
             mostrarNotificacion("Datos guardados", "success");
           } else {
             mostrarNotificacion(
-              "Los datos principales se guardaron, pero no fue posible actualizar Spotify.",
+              "Los datos principales se guardaron, pero no fue posible actualizar las opciones adicionales.",
               "warning"
             );
           }
@@ -1999,30 +2054,49 @@
         });
       }
 
-      async function cargarSpotifyActual(carpeta) {
+      function normalizarOpcionAdicional(valor) {
+        return typeof valor === "string" && valor !== "no" ? valor : "";
+      }
+
+      async function cargarOpcionesAdicionalesActuales(carpeta) {
         try {
           const { consultarPorId } = await firestoreHelpersPromise;
           const props = await consultarPorId(`prop${carpeta}`);
-          const valor = props?.spotify;
-          const spotifyActual =
-            typeof valor === "string" && valor !== "no" ? valor : "";
+
+          const spotifyActual = normalizarOpcionAdicional(props?.spotify);
+          const linkpublicidadActual = normalizarOpcionAdicional(props?.linkpublicidad);
+          const nombrepublicidadActual = normalizarOpcionAdicional(props?.nombrepublicidad);
 
           elements.spotify.value = spotifyActual;
+          elements.linkpublicidad.value = linkpublicidadActual;
+          elements.nombrepublicidad.value = nombrepublicidadActual;
+
           state.spotifyOriginal = spotifyActual.trim();
+          state.linkpublicidadOriginal = linkpublicidadActual.trim();
+          state.nombrepublicidadOriginal = nombrepublicidadActual.trim();
         } catch (error) {
-          console.warn("No fue posible cargar Spotify:", error);
+          console.warn("No fue posible cargar las opciones adicionales:", error);
           elements.spotify.value = "";
+          elements.linkpublicidad.value = "";
+          elements.nombrepublicidad.value = "";
           state.spotifyOriginal = "";
+          state.linkpublicidadOriginal = "";
+          state.nombrepublicidadOriginal = "";
         }
       }
 
-      async function guardarSpotify(carpeta, spotify) {
+      async function guardarOpcionesAdicionales(
+        carpeta,
+        spotify,
+        linkpublicidad,
+        nombrepublicidad
+      ) {
         const { consultarPorId, upsertConId } = await firestoreHelpersPromise;
         const idDocumento = `prop${carpeta}`;
         const props = await consultarPorId(idDocumento);
 
         if (!props) {
-          throw new Error("No fue posible consultar la configuración de Spotify.");
+          throw new Error("No fue posible consultar la configuración adicional.");
         }
 
         await upsertConId(
@@ -2041,8 +2115,8 @@
           props.motivacional ?? "no",
           props.numerosuerte ?? "no",
           spotify,
-          props.linkpublicidad ?? "",
-          props.nombrepublicidad ?? "",
+          linkpublicidad,
+          nombrepublicidad,
           Array.isArray(props.images) ? props.images : [],
           props.linkdirecto ?? "",
           props.claveLectura ?? ""
