@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar URL</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .contenedor {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 550px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    input {
+      width: 120px;
+      padding: 12px;
+      font-size: 22px;
+      text-align: center;
+      text-transform: lowercase;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    #resultado {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-top: 15px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    button {
+      padding: 12px 18px;
+      margin: 8px 4px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .generar {
+      background: #222;
+      color: white;
+    }
+
+    .copiar {
+      background: #e5e5e5;
+    }
+
+    .ir {
+      background: #007bff;
+      color: white;
+    }
+
+    #mensaje {
+      margin-top: 8px;
+      font-size: 14px;
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <h2>Generar URL</h2>
+
+  <p>Ingresa las 3 letras:</p>
+
+  <input
+    type="text"
+    id="codigo"
+    maxlength="3"
+    placeholder="end"
+    autocomplete="off"
+  >
+
+  <br>
+
+  <button class="generar" onclick="generarURL()">
+    Generar
+  </button>
+
+  <input
+    type="text"
+    id="resultado"
+    readonly
+    placeholder="Aquí aparecerá la URL"
+  >
+
+  <br>
+
+  <button class="copiar" onclick="copiarURL()">
+    Copiar URL
+  </button>
+
+  <button class="ir" onclick="irURL()">
+    Ir a la URL
+  </button>
+
+  <div id="mensaje"></div>
+
+</div>
+
+
+<script>
+
+  function generarURL() {
+
+    let codigo = document.getElementById("codigo").value
+      .trim()
+      .toLowerCase();
+
+    if (codigo.length !== 3) {
+      alert("Debes ingresar exactamente 3 letras.");
+      return;
+    }
+
+    const base64 = btoa(codigo);
+
+    const codigoFinal = "ccW" + base64 + "i";
+
+    const url =
+      "https://navi111.netlify.app/config1?codigo=" +
+      codigoFinal;
+
+    document.getElementById("resultado").value = url;
+
+    document.getElementById("mensaje").innerText = "";
+  }
+
+
+  function copiarURL() {
+
+    const resultado = document.getElementById("resultado");
+
+    if (!resultado.value) {
+      generarURL();
+
+      if (!resultado.value) return;
+    }
+
+    navigator.clipboard.writeText(resultado.value);
+
+    document.getElementById("mensaje").innerText =
+      "URL copiada";
+  }
+
+
+  function irURL() {
+
+    const resultado = document.getElementById("resultado");
+
+    if (!resultado.value) {
+      generarURL();
+
+      if (!resultado.value) return;
+    }
+
+    window.location.href = resultado.value;
+  }
+
+
+  // Permite generar presionando Enter
+  document.getElementById("codigo").addEventListener(
+    "keydown",
+    function(event) {
+
+      if (event.key === "Enter") {
+        generarURL();
+      }
+
+    }
+  );
+
+</script>
+
+</body>
+</html>
