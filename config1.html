@@ -1065,6 +1065,23 @@
                 Texto que verá la persona para abrir el enlace adicional.
               </p>
             </div>
+
+            <div class="field">
+              <label for="linkdirecto">
+                Redirección <span class="optional">(opcional)</span>
+              </label>
+              <input
+                id="linkdirecto"
+                name="linkdirecto"
+                type="text"
+                autocomplete="off"
+                placeholder="https://..."
+                aria-describedby="linkdirectoHelp"
+              >
+              <p id="linkdirectoHelp" class="help-text">
+                Si se define, el QR enviará directamente a esta dirección sin mostrar contenido intermedio.
+              </p>
+            </div>
           </div>
         </details>
 
@@ -1139,6 +1156,7 @@
         spotifyOriginal: "",
         linkpublicidadOriginal: "",
         nombrepublicidadOriginal: "",
+        linkdirectoOriginal: "",
         procesando: false,
         consultaExitosa: false
       };
@@ -1164,6 +1182,7 @@
         spotify: document.getElementById("spotify"),
         linkpublicidad: document.getElementById("linkpublicidad"),
         nombrepublicidad: document.getElementById("nombrepublicidad"),
+        linkdirecto: document.getElementById("linkdirecto"),
         consultButton: document.getElementById("consultButton"),
         changePasswordLink: document.getElementById("changePasswordLink"),
         saveButtonTop: document.getElementById("saveButtonTop"),
@@ -1888,6 +1907,7 @@
           const spotify = elements.spotify.value.trim();
           const linkpublicidad = elements.linkpublicidad.value.trim();
           const nombrepublicidad = elements.nombrepublicidad.value.trim();
+          const linkdirecto = elements.linkdirecto.value.trim();
 
           const preparacion = await solicitarPreparacionSubidas({
             carpeta,
@@ -1942,7 +1962,8 @@
           const cambiaronOpcionesAdicionales =
             spotify !== state.spotifyOriginal ||
             linkpublicidad !== state.linkpublicidadOriginal ||
-            nombrepublicidad !== state.nombrepublicidadOriginal;
+            nombrepublicidad !== state.nombrepublicidadOriginal ||
+            linkdirecto !== state.linkdirectoOriginal;
 
           if (cambiaronOpcionesAdicionales) {
             try {
@@ -1950,11 +1971,13 @@
                 carpeta,
                 spotify,
                 linkpublicidad,
-                nombrepublicidad
+                nombrepublicidad,
+                linkdirecto
               );
               state.spotifyOriginal = spotify;
               state.linkpublicidadOriginal = linkpublicidad;
               state.nombrepublicidadOriginal = nombrepublicidad;
+              state.linkdirectoOriginal = linkdirecto;
             } catch (errorOpciones) {
               opcionesAdicionalesGuardadas = false;
               console.error(
@@ -2066,22 +2089,27 @@
           const spotifyActual = normalizarOpcionAdicional(props?.spotify);
           const linkpublicidadActual = normalizarOpcionAdicional(props?.linkpublicidad);
           const nombrepublicidadActual = normalizarOpcionAdicional(props?.nombrepublicidad);
+          const linkdirectoActual = normalizarOpcionAdicional(props?.linkdirecto);
 
           elements.spotify.value = spotifyActual;
           elements.linkpublicidad.value = linkpublicidadActual;
           elements.nombrepublicidad.value = nombrepublicidadActual;
+          elements.linkdirecto.value = linkdirectoActual;
 
           state.spotifyOriginal = spotifyActual.trim();
           state.linkpublicidadOriginal = linkpublicidadActual.trim();
           state.nombrepublicidadOriginal = nombrepublicidadActual.trim();
+          state.linkdirectoOriginal = linkdirectoActual.trim();
         } catch (error) {
           console.warn("No fue posible cargar las opciones adicionales:", error);
           elements.spotify.value = "";
           elements.linkpublicidad.value = "";
           elements.nombrepublicidad.value = "";
+          elements.linkdirecto.value = "";
           state.spotifyOriginal = "";
           state.linkpublicidadOriginal = "";
           state.nombrepublicidadOriginal = "";
+          state.linkdirectoOriginal = "";
         }
       }
 
@@ -2089,7 +2117,8 @@
         carpeta,
         spotify,
         linkpublicidad,
-        nombrepublicidad
+        nombrepublicidad,
+        linkdirecto
       ) {
         const { consultarPorId, upsertConId } = await firestoreHelpersPromise;
         const idDocumento = `prop${carpeta}`;
@@ -2118,7 +2147,7 @@
           linkpublicidad,
           nombrepublicidad,
           Array.isArray(props.images) ? props.images : [],
-          props.linkdirecto ?? "",
+          linkdirecto,
           props.claveLectura ?? ""
         );
       }
