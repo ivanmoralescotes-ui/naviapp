@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Encriptador de texto</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .contenedor {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 170px;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            resize: vertical;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+        }
+
+        .botones {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 13px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 7px;
+            background: #222;
+            color: white;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        #mensaje {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h2>Encriptar / Desencriptar texto</h2>
+
+    <label for="texto">Texto:</label>
+
+    <textarea
+        id="texto"
+        placeholder="Escribe aquí el texto que quieres encriptar..."></textarea>
+
+
+    <label for="clave">Clave:</label>
+
+    <input
+        type="password"
+        id="clave"
+        placeholder="Escribe la clave">
+
+
+    <div class="botones">
+
+        <button onclick="encriptar()">
+            Encriptar
+        </button>
+
+        <button onclick="desencriptar()">
+            Desencriptar
+        </button>
+
+    </div>
+
+
+    <label for="resultado">Resultado:</label>
+
+	<textarea
+		id="resultado"
+		placeholder="Aquí aparecerá el resultado..."></textarea>
+
+	<div class="botones">
+		<button onclick="copiarResultado()">
+			Copiar resultado
+		</button>
+	</div>
+
+	<div id="mensaje"></div>
+
+</div>
+
+
+<script>
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+
+// ------------------------------------------------
+// Convertir ArrayBuffer a Base64
+// ------------------------------------------------
+
+function arrayBufferToBase64(buffer) {
+
+    const bytes = new Uint8Array(buffer);
+
+    let binary = "";
+
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return btoa(binary);
+}
+
+
+// ------------------------------------------------
+// Convertir Base64 a ArrayBuffer
+// ------------------------------------------------
+
+function base64ToArrayBuffer(base64) {
+
+    const binary = atob(base64);
+
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    return bytes.buffer;
+}
+
+
+// ------------------------------------------------
+// Generar clave AES a partir de la contraseña
+// ------------------------------------------------
+
+async function generarClave(password, salt) {
+
+    const materialClave = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+
+    return crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 200000,
+            hash: "SHA-256"
+        },
+
+        materialClave,
+
+        {
+            name: "AES-GCM",
+            length: 256
+        },
+
+        false,
+
+        ["encrypt", "decrypt"]
+    );
+}
+
+
+// ------------------------------------------------
+// ENCRIPTAR
+// ------------------------------------------------
+
+async function encriptar() {
+
+    const texto = document.getElementById("texto").value;
+    const password = document.getElementById("clave").value;
+
+    const resultado = document.getElementById("resultado");
+    const mensaje = document.getElementById("mensaje");
+
+
+    if (!texto) {
+        mensaje.innerHTML = "Debes escribir un texto.";
+        return;
+    }
+
+
+    if (!password) {
+        mensaje.innerHTML = "Debes escribir una clave.";
+        return;
+    }
+
+
+    try {
+
+        const salt = crypto.getRandomValues(
+            new Uint8Array(16)
+        );
+
+        const iv = crypto.getRandomValues(
+            new Uint8Array(12)
+        );
+
+
+        const claveAES = await generarClave(
+            password,
+            salt
+        );
+
+
+        const textoEncriptado =
+            await crypto.subtle.encrypt(
+
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+
+                claveAES,
+
+                encoder.encode(texto)
+            );
+
+
+        const paquete = {
+
+            v: 1,
+
+            salt: arrayBufferToBase64(salt),
+
+            iv: arrayBufferToBase64(iv),
+
+            data: arrayBufferToBase64(
+                textoEncriptado
+            )
+        };
+
+
+        const json = JSON.stringify(paquete);
+
+
+        const resultadoFinal =
+            btoa(json);
+
+
+        resultado.value =
+            resultadoFinal;
+
+
+        mensaje.innerHTML =
+            "✓ Texto encriptado correctamente.";
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        mensaje.innerHTML =
+            "Error encriptando el texto.";
+    }
+
+}
+
+
+// ------------------------------------------------
+// DESENCRIPTAR
+// ------------------------------------------------
+
+async function desencriptar() {
+
+    const textoEncriptado =
+        document.getElementById("texto").value.trim();
+
+    const password =
+        document.getElementById("clave").value;
+
+    const resultado =
+        document.getElementById("resultado");
+
+    const mensaje =
+        document.getElementById("mensaje");
+
+
+    if (!textoEncriptado) {
+
+        mensaje.innerHTML =
+            "Pega el texto encriptado en el primer campo.";
+
+        return;
+    }
+
+
+    if (!password) {
+
+        mensaje.innerHTML =
+            "Debes escribir la clave.";
+
+        return;
+    }
+
+
+    try {
+
+        const json =
+            atob(textoEncriptado);
+
+
+        const paquete =
+            JSON.parse(json);
+
+
+        const salt =
+            new Uint8Array(
+                base64ToArrayBuffer(paquete.salt)
+            );
+
+
+        const iv =
+            new Uint8Array(
+                base64ToArrayBuffer(paquete.iv)
+            );
+
+
+        const datos =
+            base64ToArrayBuffer(
+                paquete.data
+            );
+
+
+        const claveAES =
+            await generarClave(
+                password,
+                salt
+            );
+
+
+        const textoOriginal =
+            await crypto.subtle.decrypt(
+
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+
+                claveAES,
+
+                datos
+            );
+
+
+        resultado.value =
+            decoder.decode(textoOriginal);
+
+
+        mensaje.innerHTML =
+            "✓ Texto desencriptado correctamente.";
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        resultado.value = "";
+
+        mensaje.innerHTML =
+            "✗ No se pudo desencriptar. La clave puede ser incorrecta o el texto fue modificado.";
+    }
+
+}
+
+async function copiarResultado() {
+
+    const resultado = document.getElementById("resultado").value;
+    const mensaje = document.getElementById("mensaje");
+
+    if (!resultado) {
+        mensaje.innerHTML = "No hay ningún resultado para copiar.";
+        return;
+    }
+
+    try {
+
+        await navigator.clipboard.writeText(resultado);
+
+        mensaje.innerHTML = "✓ Resultado copiado al portapapeles.";
+
+    } catch (error) {
+
+        console.error(error);
+
+        mensaje.innerHTML = "No se pudo copiar el resultado.";
+    }
+}
+
+</script>
+
+</body>
+</html>
