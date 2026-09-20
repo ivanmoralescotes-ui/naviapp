@@ -236,7 +236,7 @@
     <button
         class="btn-borrar"
         onclick="borrarTextos()">
-        🗑️ Borrar textos
+        🗑️ Borrar
     </button>
 
 
@@ -255,22 +255,34 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 
-// Convertir ArrayBuffer a Base64
-function arrayBufferToBase64(buffer) {
+// Convertir bytes a Base64URL compacto (sin = al final)
+function bytesToBase64Url(bytes) {
 
-    const bytes = new Uint8Array(buffer);
     let binary = "";
+    const chunkSize = 0x8000;
 
-    for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+        binary += String.fromCharCode(...chunk);
     }
 
-    return btoa(binary);
+    return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
 }
 
 
-// Convertir Base64 a ArrayBuffer
-function base64ToArrayBuffer(base64) {
+// Convertir Base64URL a bytes
+function base64UrlToBytes(base64url) {
+
+    let base64 = base64url
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    while (base64.length % 4) {
+        base64 += "=";
+    }
 
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
@@ -279,7 +291,63 @@ function base64ToArrayBuffer(base64) {
         bytes[i] = binary.charCodeAt(i);
     }
 
-    return bytes.buffer;
+    return bytes;
+}
+
+
+// Convertir Base64 clásico a bytes (compatibilidad con la versión anterior)
+function base64ToBytesLegacy(base64) {
+
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    return bytes;
+}
+
+
+// Comprimir texto cuando el navegador lo soporte
+async function comprimirBytes(bytes) {
+
+    if (!("CompressionStream" in window)) {
+        return null;
+    }
+
+    try {
+
+        const stream = new Blob([bytes])
+            .stream()
+            .pipeThrough(new CompressionStream("deflate"));
+
+        return new Uint8Array(
+            await new Response(stream).arrayBuffer()
+        );
+
+    } catch (error) {
+
+        console.warn("No se pudo comprimir. Se continuará sin compresión.", error);
+        return null;
+    }
+}
+
+
+// Descomprimir texto
+async function descomprimirBytes(bytes) {
+
+    if (!("DecompressionStream" in window)) {
+        throw new Error("Este navegador no permite descomprimir este texto.");
+    }
+
+    const stream = new Blob([bytes])
+        .stream()
+        .pipeThrough(new DecompressionStream("deflate"));
+
+    return new Uint8Array(
+        await new Response(stream).arrayBuffer()
+    );
 }
 
 
@@ -337,27 +405,49 @@ async function encriptar() {
 
         const claveAES = await generarClave(password, salt);
 
-        const textoEncriptado = await crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            claveAES,
-            encoder.encode(texto)
+        const bytesOriginales = encoder.encode(texto);
+        const bytesComprimidos = await comprimirBytes(bytesOriginales);
+
+        // 1 = sin compresión
+        // 2 = comprimido con deflate
+        let tipo = 1;
+        let bytesAEncriptar = bytesOriginales;
+
+        if (
+            bytesComprimidos &&
+            bytesComprimidos.length < bytesOriginales.length
+        ) {
+            tipo = 2;
+            bytesAEncriptar = bytesComprimidos;
+        }
+
+        const textoEncriptado = new Uint8Array(
+            await crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                claveAES,
+                bytesAEncriptar
+            )
         );
 
-        const paquete = {
-            v: 1,
-            salt: arrayBufferToBase64(salt),
-            iv: arrayBufferToBase64(iv),
-            data: arrayBufferToBase64(textoEncriptado)
-        };
+        // Formato compacto:
+        // [1 byte tipo][16 bytes salt][12 bytes IV][datos cifrados + tag GCM]
+        const paquete = new Uint8Array(
+            1 + salt.length + iv.length + textoEncriptado.length
+        );
 
-        const json = JSON.stringify(paquete);
+        paquete[0] = tipo;
+        paquete.set(salt, 1);
+        paquete.set(iv, 17);
+        paquete.set(textoEncriptado, 29);
 
-        resultado.value = btoa(json);
+        resultado.value = bytesToBase64Url(paquete);
 
-        mensaje.innerHTML = "✓ Texto encriptado correctamente.";
+        const ahorro = tipo === 2 ? " (comprimido)" : "";
+        mensaje.innerHTML =
+            "✓ Texto encriptado correctamente" + ahorro + ".";
 
     } catch (error) {
 
@@ -394,38 +484,68 @@ async function desencriptar() {
 
     try {
 
-        const json = atob(textoEncriptado);
+        // Primero intenta leer el nuevo formato compacto.
+        let esFormatoCompacto = false;
+        let paquete;
 
-        const paquete = JSON.parse(json);
+        try {
+            paquete = base64UrlToBytes(textoEncriptado);
+            esFormatoCompacto =
+                paquete.length >= 46 &&
+                (paquete[0] === 1 || paquete[0] === 2);
+        } catch (_) {
+            esFormatoCompacto = false;
+        }
 
-        const salt = new Uint8Array(
-            base64ToArrayBuffer(paquete.salt)
-        );
+        if (esFormatoCompacto) {
 
-        const iv = new Uint8Array(
-            base64ToArrayBuffer(paquete.iv)
-        );
+            const tipo = paquete[0];
+            const salt = paquete.slice(1, 17);
+            const iv = paquete.slice(17, 29);
+            const datos = paquete.slice(29);
 
-        const datos = base64ToArrayBuffer(
-            paquete.data
-        );
+            const claveAES = await generarClave(password, salt);
 
-        const claveAES = await generarClave(
-            password,
-            salt
-        );
+            let bytesOriginales = new Uint8Array(
+                await crypto.subtle.decrypt(
+                    {
+                        name: "AES-GCM",
+                        iv: iv
+                    },
+                    claveAES,
+                    datos
+                )
+            );
 
-        const textoOriginal = await crypto.subtle.decrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
-            claveAES,
-            datos
-        );
+            if (tipo === 2) {
+                bytesOriginales = await descomprimirBytes(bytesOriginales);
+            }
 
-        resultado.value =
-            decoder.decode(textoOriginal);
+            resultado.value = decoder.decode(bytesOriginales);
+
+        } else {
+
+            // Compatibilidad con textos creados con la versión anterior.
+            const json = atob(textoEncriptado);
+            const paqueteAnterior = JSON.parse(json);
+
+            const salt = base64ToBytesLegacy(paqueteAnterior.salt);
+            const iv = base64ToBytesLegacy(paqueteAnterior.iv);
+            const datos = base64ToBytesLegacy(paqueteAnterior.data);
+
+            const claveAES = await generarClave(password, salt);
+
+            const textoOriginal = await crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv
+                },
+                claveAES,
+                datos
+            );
+
+            resultado.value = decoder.decode(textoOriginal);
+        }
 
         mensaje.innerHTML =
             "✓ Texto desencriptado correctamente.";
@@ -433,7 +553,6 @@ async function desencriptar() {
     } catch (error) {
 
         console.error(error);
-
         resultado.value = "";
 
         mensaje.innerHTML =
