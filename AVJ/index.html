@@ -406,6 +406,10 @@ body {
 	  try{
 		  console.log("starting");
 		  await startAll();
+
+		  if (isRedirecting) {
+		    return;
+		  }
 		  
 		  const ss = Number(segundosslide);
 		  displayTime = (Number.isFinite(ss) && ss > 0 ? ss : 37) * 1000;
@@ -420,7 +424,9 @@ body {
 		  showSlide(currentIndex, false);
 	  } catch (e) {
 		  console.error("Error en initSlideshow:", e);
-          showMessage("Error cargando datos");
+          if (!isRedirecting) {
+            showMessage("Error cargando datos");
+          }
       }
     }
 	
@@ -456,6 +462,7 @@ body {
 	///initSlideshow();
 
 	let initPromise = null;
+	let isRedirecting = false;
 
 	function resetForInit() {
 	  stopSlideshow();
@@ -489,6 +496,11 @@ body {
 		console.log("starting");
 		await startAll(penultima);
 
+		// Si linkdirecto inició una redirección, no seguimos cargando slides ni Storage.
+		if (isRedirecting) {
+		  return;
+		}
+
 		if (!authRequired) {
 		  await asegurarSlidesStorage("");
 		}
@@ -507,9 +519,17 @@ body {
 		showSlide(currentIndex, false);
 	  })().catch((e) => {
 		console.error("Error en initSlideshow:", e);
-		showMessage("Error cargando datos");
+
+		// Durante una redirección por linkdirecto no mostramos errores transitorios.
+		if (!isRedirecting) {
+		  showMessage("Error cargando datos");
+		}
+
 		initPromise = null; // permite reintentar
-		throw e;
+
+		if (!isRedirecting) {
+		  throw e;
+		}
 	  });
 
 	  return initPromise;
@@ -1040,8 +1060,12 @@ async function delayedTask() {
       // window.location.href = rutaImagen
 	  if (props.linkdirecto != null && props.linkdirecto != "") {
         console.log("direct:" + props.linkdirecto);
-		window.location.href = props.linkdirecto;
-		
+
+        // Marcamos que estamos saliendo de esta página para que no continúe
+        // la carga del slideshow ni aparezcan mensajes de error transitorios.
+        isRedirecting = true;
+        window.location.href = props.linkdirecto;
+        return;
       }	
 	  
 	  // ... (aquí dejas tu bloque de images tal cual)
