@@ -261,6 +261,39 @@ body {
 }
 
 
+/* Botón Spotify */
+#slide-html .spotify-btn{
+    color:#fff;
+    text-decoration:none;
+    font-size:20px;
+    font-weight:700;
+    background:#1DB954;
+    padding:12px 20px;
+    border-radius:999px;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    min-width:150px;
+    box-shadow:0 8px 22px rgba(29,185,84,0.28);
+    transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+    -webkit-tap-highlight-color:transparent;
+}
+
+#slide-html .spotify-btn:hover{
+    text-decoration:none;
+    background:#1ed760;
+    transform:translateY(-1px);
+    box-shadow:0 10px 26px rgba(29,185,84,0.36);
+}
+
+#slide-html .spotify-btn:active{
+    transform:scale(.97);
+}
+
+#slide-html .spotify-btn i{
+    font-size:24px;
+}
+
   </style>
 </head>
 
@@ -301,7 +334,10 @@ body {
         <p id="verse-text" style="display: none;" >Aquí va el versículo de la Biblia.</p>
         
 <br>
-        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Spotify</a>
+        <a id="verse-link" href="#" target="_blank" rel="noopener noreferrer"
+           class="spotify-btn" style="display: none;">
+          <i class="fa-brands fa-spotify"></i><span>Spotify</span>
+        </a>
         
         <p id="quote-text" style="display: none;" >Aquí va la frase.</p>
         <br>
@@ -1072,7 +1108,7 @@ async function delayedTask() {
 	  	  	  
 	  
 	  if (thespotify != "" && thespotify != "no") { 
-	     verseLinkEl.style.display = "block"; 
+	     verseLinkEl.style.display = "inline-flex"; 
 	     verseLink = thespotify; // "https://open.spotify.com/playlist/" + 
 		        
 	  } else { verseLinkEl.style.display = "none"; } 
