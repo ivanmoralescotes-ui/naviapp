@@ -1642,9 +1642,12 @@
       }
 
       function actualizarTitulo() {
-        elements.pageTitle.textContent = state.identificador
-          ? `Configuración de "${state.identificador}"`
-          : "Configuración sin identificador";
+        //elements.pageTitle.textContent = state.identificador
+          //? `Configuración de "${state.identificador}"`
+          //: "Configuración sin identificador";
+		  
+		  
+		elements.pageTitle.textContent = "Configuración de QR"; 
         document.title = elements.pageTitle.textContent;
       }
 
