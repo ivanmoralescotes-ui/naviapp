@@ -614,7 +614,6 @@
     import { obtenerDatos } from "./js/functionss.js";
 	import { obtenerFila } from "./js/functionss.js";
 	import { actualizarCampo } from "./js/functionss.js";
-	import { upsertConId } from "./js/functionss.js";
 	import { insertMany } from "./js/functionss.js";
     import { consultarPorId } from "./js/functionss.js";
 	
@@ -768,62 +767,44 @@
 	  }
 	  
 	  // * Para subir el json
-      async function  subirJsonEnFire(theObject, theFileName){	     
-		//const url = `https://api.github.com/gists/${theGist}`;
-	    //console.log("theTokenn:" + theTokenn + ".url:" + url);
-		//const response = await fetch(url, {
-		//		method: 'PATCH',
-		//		headers: {
-		//		  'Accept': 'application/vnd.github+json',
-		//		  'Authorization': `Bearer ${theTokenn}`,
-		//		  "X-GitHub-Api-Version": "2022-11-28",
-		//		  "Content-Type": "application/json"
-		//		},
-		//		body: JSON.stringify({
-		//			  files: {
-		//				[theFileName]: { content: JSON.stringify(theObject,null,2) },//filename debe ser nombreactual
-		//			  },
-		//			} , null, 2)	  
-		//	  });
-			
-		upsertConId("prop"+theFileName, theObject.nombre, theObject.whatsapp, theObject.instagram,
-           theObject.tipoIa,theObject.lastupdate,theObject.isEnglish,theObject.segundosslide,theObject.palabras,theObject.clave,"",
-	       theObject.versiculo,theObject.motivacional,theObject.numerosuerte,theObject.spotify,theObject.linkpublicidad,theObject.nombrepublicidad,theObject.images,theObject.linkdirecto
-		   ,theObject.claveLectura);
-		   
-		/*const newGist = {
-				  instagram: document.getElementById("tuinstagram").value,
-				  whatsapp: document.getElementById("tuwhatsapp").value,
-				  nombre: document.getElementById("tunombre").value,
-				  clave: laclave,
-				  motivacional: quieresMotivacional,
-				  				  
-				  tipoIa: document.getElementById("tipoia").value,
-				  
-				  versiculo: quiereVersiculo,
-				  numerosuerte: quiereNumeroSuerte,
-				  spotify:  document.getElementById("listaspotify").value ,
-				  linkpublicidad: document.getElementById("linkpublicidad").value,
-				  nombrepublicidad: document.getElementById("nombrepublicidad").value,
-				  images: imagesToUpdate ,
-				  palabras: document.getElementById("tuspalabras").value,
-				  lastupdate: new Date(),
-				  isEnglish: esIngles,
-				  segundosslide: document.getElementById("segundosslide").value
-	 			};*/		   
-		   
+      async function subirJsonEnFire(
+        theObject,
+        theFileName,
+        passwordConfiguracionActual
+      ) {
+        const respuesta = await fetch(
+          "/.netlify/functions/guardar-config-uploading2",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              carpeta: theFileName,
+              passwordConfiguracionActual,
+              configuracion: theObject
+            })
+          }
+        );
 
-   		//if (!response.ok) {
-		//if (  error  ){ //toDo
-			//console.error('Error al actualizar el json');
-			//return null;
-		//}
-		
-		//const data = "";//await response.json();		
-		//console.log("response when updating: " + JSON.stringify(data) );	
-		//return data;
-		
-	  }
+        let datos = {};
+
+        try {
+          datos = await respuesta.json();
+        } catch {
+          datos = {};
+        }
+
+        if (!respuesta.ok) {
+          const error = new Error(
+            datos.error || `El guardado falló con estado ${respuesta.status}.`
+          );
+          error.status = respuesta.status;
+          throw error;
+        }
+
+        return datos;
+      }
 
 
       // * Para leer gist ya teniendo el token
@@ -1807,26 +1788,14 @@
 				
 				let imagesToUpdate = document.getElementById("imagenes").value.split(/\r?\n/);
 				console.log("imagesToUpdate:"+imagesToUpdate);
-				
-				let laclave = document.getElementById("tullave").value;
-				if (laclave == ""){
-					laclave = defaultKey;
-				}else{
-					laclave = simpleStringHash(laclave);
-				}
-				
-				let llavelecturaa = document.getElementById("llavelectura").value;
-				if (llavelecturaa == ""){
-					console.log("no key to read");
-				}else{
-					llavelecturaa = simpleStringHash(llavelecturaa);
-				}
+				const nuevaClave = document.getElementById("tullave").value;
+				const llavelecturaa = document.getElementById("llavelectura").value;
 				
      			const newGist = {
 				  instagram: document.getElementById("tuinstagram").value,
 				  whatsapp: document.getElementById("tuwhatsapp").value,
 				  nombre: document.getElementById("tunombre").value,
-				  clave: laclave,
+				  nuevaPasswordConfiguracion: nuevaClave,
 				  motivacional: quieresMotivacional,
 				  				  
 				  tipoIa: document.getElementById("tipoia").value,
@@ -1864,7 +1833,15 @@
 						//ghubt=data.token;
 						
 				        //let jsonData2 = await subirJsonEnFire(gistId2, newGist, FILE_NAME2 , ghubt);
-						await subirJsonEnFire(newGist, filenamepart2 );
+						await subirJsonEnFire(
+						  newGist,
+						  filenamepart2,
+						  document.getElementById("clave2").value
+						);
+
+						// Si se cambió la contraseña, pasa a ser la actual
+						// para guardados posteriores en esta misma sesión.
+						document.getElementById("clave2").value = nuevaClave;
 						alert("ok");
 				//});            
 				
