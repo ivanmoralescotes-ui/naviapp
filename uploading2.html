@@ -934,6 +934,51 @@
 	  }
 	  
 
+      async function leerJsonDeFireSeguro(theKeyFromUser, passwordConfiguracion) {
+        let filenamepart = "";
+
+        try {
+          filenamepart = atob(theKeyFromUser);
+        } catch (error) {
+          const err = new Error("Invalid input.");
+          err.status = 400;
+          throw err;
+        }
+
+        const respuesta = await fetch(
+          "/.netlify/functions/leer-config-uploading2",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              carpeta: filenamepart,
+              passwordConfiguracion
+            })
+          }
+        );
+
+        let datos = {};
+
+        try {
+          datos = await respuesta.json();
+        } catch {
+          datos = {};
+        }
+
+        if (!respuesta.ok) {
+          const error = new Error(
+            datos.error || `La consulta falló con estado ${respuesta.status}.`
+          );
+          error.status = respuesta.status;
+          throw error;
+        }
+
+        return datos;
+      }
+
+
         // Event listeners
 	  
         document.getElementById("limpiarprops").addEventListener("click", async () => {
@@ -1494,44 +1539,26 @@
 
 
 	// * Para leer el elemento de firebase pero antes de 
-	document.getElementById("consultarpropsFire").addEventListener("click", async () => { 	        
-			try {
-			    if ( ! validateInput() ) {
-					console.log("Error de entrada");
-					return;
-				}
-										
-				//const tokenurl ="https://navi11.netlify.app/.netlify/functions/getTheTokenFire";
-				//  /.netlify/functions/getTheToken				
-				//fetch(tokenurl)
-					//.then(response => response.json())
-					//.then(async (data) => {
-						//ghubt=data.token;
-							
-												
-						let jsonData = await leerJsonDeFire( (document.getElementById("llave").value).slice(2, -1) , ghubt );
-						
-						const llave2hash = simpleStringHash(document.getElementById("clave2").value); 
-						
-						if ( !jsonData || jsonData == null) {
-							alert("Invalid input.");
-							return;
-						}
-						
-						if (llave2hash != mainKeyy 
-						    && llave2hash != jsonData.clave ){
-							alert("Invalid value.");
-							document.getElementById("subir").style.display = "none";
-							//document.getElementById("subirFire").style.display = "none";
-							document.getElementById("irapagina").style.display = "none";
-							return;	
-						}else{
-						    document.getElementById("subir").style.display = "inline-block";
-							//document.getElementById("subirFire").style.display = "inline-block";
-							document.getElementById("irapagina").style.display = "inline-block";							
-						}
-						
-						if ( jsonData.linkdirecto && jsonData.linkdirecto != "" ){
+	document.getElementById("consultarpropsFire").addEventListener("click", async () => {
+            try {
+                if ( ! validateInput() ) {
+                    console.log("Error de entrada");
+                    return;
+                }
+
+                const encodedKey =
+                    (document.getElementById("llave").value).slice(2, -1);
+
+                const jsonData = await leerJsonDeFireSeguro(
+                    encodedKey,
+                    document.getElementById("clave2").value
+                );
+
+                // Llegar aquí significa que el servidor ya validó la contraseña.
+                document.getElementById("subir").style.display = "inline-block";
+                document.getElementById("irapagina").style.display = "inline-block";
+
+                if ( jsonData.linkdirecto && jsonData.linkdirecto != "" ){
 							document.getElementById("linkdirecto").value = jsonData.linkdirecto;
 						}else{
 						    document.getElementById("linkdirecto").value = "";
@@ -1554,14 +1581,6 @@
 						}else{
 						    document.getElementById("tipoia").value ="";
 						}
-						
-						/*if (jsonData.clave && jsonData.clave != ""){
-							document.getElementById("tullave").value = jsonData.clave;
-							document.getElementById("confirmatullave").value =jsonData.clave;
-						}else{
-						    document.getElementById("tullave").value ="";
-						    document.getElementById("confirmatullave").value ="";
-						}*/
 						
 						if ( jsonData.numerosuerte == "si" ){
 							document.getElementById("quieresnumerosuerte").checked = true;
@@ -1630,12 +1649,6 @@
 						}else{
 						    document.getElementById("segundosslide").value = "8";
 						}
-						
-						/*if ( jsonData.claveLectura && jsonData.claveLectura !="" ){
-							document.getElementById("llavelectura").value = jsonData.claveLectura;
-						}else{
-						    document.getElementById("llavelectura").value = "";
-						}*/
 						document.getElementById("llavelectura").value = "";
 						
 						if (jsonData.lastupdate){
@@ -1647,14 +1660,21 @@
 						document.getElementById("confirmatullave").value =document.getElementById("clave2").value;
 						
 						alert("Done.");
-						
-				//});			
-			} catch (error) {
-			  console.error(error);
-			  alert("Unexpected error.");
-			}
-	});	
+            } catch (error) {
+                console.error(error);
 
+                document.getElementById("subir").style.display = "none";
+                document.getElementById("irapagina").style.display = "none";
+
+                if (error && error.status === 401) {
+                    alert("Invalid value.");
+                } else if (error && (error.status === 400 || error.status === 404)) {
+                    alert("Invalid input.");
+                } else {
+                    alert("Unexpected error.");
+                }
+            }
+    });
 
 	// * Para subir gist  
 	/*document.getElementById("subir").addEventListener("click", async () => {  
