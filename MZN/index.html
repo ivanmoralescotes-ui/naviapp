@@ -1195,62 +1195,37 @@ async function delayedTask() {
 	 
     
 	
-	/*async function obtainAi1Text(){
-	    let ai1text = "0";
-		const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/new1";
+	async function obtainAi2Text(tipoia2) {
+      const respuesta = await fetch(
+        "/.netlify/functions/obtener-texto-n8n",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            tipo: tipoia2
+          })
+        }
+      );
 
-        const user = "web";
-        const pass = "0000";
-        const basic = btoa(`${user}:${pass}`); // base64
+      let datos = {};
 
-		const res = await fetch(url, {
-		  method: "GET",
-		  headers: {
-			"Authorization": `Basic ${basic}`,
-			"Accept": "application/json",
-		  },
-		});
+      try {
+        datos = await respuesta.json();
+      } catch {
+        datos = {};
+      }
 
-		if (!res.ok) {
-		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
-		}
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.error ||
+          `La consulta de IA falló con estado ${respuesta.status}.`
+        );
+      }
 
-		const data = await res.json();
-		console.log(data);
-        ai1text = data.output;
-				
-		return ai1text;
-	}*/
-	
-	async function obtainAi2Text(tipoia2){
-	    let ai2text = "0";
-		
-		//const url = "https://ivanmorales.app.n8n.cloud/webhook/readquote11/" + "contro2";
-		  //controlversial		  
-        const url="https://ivanmorales.app.n8n.cloud/webhook/5b747ca1-9205-4d49-8440-789694d367b7/readquote11/"+tipoia2;//contro2
-
-        const user = "web";
-        const pass = "0000";
-        const basic = btoa(`${user}:${pass}`); // base64
-
-		const res = await fetch(url, {
-		  method: "GET",
-		  headers: {
-			"Authorization": `Basic ${basic}`,
-			"Accept": "application/json",
-		  },
-		});
-
-		if (!res.ok) {
-		  throw new Error(`HTTP ${res.status} - ${await res.text()}`);
-		}
-
-		const data = await res.json();
-		console.log(data);
-        ai2text = data.output;
-				
-		return ai2text;
-	}
+      return datos.output == null ? "0" : String(datos.output);
+    }
 
     // ----------------- Mostrar slides -----------------
     async function showSlide(index, isManual) {
