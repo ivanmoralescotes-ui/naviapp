@@ -611,19 +611,7 @@
   </script>
   
   <script type="module">
-    import { obtenerDatos } from "./js/functionss.js";
-	import { obtenerFila } from "./js/functionss.js";
-	import { actualizarCampo } from "./js/functionss.js";
-	import { insertMany } from "./js/functionss.js";
-    import { consultarPorId } from "./js/functionss.js";
-	
-	//consultarPorId("prop11111726");
-	//obtenerDatos();
 	//obtenerFila("prop11111357");//c11111357??   c11111726??
-	//upsertConId("prop11111603","abc","def","wW");
-    //insertMany();
-	
-  
       //console.log("c11121197");
 	  const adomain = "ú.ws"; // "navi111.netlify.app"  //kpweb.biz
 	  
@@ -863,57 +851,7 @@
 	  }
 	  
 	  
-	  async function leerJsonDeFire( theKeyFromUser ,  theToken ) {	
-			let gistId= '';			
-			console.log("theKeyFromUser:"+theKeyFromUser);
-			const filenamepart = atob( theKeyFromUser ); //11121197
-			console.log("filenamepart:"+filenamepart);
 
-			const FILE_NAME = "prop" + filenamepart + ".txt";//cWMTExMTE3MjY=i
-					
-			let jsonText = await consultarPorId( "prop" + filenamepart );
-			console.log("jsonText :"+jsonText);
-			// Parsear el JSON
-			let jsonData;
-			try {
-				jsonData = jsonText; //JSON.parse(jsonText);
-			} catch (e) {
-				console.error('Error parseando el JSON:', e);
-				return null;
-			}
-			console.log('JSON leido desde Gist:', jsonData);
-			return jsonData;
-			
-			/*
-			gistId = getGistId(FILE_NAME);
-
-			  const url = `https://api.github.com/gists/${gistId}`;
-			  console.log("theToken:"+theToken);
-			  const response = await fetch(url, {
-				method: 'GET',
-				headers: {
-				  'Accept': 'application/vnd.github+json',
-				  'Authorization': `Bearer ${theToken}`  
-				}
-			  });
-
-			  if (!response.ok) {
-				console.error('Error al leer el Gist:', response.status, response.statusText);
-				return null;
-			  }
-
-			  const data = await response.json();
-			  const file = data.files[FILE_NAME];
-			  if (!file) {
-				console.error('No encontro archivo "${FILE_NAME}" en el Gist');
-				return null;
-			  }*/
-
-			  // El contenido del archivo viene como texto
-			  //const jsonText = file.content;
-			  
-	  }
-	  
 
       async function leerJsonDeFireSeguro(theKeyFromUser, passwordConfiguracion) {
         let filenamepart = "";
@@ -1228,19 +1166,50 @@
 		document.getElementById('imagenes').value = currentImages.join("\n");
 	});
 	
+
+      async function obtenerDefaultImages() {
+        const respuesta = await fetch(
+          "/.netlify/functions/obtener-default-images",
+          {
+            method: "GET",
+            headers: {
+              "Accept": "application/json"
+            }
+          }
+        );
+
+        let datos = {};
+
+        try {
+          datos = await respuesta.json();
+        } catch {
+          datos = {};
+        }
+
+        if (!respuesta.ok) {
+          throw new Error(
+            datos.error ||
+            `No fue posible obtener las imágenes predeterminadas (${respuesta.status}).`
+          );
+        }
+
+        return datos;
+      }
+
 	let firstDefaultImage = "https://i.imgur.com/C4kxvkF.jpg";	
 	let secondDefaultImage = "";//https://i.imgur.com/e6JpQI9.jpg
 	let thirdDefaultImage = "";
-		
-	const firstDefaultImageObject = await consultarPorId("defaultimage");	
-	
-	firstDefaultImage = firstDefaultImageObject.img0;
-	
-    secondDefaultImage = firstDefaultImageObject.img2;	 
-	
-	thirdDefaultImage = firstDefaultImageObject.img3;	 
-	
-	/*if (!firstDefaultImage) {
+    try {
+      const firstDefaultImageObject = await obtenerDefaultImages();
+
+      firstDefaultImage = firstDefaultImageObject.img0 || firstDefaultImage;
+      secondDefaultImage = firstDefaultImageObject.img2 || "";
+      thirdDefaultImage = firstDefaultImageObject.img3 || "";
+    } catch (error) {
+      console.error("No fue posible cargar defaultimage:", error);
+    }
+
+/*if (!firstDefaultImage) {
 		firstDefaultImage = "https://i.imgur.com/C4kxvkF.jpg";
 	}*/
 	/*if (!secondDefaultImage) {
