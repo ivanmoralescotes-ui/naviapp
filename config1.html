@@ -2024,6 +2024,7 @@
             try {
               await guardarOpcionesAdicionales(
                 carpeta,
+                passwordConfiguracion,
                 spotify,
                 linkpublicidad,
                 nombrepublicidad,
@@ -2170,41 +2171,26 @@
 
       async function guardarOpcionesAdicionales(
         carpeta,
+        passwordConfiguracion,
         spotify,
         linkpublicidad,
         nombrepublicidad,
         linkdirecto
       ) {
-        const { consultarPorId, upsertConId } = await firestoreHelpersPromise;
-        const idDocumento = `prop${carpeta}`;
-        const props = await consultarPorId(idDocumento);
-
-        if (!props) {
-          throw new Error("No fue posible consultar la configuración adicional.");
-        }
-
-        await upsertConId(
-          idDocumento,
-          props.nombre ?? "",
-          props.whatsapp ?? "",
-          props.instagram ?? "",
-          props.tipoIa ?? "",
-          props.lastupdate ?? new Date(),
-          props.isEnglish ?? props.esingles ?? "no",
-          props.segundosslide ?? "8",
-          props.palabras ?? "",
-          props.clave ?? "",
-          props.akey ?? "",
-          props.versiculo ?? "no",
-          props.motivacional ?? "no",
-          props.numerosuerte ?? "no",
-          spotify,
-          linkpublicidad,
-          nombrepublicidad,
-          Array.isArray(props.images) ? props.images : [],
-          linkdirecto,
-          props.claveLectura ?? ""
-        );
+        return solicitarJson("/.netlify/functions/guardar-opciones-adicionales", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            carpeta,
+            passwordConfiguracion,
+            spotify,
+            linkpublicidad,
+            nombrepublicidad,
+            linkdirecto
+          })
+        });
       }
 
       async function solicitarJson(url, opciones = {}) {
