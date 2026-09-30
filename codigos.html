@@ -110,7 +110,7 @@
       document.querySelectorAll(".qr-card").forEach(item=>{if(item!==card)item.style.display="none"});
       card.classList.add("is-reserved");
       statusMessage.classList.add("show");
-      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">Enviar comprobante por WhatsApp</a></div>`;
+      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>`;
       statusMessage.scrollIntoView({behavior:"smooth",block:"center"});
     }
 
