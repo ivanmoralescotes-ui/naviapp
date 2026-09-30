@@ -92,9 +92,12 @@
 
     // CAMBIA AQUÍ las rutas y nombres por tus imágenes QR reales.
     const qrDisponibles = [
-      { id:"qr001", nombre:"QR 001", imagen:"imgs/qr/ai-qr-https-ws-mbw-seed1773801408.png" },
-      { id:"qr002", nombre:"QR 002", imagen:"imgs/qr/ai-qr-https-ws-mda-seed53458684.png" },
-      { id:"qr003", nombre:"QR 003", imagen:"imgs/qr/ai-qr-https-ws-mdp-seed1976763190.png" }/*,
+      { id:"qr001", nombre:"QR001", imagen:"imgs/qr/ai-qr-https-ws-mlc-seed739662804.png" },
+      { id:"qr002", nombre:"QR002", imagen:"imgs/qr/ai-qr-https-ws-mda-seed53458684.png" },
+      { id:"qr003", nombre:"QR003", imagen:"imgs/qr/ai-qr-https-ws-mdp-seed1976763190.png" }
+	  { id:"qr004", nombre:"QR004", imagen:"imgs/qr/qr_ein.png" }
+	  
+	  /*,
       { id:"qr004", nombre:"QR 004", imagen:"imgs/qr/qr004.png" },
       { id:"qr005", nombre:"QR 005", imagen:"imgs/qr/qr005.png" },
       { id:"qr006", nombre:"QR 006", imagen:"imgs/qr/qr006.png" },
@@ -147,7 +150,7 @@
       document.querySelectorAll(".qr-card").forEach(item=>{if(item!==card)item.style.display="none"});
       card.classList.add("is-reserved");
       statusMessage.classList.add("show");
-      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>`;
+      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago de $5000 a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>`;
       statusMessage.scrollIntoView({behavior:"smooth",block:"center"});
     }
 
