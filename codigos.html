@@ -152,6 +152,14 @@
             Es para toda la vida y tenemos una garantía de 10 años.
           </p>
         </details>
+		
+		<details class="faq-item">
+          <summary>¿Cuánto tiempo me demoro actualizando el contenido de mi QR?</summary>
+          <p class="faq-answer">
+            Un minuto, lo importante es que indiques las imágenes o el contenido que se va a mostrar.
+          </p>
+        </details>
+		
       </div>
     </section>
 
@@ -175,11 +183,11 @@
 
     // CAMBIA AQUÍ las rutas y nombres por tus imágenes QR reales.
     const qrDisponibles = [
-      { id:"qr001", nombre:"QR001", imagen:"imgs/qr/ai-qr-https-ws-mlc-seed739662804.png" },
-      { id:"qr002", nombre:"QR002", imagen:"imgs/qr/ai-qr-https-ws-mda-seed53458684.png" },
-      { id:"qr003", nombre:"QR003", imagen:"imgs/qr/ai-qr-https-ws-mdp-seed1976763190.png" },
+      { id:"qr001", nombre:"QR01", imagen:"imgs/qr/ai-qr-https-ws-mlc-seed739662804.png" },
+      { id:"qr002", nombre:"QR02", imagen:"imgs/qr/ai-qr-https-ws-mda-seed53458684.png" },
+      { id:"qr003", nombre:"QR03", imagen:"imgs/qr/ai-qr-https-ws-mdp-seed1976763190.png" },
 	  
-	  { id:"qr004", nombre:"QR004", imagen:"imgs/qr/qr_ein.png" }
+	  { id:"qr004", nombre:"QR04", imagen:"imgs/qr/qr_ein.png" }
 	  
 	  /*,
       { id:"qr004", nombre:"QR 004", imagen:"imgs/qr/qr004.png" },
@@ -238,11 +246,11 @@
       statusMessage.scrollIntoView({behavior:"smooth",block:"center"});
     }
 
-    copyBre.addEventListener("click",async()=>{
+    /*copyBre.addEventListener("click",async()=>{
       const llave="3006291217";
       try{await navigator.clipboard.writeText(llave)}catch{const area=document.createElement("textarea");area.value=llave;document.body.appendChild(area);area.select();document.execCommand("copy");area.remove()}
       copyBre.textContent="Copiado";setTimeout(()=>copyBre.textContent="Copiar",1500);
-    });
+    });*/
 
     imageModalClose.addEventListener("click",cerrarImagenGrande);
     imageModal.addEventListener("click",(event)=>{if(event.target===imageModal)cerrarImagenGrande()});
