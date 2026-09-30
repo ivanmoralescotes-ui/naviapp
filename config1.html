@@ -1195,8 +1195,6 @@
     (() => {
       "use strict";
 
-      const firestoreHelpersPromise = import("../js/functionss.js");
-
       const MAX_IMAGES = 20;
       const MAX_VIDEOS = 2;
       const SIMULATED_DELAY_MS = 650;
@@ -1813,7 +1811,10 @@
             elements.configurationPassword.value
           );
 
-          await cargarOpcionesAdicionalesActuales(carpeta);
+          await cargarOpcionesAdicionalesActuales(
+            carpeta,
+            elements.configurationPassword.value
+          );
           cargarArchivosConsultados(archivosConsultados);
           state.consultaExitosa = true;
           actualizarBotonAr();
@@ -2137,10 +2138,24 @@
         return typeof valor === "string" && valor !== "no" ? valor : "";
       }
 
-      async function cargarOpcionesAdicionalesActuales(carpeta) {
+      async function cargarOpcionesAdicionalesActuales(
+        carpeta,
+        passwordConfiguracion
+      ) {
         try {
-          const { consultarPorId } = await firestoreHelpersPromise;
-          const props = await consultarPorId(`prop${carpeta}`);
+          const props = await solicitarJson(
+            "/.netlify/functions/obtener-opciones-adicionales",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                carpeta,
+                passwordConfiguracion
+              })
+            }
+          );
 
           const spotifyActual = normalizarOpcionAdicional(props?.spotify);
           const linkpublicidadActual = normalizarOpcionAdicional(props?.linkpublicidad);
@@ -2158,14 +2173,7 @@
           state.linkdirectoOriginal = linkdirectoActual.trim();
         } catch (error) {
           console.warn("No fue posible cargar las opciones adicionales:", error);
-          elements.spotify.value = "";
-          elements.linkpublicidad.value = "";
-          elements.nombrepublicidad.value = "";
-          elements.linkdirecto.value = "";
-          state.spotifyOriginal = "";
-          state.linkpublicidadOriginal = "";
-          state.nombrepublicidadOriginal = "";
-          state.linkdirectoOriginal = "";
+          throw error;
         }
       }
 
