@@ -19,7 +19,7 @@
     .qr-image-wrap{aspect-ratio:1/1;border-radius:14px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid #edf1f5}.qr-image-wrap img{width:100%;height:100%;object-fit:contain;display:block}.qr-meta{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}.qr-name{font-weight:850;font-size:.95rem}.reserve-btn{width:100%;margin-top:10px;border:none;border-radius:12px;min-height:42px;background:var(--primary);color:#fff;font-weight:850;cursor:pointer}.reserve-btn:hover{background:var(--primary-dark)}
     .reserved-badge{display:none;position:absolute;inset:10px 10px auto auto;padding:7px 10px;border-radius:999px;background:#0f172a;color:#fff;font-size:.75rem;font-weight:900;z-index:2}.qr-card.is-reserved{opacity:.55}.qr-card.is-reserved .reserved-badge{display:inline-flex}.status{margin-top:18px;display:none;padding:16px;border-radius:16px;background:var(--success-soft);border:1px solid #bbf7d0;color:#166534;line-height:1.5;font-weight:700}.status.show{display:block}
     .floating-whatsapp{position:fixed;right:18px;bottom:18px;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#25D366;color:#fff;text-decoration:none;box-shadow:0 14px 28px rgba(37,211,102,.32);z-index:10}.floating-whatsapp svg{width:29px;height:29px;fill:currentColor}.footer{margin-top:30px;text-align:center;color:var(--muted);font-size:.83rem;line-height:1.5}
-    @media(min-width:700px){.info-grid{grid-template-columns:1fr 1.15fr}.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:38px}}@media(min-width:980px){.gallery{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(min-width:700px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:38px}}@media(min-width:980px){.gallery{grid-template-columns:repeat(4,minmax(0,1fr))}}
   
     .qr-image-wrap{cursor:zoom-in}
 
@@ -44,16 +44,14 @@
         <a class="button button-whatsapp" href="https://wa.me/573180501356?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20los%20c%C3%B3digos%20QR." target="_blank" rel="noopener noreferrer">WhatsApp</a>
       </div>
     </section>
+<section id="galeria">
+      <div class="gallery-header"><div><h2>Galería de QR disponibles</h2><p>Haz clic en el que quieras reservar.</p></div></div>
+      <div id="qrGallery" class="gallery"></div>
+      <div id="statusMessage" class="status"></div>
+    </section>
 
-    <section class="info-grid">
-      <article class="card">
-        <h2>Pago por Bre-B</h2>
-        <p>Después de reservar tu QR, realiza el pago a esta llave:</p>
-        <div class="bre-box">
-          <div><div style="font-size:.8rem;color:var(--muted);font-weight:800;">Llave Bre-B</div><div class="bre-value">3006291217</div></div>
-          <button id="copyBre" class="copy-btn" type="button">Copiar</button>
-        </div>
-      </article>
+<section class="info-grid">
+
 
       <article class="card">
         <h2>¿Cómo funciona?</h2>
@@ -65,12 +63,15 @@
           <li>Yo te doy la contraseña para que cambies el contenido del QR tú mismo, o si prefieres, me dices qué contenido quieres y yo lo configuro por ti.</li>
         </ol>
       </article>
-    </section>
 
-    <section id="galeria">
-      <div class="gallery-header"><div><h2>Galería de QR disponibles</h2><p>Haz clic en el que quieras reservar.</p></div></div>
-      <div id="qrGallery" class="gallery"></div>
-      <div id="statusMessage" class="status"></div>
+      <article class="card">
+        <h2>Pago por Bre-B</h2>
+        <p>Después de reservar tu QR, realiza el pago a esta llave:</p>
+        <div class="bre-box">
+          <div><div style="font-size:.8rem;color:var(--muted);font-weight:800;">Llave Bre-B</div><div class="bre-value">3006291217</div></div>
+          <button id="copyBre" class="copy-btn" type="button">Copiar</button>
+        </div>
+      </article>
     </section>
 
     <p class="footer">La reserva mostrada en esta página es temporal. Para confirmar la compra tienes 15 minutos para realizar el pago y enviar el comprobante por WhatsApp.</p>
