@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Compra tu código QR</title>
+  <title>Tu código QR</title>
   <style>
     :root{--bg:#f6f8fc;--surface:#fff;--text:#172033;--muted:#667085;--border:#dfe5ee;--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--success-soft:#ecfdf3;--shadow:0 14px 40px rgba(15,23,42,.08);--radius:20px}
     *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(37,99,235,.09),transparent 28rem),var(--bg);color:var(--text)} a{color:inherit}
@@ -31,6 +31,67 @@
     .image-modal-close:hover{background:#000}
     body.modal-open{overflow:hidden}
 
+  
+    .faq-section{
+      margin-top:18px;
+    }
+
+    .faq-title{
+      margin:0 0 12px;
+      font-size:1.35rem;
+    }
+
+    .faq-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .faq-item{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--surface);
+      box-shadow:0 8px 24px rgba(15,23,42,.05);
+      overflow:hidden;
+    }
+
+    .faq-item summary{
+      position:relative;
+      min-height:54px;
+      display:flex;
+      align-items:center;
+      padding:14px 46px 14px 16px;
+      font-weight:850;
+      cursor:pointer;
+      list-style:none;
+      user-select:none;
+    }
+
+    .faq-item summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .faq-item summary::after{
+      content:"+";
+      position:absolute;
+      right:16px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--primary);
+      font-size:1.25rem;
+      font-weight:900;
+    }
+
+    .faq-item[open] summary::after{
+      content:"−";
+    }
+
+    .faq-answer{
+      margin:0;
+      padding:0 16px 16px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
   </style>
 </head>
 <body>
@@ -38,14 +99,14 @@
     <section class="hero">
       <p class="eyebrow">Códigos QR listos para usar</p>
       <h1>Escoge el QR que más te guste</h1>
-      <p>Cada código QR ya existe y está listo para ser personalizado. Tú escoges uno, lo reservas, haces el pago y luego puedes cambiar el contenido cuando quieras.</p>
+      <p>Cada código QR ya existe y está listo para ser personalizado. Tú escoges uno, lo reservas, haces el pago de $7000 y luego puedes cambiar el contenido cuando quieras.</p>
       <div class="hero-actions">
-        <a href="#galeria" class="button button-primary">Ver códigos QR</a>
+        <!--<a href="#galeria" class="button button-primary">Ver códigos QR</a>-->
         <a class="button button-whatsapp" href="https://wa.me/573180501356?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20los%20c%C3%B3digos%20QR." target="_blank" rel="noopener noreferrer">WhatsApp</a>
       </div>
     </section>
 <section id="galeria">
-      <div class="gallery-header"><div><h2>Galería de QR disponibles</h2><p>Haz clic en el que quieras reservar.</p></div></div>
+      <div class="gallery-header"><div><h2>Galería de QR disponibles</h2><!-- <p>Haz clic en el que quieras reservar.</p> --></div></div>
       <div id="qrGallery" class="gallery"></div>
       <div id="statusMessage" class="status"></div>
     </section>
@@ -59,11 +120,12 @@
           <li>Escoge el código QR que más te guste.</li>
           <li>Haz clic en <strong>Reservar este QR</strong>. Quedará oculto temporalmente para evitar que otra persona lo escoja.</li>
           <li>Haz el pago a la llave Bre-B <strong>3006291217</strong>.</li>
-          <li>Envíame el pantallazo del pago por WhatsApp.</li>
-          <li>Yo te doy la contraseña para que cambies el contenido del QR tú mismo, o si prefieres, me dices qué contenido quieres y yo lo configuro por ti.</li>
+          <li>Envíame el pantallazo o número del pago por WhatsApp.</li>
+          <li>Yo te doy la contraseña para que cambies el contenido del QR tú mismo, o si prefieres, me dices qué contenido quieres y yo lo coloco por ti.</li>
         </ol>
       </article>
 
+      <!--
       <article class="card">
         <h2>Pago por Bre-B</h2>
         <p>Después de reservar tu QR, realiza el pago a esta llave:</p>
@@ -72,9 +134,33 @@
           <button id="copyBre" class="copy-btn" type="button">Copiar</button>
         </div>
       </article>
+	  -->
+	  
     </section>
 
-    <p class="footer">La reserva mostrada en esta página es temporal. Para confirmar la compra tienes 15 minutos para realizar el pago y enviar el comprobante por WhatsApp.</p>
+
+    <section class="faq-section" aria-labelledby="faqTitle">
+      <h2 id="faqTitle" class="faq-title">Preguntas frecuentes</h2>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>¿Qué contenido puedo asignarle a mi QR?</summary>
+          <p class="faq-answer">
+            Puedes asignarle máximo 10 imágenes, 2 videos, 1 lista de Spotify y un link con una frase.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary>¿Durante cuánto tiempo puedo usar mi QR?</summary>
+          <p class="faq-answer">
+            Es para toda la vida y tenemos una garantía de 10 años.
+          </p>
+        </details>
+      </div>
+    </section>
+
+
+    <p class="footer">Si adicionalmente quieres que usemos tu QR para enviarte un cuadro, un mousepad, un vaso o una camiseta nos puedes preguntar el costo por WhatsApp.</p>
   </main>
 
   <div id="imageModal" class="image-modal" hidden aria-hidden="true">
@@ -152,7 +238,7 @@
       document.querySelectorAll(".qr-card").forEach(item=>{if(item!==card)item.style.display="none"});
       card.classList.add("is-reserved");
       statusMessage.classList.add("show");
-      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago de $5000 a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>`;
+      statusMessage.innerHTML=`<strong>${qr.nombre} reservado temporalmente.</strong><br>Ahora realiza el pago a la llave Bre-B <strong>3006291217</strong> y envía el pantallazo por WhatsApp.<div style="margin-top:12px;"><a class="button button-whatsapp" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, reservé el ${qr.nombre}. Te envío el comprobante del pago por Bre-B.`)}" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>`;
       statusMessage.scrollIntoView({behavior:"smooth",block:"center"});
     }
 
