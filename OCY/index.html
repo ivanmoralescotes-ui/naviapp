@@ -376,7 +376,6 @@ body {
 
   <script type="module">
   
-    import { consultarPorId } from "../js/functionss.js"; 
   
     let verseLink  = "https://open.spotify.com/playlist/6zV9uAXv1YVor3H3m5PAej";
     let verseLink2 = "https://www.instagram.com/jhonatan_pino_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
@@ -991,6 +990,37 @@ async function delayedTask() {
       }
     }
 
+
+    async function consultarConfiguracionPublica(carpeta) {
+      const respuesta = await fetch(
+        "/.netlify/functions/obtener-config-publica",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ carpeta })
+        }
+      );
+
+      let datos = {};
+
+      try {
+        datos = await respuesta.json();
+      } catch {
+        datos = {};
+      }
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.error ||
+          `La consulta de configuración falló con estado ${respuesta.status}.`
+        );
+      }
+
+      return datos;
+    }
+
     // ----------------- Tu lógica existente (startAll) -----------------
     //const parts = location.pathname.split("/").filter(p => p !== "");
     //const penultima = parts[parts.length - 2];
@@ -1019,7 +1049,7 @@ async function delayedTask() {
       }else{
 	    console.log ("using f ");
 		const penultima = getPenultima();
-	    props = await consultarPorId( "prop" + penultima );
+        props = await consultarConfiguracionPublica(penultima);
 		//console.log("consultado  con prop" + penultima);
 	  }
 
