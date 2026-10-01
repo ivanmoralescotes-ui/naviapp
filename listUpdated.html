@@ -546,26 +546,7 @@
     </section>
   </main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      initializeFirestore,
-      collection,
-      getDocs,
-      limit,
-      orderBy,
-      query,
-      Timestamp,
-      where
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import {
-      getAuth,
-      signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    const HASH_AUTORIZADO = 1509383; //1477632
-    const COLECCION = "configg";
-    const CAMPO_FECHA = "lastupdate";
+  <script>
     const MILISEGUNDOS_POR_HORA = 60 * 60 * 1000;
 
     // Cada objeto tiene el ID exacto del documento y su descripción.
@@ -613,7 +594,7 @@
       emptyState: document.getElementById("emptyState")
     };
 
-    let dbPromise = null;
+    let passwordSesion = "";
 
     elements.accessForm.addEventListener("submit", manejarAcceso);
     elements.queryForm.addEventListener("submit", manejarConsulta);
@@ -670,23 +651,37 @@
         return;
       }
 
-      const hashIngresado = simpleStringHash(passwordIngresado);
+      elements.accessButton.disabled = true;
+      elements.accessButton.textContent = "Validando...";
 
-      if (hashIngresado !== HASH_AUTORIZADO) {
+      try {
+        const datos = await llamarServidor({
+          accion: "validar",
+          password: passwordIngresado
+        });
+
+        if (!datos.ok) {
+          throw new Error(
+            datos.error || "La contraseña no es correcta."
+          );
+        }
+
+        passwordSesion = passwordIngresado;
+        elements.password.value = "";
+        elements.accessSection.hidden = true;
+        elements.querySection.hidden = false;
+        elements.days.focus();
+      } catch (error) {
         mostrarErrorCampo(
           elements.password,
           elements.passwordError,
-          "La contraseña no es correcta."
+          error.message || "La contraseña no es correcta."
         );
         elements.password.select();
-        return;
+      } finally {
+        elements.accessButton.disabled = false;
+        elements.accessButton.textContent = "Continuar";
       }
-
-      // Cuando el hash coincide, se continúa sin mostrar mensajes de error.
-      elements.password.value = "";
-      elements.accessSection.hidden = true;
-      elements.querySection.hidden = false;
-      elements.days.focus();
     }
 
     async function manejarConsulta(event) {
@@ -717,146 +712,87 @@
         return;
       }
 
+      if (!passwordSesion) {
+        mostrarNotificacion(
+          "Recarga la página e ingresa nuevamente.",
+          "error"
+        );
+        return;
+      }
+
       establecerConsultando(true);
 
       try {
-        const db = await obtenerFirestore();
-        const ahora = new Date();
-        const fechaLimite = new Date(
-          ahora.getTime() - horas * MILISEGUNDOS_POR_HORA
-        );
-
-        const consulta = query(
-          collection(db, COLECCION),
-          where(CAMPO_FECHA, ">=", Timestamp.fromDate(fechaLimite)),
-          orderBy(CAMPO_FECHA, "desc"),
-          limit(maximoFilas)
-        );
-
-        const snapshot = await getDocs(consulta);
-        const resultados = snapshot.docs.map((documento) => {
-          const datos = documento.data();
-
-          return {
-            id: documento.id,
-            lastupdate: convertirFechaFirestore(datos?.[CAMPO_FECHA]),
-            elementos: Array.isArray(datos?.ordenArchivosStorage)
-              ? datos.ordenArchivosStorage.length
-              : 0
-          };
+        const datos = await llamarServidor({
+          accion: "consultar",
+          password: passwordSesion,
+          horas,
+          maximoFilas
         });
+
+        const resultados = Array.isArray(datos.resultados)
+          ? datos.resultados.map((resultado) => ({
+              id: String(resultado.id || ""),
+              lastupdate: resultado.lastupdate
+                ? new Date(resultado.lastupdate)
+                : null,
+              elementos: Number(resultado.elementos || 0)
+            }))
+          : [];
+
+        const fechaLimite = datos.fechaLimite
+          ? new Date(datos.fechaLimite)
+          : new Date(Date.now() - horas * MILISEGUNDOS_POR_HORA);
+
+        const ahora = datos.ahora
+          ? new Date(datos.ahora)
+          : new Date();
 
         renderizarResultados(resultados, fechaLimite, ahora);
       } catch (error) {
-        console.error("Error consultando Firestore:", error);
-        mostrarNotificacion(obtenerMensajeError(error), "error");
+        console.error("Error consultando documentos:", error);
+        mostrarNotificacion(
+          error.message || "No fue posible consultar los documentos.",
+          "error"
+        );
         elements.resultsSection.hidden = true;
       } finally {
         establecerConsultando(false);
       }
     }
 
-    async function obtenerFirestore() {
-      if (!dbPromise) {
-        dbPromise = inicializarFirestore().catch((error) => {
-          dbPromise = null;
-          throw error;
-        });
-      }
-
-      return dbPromise;
-    }
-
-    async function inicializarFirestore() {
-      const apiKey = await obtenerApiKey();
-
-      const firebaseConfig = {
-        apiKey,
-        authDomain: "qrpro-f4709.firebaseapp.com",
-        projectId: "qrpro-f4709",
-        storageBucket: "qrpro-f4709.firebasestorage.app",
-        messagingSenderId: "625303344201",
-        appId: "1:625303344201:web:cfac300229e2e48a6a5b98"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      await signInAnonymously(auth);
-
-      return initializeFirestore(app, {
-        experimentalForceLongPolling: true,
-        useFetchStreams: false
-      });
-    }
-
-    async function obtenerApiKey() {
-      const rutas = esEntornoLocal()
-        ? [
-            "/.netlify/functions/getApiK",
-            "https://navi111.netlify.app/.netlify/functions/getApiK"
-          ]
-        : ["/.netlify/functions/getApiK"];
-
-      let ultimoError = null;
-
-      for (const ruta of rutas) {
-        try {
-          const respuesta = await fetch(ruta, {
-            headers: { Accept: "application/json" },
-            cache: "no-store"
-          });
-
-          if (!respuesta.ok) {
-            throw new Error(`La función getApiK respondió ${respuesta.status}.`);
-          }
-
-          const datos = await respuesta.json();
-
-          if (!datos?.apik) {
-            throw new Error("La función getApiK no devolvió la API key.");
-          }
-
-          return datos.apik;
-        } catch (error) {
-          ultimoError = error;
+    async function llamarServidor(payload) {
+      const respuesta = await fetch(
+        "/.netlify/functions/consultar-list-updated",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+          cache: "no-store"
         }
+      );
+
+      let datos = {};
+
+      try {
+        datos = await respuesta.json();
+      } catch {
+        datos = {};
       }
 
-      throw ultimoError || new Error("No fue posible obtener la API key.");
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.error ||
+          `La operación falló con estado ${respuesta.status}.`
+        );
+      }
+
+      return datos;
     }
 
-    function simpleStringHash(valor) {
-      let hash = 0;
 
-      for (let indice = 0; indice < valor.length; indice += 1) {
-        const caracter = valor.charCodeAt(indice);
-        hash = (hash << 5) - hash + caracter;
-        hash |= 0;
-      }
-
-      return hash;
-    }
-
-    function convertirFechaFirestore(valor) {
-      if (valor instanceof Timestamp) {
-        return valor.toDate();
-      }
-
-      if (valor && typeof valor.toDate === "function") {
-        return valor.toDate();
-      }
-
-      if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
-        return valor;
-      }
-
-      if (typeof valor === "string") {
-        const fecha = new Date(valor);
-        return Number.isNaN(fecha.getTime()) ? null : fecha;
-      }
-
-      return null;
-    }
 
     function renderizarResultados(resultados, fechaLimite, ahora) {
       elements.resultsBody.replaceChildren();
@@ -999,27 +935,8 @@
       elements.notification.textContent = "";
     }
 
-    function obtenerMensajeError(error) {
-      const codigo = String(error?.code || "");
 
-      if (codigo.includes("permission-denied")) {
-        return "Firestore rechazó la consulta. Revisa que las reglas permitan al usuario anónimo listar documentos de configg.";
-      }
 
-      if (codigo.includes("failed-precondition")) {
-        return "Firestore requiere un índice para esta consulta. Revisa el enlace de creación del índice que aparece en la consola del navegador.";
-      }
-
-      if (codigo.includes("unauthenticated")) {
-        return "No fue posible iniciar la sesión anónima de Firebase.";
-      }
-
-      return error?.message || "No fue posible consultar los documentos.";
-    }
-
-    function esEntornoLocal() {
-      return ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    }
   </script>
 </body>
 </html>
