@@ -257,7 +257,8 @@ body {
 }
 
 .whatsapp-btn i{
-    margin-right:8px;
+    margin-right:0;
+    font-size:28px;
 }
 
 
@@ -357,9 +358,10 @@ body {
 		
 		<a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Instagram</a>
 		
+		<br>
         <a id="verse-link3" href="#" target="_blank" class="whatsapp-btn" 
 		    rel="noopener noreferrer" style="display: none;" >
-			<i class="fa-brands fa-whatsapp"></i><span> WhatsApp</span></a>
+			<i class="fa-brands fa-whatsapp"></i></a>
 			
 			
       </div>
@@ -541,7 +543,7 @@ body {
 async function delayedTask() {
     console.log("Starting...");    
     await sleep(2000); // Sleep for 2000 milliseconds (2 seconds)    
-    console.log("Done after 2 seconds!");
+    //console.log("Done after 2 seconds!");
 }
 //delayedTask();
 
@@ -1036,11 +1038,11 @@ async function delayedTask() {
 	  if ( !isFire ){	
 	     //let thegist ="b10ff3e6d9a8dd1d680d62c6d964590b";
 	     let thegist = getGistId(thefilename); //toDo: delete
-	     console.log("despues the getGistId");
+	     //console.log("despues the getGistId");
 		
 		const r = await fetch('https://gist.githubusercontent.com/ivanmoralescotes-ui/' + thegist + '/raw/' + thefilename);
 		const r2 = await r.text();
-		console.log("the object:" + r2);
+		//console.log("the object:" + r2);
 		if ( !r2 || r2 == "" || r2.includes("404") ){
 			console.log("invalid json object");
 			return;
@@ -1089,7 +1091,7 @@ async function delayedTask() {
 
       // window.location.href = rutaImagen
 	  if (props.linkdirecto != null && props.linkdirecto != "") {
-        console.log("direct:" + props.linkdirecto);
+        //console.log("direct:" + props.linkdirecto);
 
         // Marcamos que estamos saliendo de esta página para que no continúe
         // la carga del slideshow ni aparezcan mensajes de error transitorios.
@@ -1336,7 +1338,7 @@ async function delayedTask() {
         }
 
         if (slide.type === "html") {
-          console.log("it is html");
+          console.log("html");
 
           verseLinkEl.href  = verseLink;
           verseLinkEl2.href = verseLink2;
