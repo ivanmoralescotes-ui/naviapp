@@ -103,7 +103,8 @@ async function reservarCodigo(event) {
     }
 
     transaccion.update(documentoRef, {
-      estado: "reservado"
+      estado: "reservado",
+      fecha: new Date()
     });
 
     resultado = {
