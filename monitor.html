@@ -15,7 +15,7 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 .toggle{position:absolute;top:50%;right:7px;transform:translateY(-50%);border:0;background:transparent;color:var(--primary-dark);font-weight:750;cursor:pointer}.button{min-height:50px;padding:12px 17px;border:0;border-radius:14px;color:#fff;background:var(--primary);font-weight:800;cursor:pointer}.button:disabled{opacity:.55;cursor:not-allowed}.button:hover:not(:disabled){background:var(--primary-dark)}
 .error-text{min-height:1.15em;margin:0;color:var(--danger);font-size:.82rem;font-weight:650}.notification{display:none;margin-bottom:16px;padding:13px 15px;border-radius:14px;font-size:.9rem;font-weight:720}.notification.show{display:block}.notification.error{color:var(--danger);background:var(--danger-bg);border:1px solid #f7b6b2}
 .results-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.results-head span{color:var(--muted);font-size:.84rem}.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:12px 14px;border-bottom:1px solid #e8edf3;text-align:left;vertical-align:middle}th{background:#f8fafc;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:#344054}tbody tr:last-child td{border-bottom:0}.codigo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:720}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef2ff;font-size:.8rem;font-weight:800}
-.url-wrap{display:flex;align-items:center;gap:8px;min-width:280px}.url-link{flex:1;color:var(--primary-dark);overflow-wrap:anywhere}.copy{flex:0 0 auto;border:1px solid #bfdbfe;border-radius:9px;padding:7px 10px;color:var(--primary-dark);background:#eff6ff;font-size:.8rem;font-weight:800;cursor:pointer}.name-row{display:flex;align-items:center;gap:7px}.name-row input{min-width:0;flex:1}.extract-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.extract-btn:hover{background:#dbeafe}.extract-btn:disabled{opacity:.55;cursor:not-allowed}.empty{margin:0;padding:24px 16px;color:var(--muted);text-align:center}[hidden]{display:none!important}
+.url-wrap{display:flex;align-items:center;gap:8px;min-width:280px}.url-link{flex:1;color:var(--primary-dark);overflow-wrap:anywhere}.copy{flex:0 0 auto;border:1px solid #bfdbfe;border-radius:9px;padding:7px 10px;color:var(--primary-dark);background:#eff6ff;font-size:.8rem;font-weight:800;cursor:pointer}.name-row{display:flex;align-items:center;gap:7px}.name-row input{min-width:0;flex:1}.extract-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.extract-btn:hover{background:#dbeafe}.extract-btn:disabled{opacity:.55;cursor:not-allowed}.password-tool{display:flex;align-items:center;gap:7px;grid-column:1/-1}.password-tool input{min-width:0;flex:1}.mini-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#dbeafe}.mini-btn:disabled{opacity:.55;cursor:not-allowed}.change-link{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;text-decoration:none;white-space:nowrap}.change-link:hover{background:#dbeafe}.empty{margin:0;padding:24px 16px;color:var(--muted);text-align:center}[hidden]{display:none!important}
 @media(min-width:700px){.page{padding-inline:24px}.card{padding:24px}.grid.horizontal{grid-template-columns:minmax(180px,1fr) minmax(220px,1.4fr) auto;align-items:end}.grid.horizontal .button{min-width:150px}}
 </style>
 </head>
@@ -67,6 +67,11 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 </div>
 </div>
 <button id="queryButton" class="button" type="submit" disabled>Consultar</button>
+<div class="password-tool">
+<input id="generatedPassword" type="text" maxlength="20" placeholder="Nueva contraseña">
+<button id="generatePasswordButton" class="mini-btn" type="button">Generar</button>
+<button id="copyPasswordButton" class="mini-btn" type="button">Copiar</button>
+</div>
 </form>
 </section>
 
@@ -77,7 +82,7 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 </div>
 <div id="tableWrap" class="table-wrap" hidden>
 <table>
-<thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Fecha</th><th>URL</th></tr></thead>
+<thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th>Fecha</th><th>URL</th><th>Clave</th></tr></thead>
 <tbody id="resultsBody"></tbody>
 </table>
 </div>
@@ -101,6 +106,9 @@ estado:document.getElementById("estado"),
 nombre:document.getElementById("nombre"),
 extractQrButton:document.getElementById("extractQrButton"),
 queryButton:document.getElementById("queryButton"),
+generatedPassword:document.getElementById("generatedPassword"),
+generatePasswordButton:document.getElementById("generatePasswordButton"),
+copyPasswordButton:document.getElementById("copyPasswordButton"),
 resultsSection:document.getElementById("resultsSection"),
 filterText:document.getElementById("filterText"),
 totalText:document.getElementById("totalText"),
@@ -109,9 +117,26 @@ resultsBody:document.getElementById("resultsBody"),
 emptyState:document.getElementById("emptyState")
 };
 let passwordSesion="";
+const COLORES=["azul","verde","rojo","amarillo","naranja","morado","violeta","rosado","negro","blanco","gris","celeste","turquesa","coral","dorado","plateado","lila","fucsia","menta","beige","cafe"];
 
 el.passwordToggle.addEventListener("click",()=>{const visible=el.password.type==="text";el.password.type=visible?"password":"text";el.passwordToggle.textContent=visible?"Mostrar":"Ocultar";el.password.focus()});
 el.password.addEventListener("input",()=>{el.passwordError.textContent="";ocultarNotificacion()});
+
+el.generatePasswordButton.addEventListener("click",()=>{
+const color=COLORES[indiceAleatorioSeguro(COLORES.length)];
+const numero=10+indiceAleatorioSeguro(90);
+el.generatedPassword.value=`${color}${numero}`;
+el.generatedPassword.focus();
+el.generatedPassword.select();
+});
+
+el.copyPasswordButton.addEventListener("click",async()=>{
+const valor=el.generatedPassword.value.trim();
+if(!valor){mostrarError("Primero escribe o genera una contraseña.");el.generatedPassword.focus();return}
+try{await navigator.clipboard.writeText(valor)}catch{const t=document.createElement("textarea");t.value=valor;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove()}
+el.copyPasswordButton.textContent="Copiado";
+setTimeout(()=>el.copyPasswordButton.textContent="Copiar",1400);
+});
 
 el.extractQrButton.addEventListener("click",()=>{
 const texto=el.nombre.value;
@@ -177,13 +202,54 @@ const c5=document.createElement("td");const w=document.createElement("div");w.cl
 const a=document.createElement("a");a.className="url-link";a.href=x.url||"#";a.target="_blank";a.rel="noopener noreferrer";a.textContent=x.url||"—";
 const cp=document.createElement("button");cp.type="button";cp.className="copy";cp.textContent="Copiar";cp.disabled=!x.url;
 cp.addEventListener("click",async()=>{if(!x.url)return;try{await navigator.clipboard.writeText(x.url)}catch{const t=document.createElement("textarea");t.value=x.url;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove()}cp.textContent="Copiado";setTimeout(()=>cp.textContent="Copiar",1400)});
-w.append(a,cp);c5.append(w);tr.append(c1,c2,c3,c4,c5);frag.append(tr);
+w.append(a,cp);c5.append(w);
+
+const c6=document.createElement("td");
+const change=document.createElement("a");
+change.className="change-link";
+change.textContent="Cambiar clave";
+const codigoCambio=crearCodigoCambioClave(x.url);
+if(codigoCambio){
+change.href=`https://xn--rda.ws/changepwd.html?codigo=${encodeURIComponent(codigoCambio)}`;
+change.target="_blank";
+change.rel="noopener noreferrer";
+}else{
+change.href="#";
+change.style.opacity=".45";
+change.style.pointerEvents="none";
+}
+c6.append(change);
+
+tr.append(c1,c2,c3,c4,c5,c6);frag.append(tr);
 });
 el.resultsBody.append(frag);el.emptyState.hidden=true;el.tableWrap.hidden=false;
 }
 
+function indiceAleatorioSeguro(maximo){
+if(window.crypto&&typeof window.crypto.getRandomValues==="function"){
+const buffer=new Uint32Array(1);window.crypto.getRandomValues(buffer);return buffer[0]%maximo;
+}
+return Math.floor(Math.random()*maximo);
+}
+
+function crearCodigoCambioClave(url){
+if(typeof url!=="string"||!url.trim())return"";
+let ultimosTres="";
+try{
+const parsed=new URL(url,window.location.origin);
+const partes=parsed.pathname.split("/").filter(Boolean);
+const ultimo=partes.length?partes[partes.length-1]:"";
+ultimosTres=ultimo.slice(-3);
+}catch{
+ultimosTres=url.trim().replace(/\/+$/,"").slice(-3);
+}
+if(!/^[a-zA-Z0-9_-]{3}$/.test(ultimosTres))return"";
+const base64=btoa(ultimosTres);
+return `ccW${base64}i`;
+}
+
 function formatearFecha(f){if(!(f instanceof Date)||Number.isNaN(f.getTime()))return"—";return new Intl.DateTimeFormat("es-CO",{timeZone:"America/Bogota",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(f)}
-function setConsultando(v){el.queryButton.disabled=v;el.estado.disabled=v;el.nombre.disabled=v;el.extractQrButton.disabled=v;el.queryButton.textContent=v?"Consultando...":"Consultar"}
+function setConsultando(v){el.queryButton.disabled=v;el.estado.disabled=v;el.nombre.disabled=v;el.extractQrButton.disabled=v;el.generatePasswordButton.disabled=v;el.copyPasswordButton.disabled=v;el.queryButton.textContent=v?"Consultando...":"Consultar"}
 function mostrarError(m){el.notification.className="notification show error";el.notification.textContent=m}
 function ocultarNotificacion(){el.notification.className="notification";el.notification.textContent=""}
 </script>
