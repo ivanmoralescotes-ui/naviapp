@@ -51,7 +51,12 @@
       color:var(--primary-dark);background:transparent;font-size:.8rem;font-weight:750;cursor:pointer
     }
     .toggle:hover{background:#eff6ff}
-    .toggle:focus-visible,.save:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+    .toggle:focus-visible,.save:focus-visible,.mini-action:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+    .new-password-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+    .mini-actions{display:flex;gap:6px;align-items:center}
+    .mini-action{min-height:38px;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}
+    .mini-action:hover{background:#dbeafe}
+    .mini-action:disabled{opacity:.55;cursor:not-allowed}
     .help,.error{margin:0;font-size:.81rem;line-height:1.4}
     .help{color:var(--muted)}
     .error{min-height:1.15em;color:var(--danger);font-weight:650}
@@ -69,6 +74,7 @@
     .notice.success{color:var(--success);border-color:#a6f4c5;background:var(--success-bg)}
     .notice.error{color:var(--danger);border-color:#f7b6b2;background:var(--danger-bg)}
     .footer{margin:16px 8px 0;color:var(--muted);font-size:.78rem;line-height:1.45;text-align:center}
+    @media(max-width:430px){.new-password-row{grid-template-columns:1fr}.mini-actions{justify-content:flex-end}}
     @media(min-width:560px){.card{padding:24px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
   </style>
@@ -94,9 +100,15 @@
 
       <div class="field">
         <label for="newPassword">Nueva contraseña <span class="required">*</span></label>
-        <div class="input-wrap">
-          <input id="newPassword" type="password" autocomplete="new-password" minlength="3" maxlength="20" required>
-          <button class="toggle" type="button" data-target="newPassword" aria-label="Mostrar nueva contraseña">Ver</button>
+        <div class="new-password-row">
+          <div class="input-wrap">
+            <input id="newPassword" type="password" autocomplete="new-password" minlength="3" maxlength="20" required>
+            <button class="toggle" type="button" data-target="newPassword" aria-label="Mostrar nueva contraseña">Ver</button>
+          </div>
+          <div class="mini-actions">
+            <button id="generatePasswordButton" class="mini-action" type="button">Generar</button>
+            <button id="copyPasswordButton" class="mini-action" type="button">Copiar</button>
+          </div>
         </div>
         <p class="help">Usa entre 3 y 20 caracteres.</p>
         <p id="newPasswordError" class="error"></p>
@@ -127,6 +139,8 @@
       const form = document.getElementById("form");
       const notice = document.getElementById("notice");
       const saveButton = document.getElementById("saveButton");
+      const generatePasswordButton = document.getElementById("generatePasswordButton");
+      const copyPasswordButton = document.getElementById("copyPasswordButton");
 
       const fields = {
         currentPassword: {
@@ -142,6 +156,12 @@
           error: document.getElementById("confirmPasswordError")
         }
       };
+
+      const COLORES = [
+        "azul","verde","rojo","amarillo","naranja","morado","violeta",
+        "rosado","negro","blanco","gris","celeste","turquesa","coral",
+        "dorado","plateado","lila","fucsia","menta","beige","cafe"
+      ];
 
       const identificador = obtenerIdentificador();
       const carpeta = decodificarIdentificador(identificador);
@@ -160,6 +180,8 @@
           });
         });
 
+        generatePasswordButton.addEventListener("click", generarPasswordAleatoria);
+        copyPasswordButton.addEventListener("click", copiarNuevaPassword);
         form.addEventListener("submit", guardarCambio);
 
         if (!carpeta) {
@@ -223,6 +245,51 @@
         input.type = mostrar ? "text" : "password";
         button.textContent = mostrar ? "Ocultar" : "Ver";
         button.setAttribute("aria-pressed", String(mostrar));
+      }
+
+      function indiceAleatorioSeguro(maximo) {
+        if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+          const buffer = new Uint32Array(1);
+          window.crypto.getRandomValues(buffer);
+          return buffer[0] % maximo;
+        }
+        return Math.floor(Math.random() * maximo);
+      }
+
+      function generarPasswordAleatoria() {
+        const color = COLORES[indiceAleatorioSeguro(COLORES.length)];
+        const numero = 10 + indiceAleatorioSeguro(90);
+        fields.newPassword.input.value = `${color}${numero}`;
+        limpiarError("newPassword");
+        ocultarNotificacion();
+        fields.newPassword.input.focus();
+        fields.newPassword.input.select();
+      }
+
+      async function copiarNuevaPassword() {
+        const valor = fields.newPassword.input.value;
+
+        if (!valor) {
+          mostrarError("newPassword", "Primero escribe o genera una nueva contraseña.");
+          fields.newPassword.input.focus();
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(valor);
+        } catch {
+          const area = document.createElement("textarea");
+          area.value = valor;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+
+        copyPasswordButton.textContent = "Copiado";
+        window.setTimeout(() => {
+          copyPasswordButton.textContent = "Copiar";
+        }, 1400);
       }
 
       async function guardarCambio(event) {
@@ -389,6 +456,9 @@
             button.disabled = procesando;
           }
         );
+
+        generatePasswordButton.disabled = procesando;
+        copyPasswordButton.disabled = procesando;
       }
 
       function mostrarError(nombre, mensaje) {
