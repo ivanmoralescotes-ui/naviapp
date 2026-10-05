@@ -18,6 +18,9 @@
     .gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.qr-card{border:1px solid var(--border);border-radius:18px;background:var(--surface);padding:12px;box-shadow:0 8px 24px rgba(15,23,42,.05);transition:.18s ease;position:relative;overflow:hidden}.qr-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(15,23,42,.08)}
     .qr-image-wrap{aspect-ratio:1/1;border-radius:14px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid #edf1f5}.qr-image-wrap img{width:100%;height:100%;object-fit:contain;display:block}.qr-meta{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}.qr-name{font-weight:850;font-size:.95rem}.reserve-btn{width:100%;margin-top:10px;border:none;border-radius:12px;min-height:42px;background:var(--primary);color:#fff;font-weight:850;cursor:pointer}.reserve-btn:hover{background:var(--primary-dark)}.reserve-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
     .reserved-badge{display:none;position:absolute;inset:10px 10px auto auto;padding:7px 10px;border-radius:999px;background:#0f172a;color:#fff;font-size:.75rem;font-weight:900;z-index:2}.qr-card.is-reserved{opacity:.55}.qr-card.is-reserved .reserved-badge{display:inline-flex}.status{margin-top:18px;display:none;padding:16px;border-radius:16px;background:var(--success-soft);border:1px solid #bbf7d0;color:#166534;line-height:1.5;font-weight:700}.status.show{display:block}.status.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .show-more-wrap{display:flex;justify-content:center;margin-top:18px}
+    .show-more-btn{min-height:44px;padding:10px 18px;border:1px solid #bfdbfe;border-radius:13px;background:#eff6ff;color:var(--primary-dark);font-weight:850;cursor:pointer}
+    .show-more-btn:hover{background:#dbeafe}
     .floating-whatsapp{position:fixed;right:18px;bottom:18px;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#25D366;color:#fff;text-decoration:none;box-shadow:0 14px 28px rgba(37,211,102,.32);z-index:10}.floating-whatsapp svg{width:29px;height:29px;fill:currentColor}.footer{margin-top:30px;text-align:center;color:var(--muted);font-size:.83rem;line-height:1.5}
     @media(min-width:700px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:38px}}@media(min-width:980px){.gallery{grid-template-columns:repeat(4,minmax(0,1fr))}}
   
@@ -99,7 +102,7 @@
     <section class="hero">
       <p class="eyebrow">Códigos QR listos para usar</p>
       <h1>Escoge el QR que más te guste</h1>
-      <p>Cada código QR ya está listo para ser personalizado. Tú escoges uno, lo reservas, haces el pago y luego puedes cambiar el contenido cuando quieras.</p>
+      <p>Cada código QR ya está listo para ser personalizado. Tú reservas uno, haces el pago y luego puedes cambiar el contenido cuando quieras.</p>
     </section>
 
 <section class="info-grid">
@@ -133,6 +136,9 @@
 <section id="galeria">
       <div class="gallery-header"><div><h2>Galería de QR disponibles</h2><!-- <p>Haz clic en el que quieras reservar.</p> --></div></div>
       <div id="qrGallery" class="gallery"></div>
+      <div id="showMoreWrap" class="show-more-wrap" hidden>
+        <button id="showMoreButton" class="show-more-btn" type="button">Mostrar más</button>
+      </div>
       <div id="statusMessage" class="status"></div>
     </section>
 
@@ -184,9 +190,13 @@
   <script>
     const WHATSAPP = "573180501356";
     const API_CODIGOS = "/.netlify/functions/codigos-qr";
+    const LIMITE_INICIAL = 20;
     let qrDisponibles = [];
+    let cantidadVisible = LIMITE_INICIAL;
 
     const gallery = document.getElementById("qrGallery");
+    const showMoreWrap = document.getElementById("showMoreWrap");
+    const showMoreButton = document.getElementById("showMoreButton");
     const statusMessage = document.getElementById("statusMessage");
     const imageModal = document.getElementById("imageModal");
     const imageModalImg = document.getElementById("imageModalImg");
@@ -223,15 +233,22 @@
       document.body.classList.remove("modal-open");
     }
 
+    function actualizarBotonMostrarMas(){
+      showMoreWrap.hidden = qrDisponibles.length <= cantidadVisible;
+    }
+
     function renderGallery(){
       gallery.innerHTML="";
 
       if(!qrDisponibles.length){
+        showMoreWrap.hidden = true;
         mostrarEstado("<strong>No hay códigos QR disponibles en este momento.</strong>");
         return;
       }
 
-      qrDisponibles.forEach(qr=>{
+      const codigosVisibles = qrDisponibles.slice(0, cantidadVisible);
+
+      codigosVisibles.forEach(qr=>{
         const card=document.createElement("article");
         card.className="qr-card";
         card.dataset.id=qr.id;
@@ -272,6 +289,8 @@
         card.append(badge,wrap,meta,button);
         gallery.appendChild(card);
       });
+
+      actualizarBotonMostrarMas();
     }
 
     async function cargarCodigosDisponibles(){
@@ -296,6 +315,7 @@
         }
 
         qrDisponibles = Array.isArray(datos.codigos) ? datos.codigos : [];
+        cantidadVisible = LIMITE_INICIAL;
         renderGallery();
       }catch(error){
         console.error("Error cargando códigos:",error);
@@ -331,6 +351,7 @@
           if(respuesta.status===409){
             qrDisponibles = qrDisponibles.filter(item=>item.id!==qr.id);
             card.remove();
+            actualizarBotonMostrarMas();
             mostrarEstado(
               "<strong>Ese QR acaba de dejar de estar disponible.</strong><br>Otra persona pudo haberlo reservado antes. Puedes escoger otro.",
               true
@@ -371,6 +392,11 @@
         );
       }
     }
+
+    showMoreButton.addEventListener("click",()=>{
+      cantidadVisible = qrDisponibles.length;
+      renderGallery();
+    });
 
     imageModalClose.addEventListener("click",cerrarImagenGrande);
     imageModal.addEventListener("click",(event)=>{
