@@ -234,7 +234,16 @@
     }
 
     function actualizarBotonMostrarMas(){
-      showMoreWrap.hidden = qrDisponibles.length <= cantidadVisible;
+      if(qrDisponibles.length <= LIMITE_INICIAL){
+        showMoreWrap.hidden = true;
+        return;
+      }
+
+      showMoreWrap.hidden = false;
+      showMoreButton.textContent =
+        cantidadVisible >= qrDisponibles.length
+          ? "Mostrar menos"
+          : "Mostrar más";
     }
 
     function renderGallery(){
@@ -394,8 +403,19 @@
     }
 
     showMoreButton.addEventListener("click",()=>{
-      cantidadVisible = qrDisponibles.length;
+      cantidadVisible =
+        cantidadVisible >= qrDisponibles.length
+          ? LIMITE_INICIAL
+          : qrDisponibles.length;
+
       renderGallery();
+
+      if(cantidadVisible === LIMITE_INICIAL){
+        document.getElementById("galeria").scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+      }
     });
 
     imageModalClose.addEventListener("click",cerrarImagenGrande);
