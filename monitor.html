@@ -273,7 +273,7 @@ cpText.disabled=!x.url;
 cpText.addEventListener("click",async()=>{
 const code=crearCodigoCambioClave(x.url);
 if(!code)return;
-const texto=`Hola, la página correspondiente a la configuración de tu QR es https://ú.ws/config1?codigo=${code}`;
+const texto=`Hola, gracias por tu compra. La página correspondiente a la configuración de tu QR es https://ú.ws/config1?codigo=${code}`;
 await copiarAlPortapapeles(texto);
 marcarBotonCopiado(cpText,"Copiar texto");
 });
