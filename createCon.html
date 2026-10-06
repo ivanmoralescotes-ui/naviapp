@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <title>Crear configuración</title>
+  <style>
+    :root{color-scheme:light;--bg:#f4f7fb;--surface:#fff;--text:#172033;--muted:#667085;--border:#d8e0ea;--primary:#2563eb;--primary-dark:#1d4ed8;--danger:#b42318;--danger-bg:#fef3f2;--success:#067647;--success-bg:#ecfdf3;--focus:rgba(37,99,235,.22);--shadow:0 12px 35px rgba(23,32,51,.09)}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(37,99,235,.11),transparent 34rem),var(--bg)}
+    button,input{font:inherit}.page{width:min(100%,560px);margin:auto;padding:24px 16px 42px}.header{padding:6px 4px 20px}.eyebrow{margin:0 0 7px;color:var(--primary);font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}h1{margin:0;font-size:clamp(1.55rem,6vw,2.15rem)}.subtitle{margin:9px 0 0;color:var(--muted);line-height:1.5}
+    .card{padding:20px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.97);box-shadow:var(--shadow)}.grid{display:grid;gap:15px}.field{display:grid;gap:7px}label{font-size:.92rem;font-weight:750}input{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;color:var(--text);background:var(--surface);outline:none}input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--focus)}.input-wrap{position:relative}.input-wrap input[type="password"]{padding-right:76px}.toggle{position:absolute;top:50%;right:7px;transform:translateY(-50%);border:0;background:transparent;color:var(--primary-dark);font-weight:750;cursor:pointer}.help{margin:0;color:var(--muted);font-size:.82rem;line-height:1.4}.button{min-height:50px;border:0;border-radius:14px;padding:12px 17px;color:#fff;background:var(--primary);font-weight:800;cursor:pointer}.button:hover:not(:disabled){background:var(--primary-dark)}.button:disabled{opacity:.55;cursor:not-allowed}.notification{display:none;margin-top:16px;padding:13px 15px;border-radius:14px;font-size:.92rem;font-weight:750;line-height:1.45}.notification.show{display:block}.notification.success{color:var(--success);background:var(--success-bg);border:1px solid #a6f4c5}.notification.error{color:var(--danger);background:var(--danger-bg);border:1px solid #f7b6b2}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <p class="eyebrow">Administración</p>
+      <h1>Crear configuración</h1>
+      <p class="subtitle">Crea un documento nuevo en la colección configg.</p>
+    </header>
+
+    <section class="card">
+      <form id="createForm" class="grid" novalidate>
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <div class="input-wrap">
+            <input id="password" type="password" autocomplete="current-password" maxlength="100" required>
+            <button id="passwordToggle" class="toggle" type="button">Mostrar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="codigo">Código</label>
+          <input id="codigo" type="text" maxlength="300" autocomplete="off" placeholder="abc o https://ú.ws/abc" required>
+          <p class="help">Se aceptan 3 caracteres o una URL/texto que contenga un enlace de ú.ws.</p>
+        </div>
+
+        <button id="createButton" class="button" type="submit">Crear</button>
+      </form>
+
+      <div id="notification" class="notification" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = "/.netlify/functions/crear-configg";
+    const form = document.getElementById("createForm");
+    const password = document.getElementById("password");
+    const passwordToggle = document.getElementById("passwordToggle");
+    const codigo = document.getElementById("codigo");
+    const createButton = document.getElementById("createButton");
+    const notification = document.getElementById("notification");
+
+    passwordToggle.addEventListener("click", () => {
+      const visible = password.type === "text";
+      password.type = visible ? "password" : "text";
+      passwordToggle.textContent = visible ? "Mostrar" : "Ocultar";
+      password.focus();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      ocultarMensaje();
+      const passwordIngresado = password.value;
+      const codigoIngresado = codigo.value.trim();
+
+      if (!passwordIngresado) { mostrarError("Escribe la contraseña."); password.focus(); return; }
+      if (!codigoIngresado) { mostrarError("Escribe el código."); codigo.focus(); return; }
+
+      setProcesando(true);
+      try {
+        const respuesta = await fetch(API, {
+          method: "POST",
+          headers: {"Content-Type":"application/json","Accept":"application/json"},
+          body: JSON.stringify({ password: passwordIngresado, codigo: codigoIngresado }),
+          cache: "no-store"
+        });
+
+        let datos = {};
+        try { datos = await respuesta.json(); } catch { datos = {}; }
+        if (!respuesta.ok) throw new Error(datos.error || `La operación falló con estado ${respuesta.status}.`);
+
+        if (datos.creado === false) { mostrarExito("ya existia"); return; }
+        mostrarExito("creado");
+        if (typeof datos.codigo === "string") codigo.value = datos.codigo;
+      } catch (error) {
+        mostrarError(error.message || "No fue posible crear la configuración.");
+      } finally {
+        setProcesando(false);
+      }
+    });
+
+    function setProcesando(valor) {
+      password.disabled = valor;
+      codigo.disabled = valor;
+      createButton.disabled = valor;
+      passwordToggle.disabled = valor;
+      createButton.textContent = valor ? "Creando..." : "Crear";
+    }
+    function mostrarExito(mensaje){notification.className="notification show success";notification.textContent=mensaje}
+    function mostrarError(mensaje){notification.className="notification show error";notification.textContent=mensaje}
+    function ocultarMensaje(){notification.className="notification";notification.textContent=""}
+  </script>
+</body>
+</html>
