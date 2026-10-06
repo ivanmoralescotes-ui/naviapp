@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2563eb">
-  <title>Crear configuración</title>
+  <title>Crear conf</title>
   <style>
     :root{color-scheme:light;--bg:#f4f7fb;--surface:#fff;--text:#172033;--muted:#667085;--border:#d8e0ea;--primary:#2563eb;--primary-dark:#1d4ed8;--danger:#b42318;--danger-bg:#fef3f2;--success:#067647;--success-bg:#ecfdf3;--focus:rgba(37,99,235,.22);--shadow:0 12px 35px rgba(23,32,51,.09)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(37,99,235,.11),transparent 34rem),var(--bg)}
@@ -16,8 +16,8 @@
   <main class="page">
     <header class="header">
       <p class="eyebrow">Administración</p>
-      <h1>Crear configuración</h1>
-      <p class="subtitle">Crea un documento nuevo en la colección configg.</p>
+      <h1>Crear conf</h1>
+      <p class="subtitle">Crea un documento</p>
     </header>
 
     <section class="card">
@@ -33,7 +33,7 @@
         <div class="field">
           <label for="codigo">Código</label>
           <input id="codigo" type="text" maxlength="300" autocomplete="off" placeholder="abc o https://ú.ws/abc" required>
-          <p class="help">Se aceptan 3 caracteres o una URL/texto que contenga un enlace de ú.ws.</p>
+          <p class="help">Se aceptan 3 caracteres o un enlace válido.</p>
         </div>
 
         <button id="createButton" class="button" type="submit">Crear</button>
@@ -82,7 +82,7 @@
         if (!respuesta.ok) throw new Error(datos.error || `La operación falló con estado ${respuesta.status}.`);
 
         if (datos.creado === false) { mostrarExito("ya existia"); return; }
-        mostrarExito("creado");
+        mostrarExito("Creado");
         if (typeof datos.codigo === "string") codigo.value = datos.codigo;
       } catch (error) {
         mostrarError(error.message || "No fue posible crear la configuración.");
