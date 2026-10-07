@@ -275,10 +275,10 @@ const code=crearCodigoCambioClave(x.url);
 if(!code)return;
 const pwd2=el.generatedPassword.value.trim();
 if(!pwd2){mostrarError("Primero escribe o genera una contraseña.");el.generatedPassword.focus();return}
-const text=`Hola, recuerda que puedes cambiar tu clave. Actualmente tu clave es: ${pwd}`;
+const text=`Hola, recuerda que puedes cambiar tu clave. Actualmente tu clave es: ${pwd2}`;
 
 const texto=`Hola, gracias por tu compra. La página para configurar tu QR es https://ú.ws/config1?codigo=${code}`
- + `  Tu clave (que puedes cambiar) es ${pwd}  y tienes las instrucciones en https://ú.ws/qxb`;
+ + `  Tu clave (que puedes cambiar) es ${pwd2}  y tienes las instrucciones en https://ú.ws/qxb`;
 await copiarAlPortapapeles(texto);
 marcarBotonCopiado(cpText,"Copiar texto");
 });
