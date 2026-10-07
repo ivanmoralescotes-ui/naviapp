@@ -273,7 +273,12 @@ cpText.disabled=!x.url;
 cpText.addEventListener("click",async()=>{
 const code=crearCodigoCambioClave(x.url);
 if(!code)return;
-const texto=`Hola, gracias por tu compra. La página correspondiente a la configuración de tu QR es https://ú.ws/config1?codigo=${code}`;
+const pwd2=el.generatedPassword.value.trim();
+if(!pwd2){mostrarError("Primero escribe o genera una contraseña.");el.generatedPassword.focus();return}
+const text=`Hola, recuerda que puedes cambiar tu clave. Actualmente tu clave es: ${pwd}`;
+
+const texto=`Hola, gracias por tu compra. La página para configurar tu QR es https://ú.ws/config1?codigo=${code}`
+ + `  Tu clave (que puedes cambiar) es ${pwd}  y tienes las instrucciones en https://ú.ws/qxb`;
 await copiarAlPortapapeles(texto);
 marcarBotonCopiado(cpText,"Copiar texto");
 });
