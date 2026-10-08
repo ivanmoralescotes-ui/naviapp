@@ -16,7 +16,7 @@ body: params["hub.challenge"]
 
 return {
 statusCode: 403,
-body: "Verificación fallida" 
+body: "Verificación fallida"
 };
 }
 
