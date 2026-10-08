@@ -29,7 +29,7 @@ exports.handler = async (event) => {
   // 2. Recibir notificaciones de WhatsApp
   if (event.httpMethod === "POST") {
     console.log("Webhook recibido");
-
+    console.log("Contenido recibido:", event.body);
     return {
       statusCode: 200,
       body: "hola"
