@@ -155,6 +155,15 @@
         Próximamente aparecerán aquí tus conversaciones.
       </p>
 
+<button class="google" id="btnConsultar">
+  Ver mensajes de WhatsApp
+</button>
+
+<pre id="resultadoMensajes"
+     class="usuario"
+     style="white-space: pre-wrap; font-size: 12px;"
+     hidden></pre>
+	 
       <button class="salir" id="btnSalir">
         Cerrar sesión
       </button>
@@ -249,6 +258,55 @@
         estado.textContent = error.message;
       }
     });
+	
+	
+document.getElementById("btnConsultar")
+  .addEventListener("click", async () => {
+
+    const boton = document.getElementById("btnConsultar");
+    const resultado = document.getElementById("resultadoMensajes");
+
+    boton.disabled = true;
+    resultado.hidden = false;
+    resultado.textContent = "Consultando mensajes...";
+
+    try {
+      const usuario = auth.currentUser;
+
+      if (!usuario) {
+        throw new Error("Debes iniciar sesión con Google");
+      }
+
+      // Obtener token de autenticación de Firebase
+      const token = await usuario.getIdToken();
+
+      // Consultar nuestra función segura de Netlify
+      const respuesta = await fetch(
+        "/.netlify/functions/qregalo-mensajes",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.error || "Error consultando mensajes");
+      }
+
+      // Mostrar los mensajes recibidos
+      resultado.textContent =
+        JSON.stringify(datos, null, 2);
+
+    } catch (error) {
+      resultado.textContent = "Error: " + error.message;
+    } finally {
+      boton.disabled = false;
+    }
+  });
+
 
   </script>
 
