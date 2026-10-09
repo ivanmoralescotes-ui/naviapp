@@ -1,25 +1,32 @@
 
-const admin = require("firebase-admin");
+const { getApps, initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const crypto = require("crypto");
 
 // Inicializar Firebase cuando sea necesario
 function obtenerFirestore() {
-  if (!admin.apps.length) {
-    const credenciales = JSON.parse(
-      process.env.GOOGLE_SERVICE_ACCOUNT_JSON
-    );
+
+  if (getApps().length === 0) {
+
+    const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+    if (!json) {
+      throw new Error("Falta GOOGLE_SERVICE_ACCOUNT_JSON en Netlify");
+    }
+
+    const credenciales = JSON.parse(json);
 
     if (credenciales.private_key) {
       credenciales.private_key =
         credenciales.private_key.replace(/\\n/g, "\n");
     }
 
-    admin.initializeApp({
-      credential: admin.credential.cert(credenciales)
+    initializeApp({
+      credential: cert(credenciales)
     });
   }
 
-  return admin.firestore();
+  return getFirestore();
 }
 
 // Generar identificador único para cada mensaje
@@ -41,7 +48,8 @@ async function guardarMensaje(id, datos) {
       .doc(id)
       .create({
         ...datos,
-        fechaGuardado: admin.firestore.FieldValue.serverTimestamp()
+        
+		fechaGuardado: FieldValue.serverTimestamp()
       });
 
     console.log("Mensaje guardado en Firestore:", id);
