@@ -90,7 +90,7 @@ function validarFirmaMeta(event) {
   return { ok: recibida.length === esperada.length && crypto.timingSafeEqual(recibida, esperada) };
 }
 
-async function enviarMeta(numero, texto) {
+async function enviarMeta(numero, texto, { signal } = {}) {
   if (!process.env.META_PHONE_NUMBER_ID || !process.env.META_ACCESS_TOKEN) {
     throw new Error("Falta la configuración META_ACCESS_TOKEN / META_PHONE_NUMBER_ID");
   }
@@ -98,6 +98,7 @@ async function enviarMeta(numero, texto) {
     `https://graph.facebook.com/v24.0/${process.env.META_PHONE_NUMBER_ID}/messages`,
     {
       method: "POST",
+      signal,
       headers: {
         Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
         "Content-Type": "application/json"

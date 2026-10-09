@@ -1,9 +1,38 @@
 "use strict";
 
 const {
-  bd, json, identificador, validarFirmaMeta, FieldValue,
+  bd, json, identificador, validarFirmaMeta, fechaMs, enviarMeta, FieldValue,
   COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS
 } = require("../lib/qregalo-comun");
+
+// Notificar al administrador como máximo una vez cada 60 minutos por cliente.
+// Este número debe haber escrito al negocio durante las últimas 24 horas para
+// que Meta permita enviarle mensajes de texto sin plantilla.
+const WHATSAPP_PERSONAL = "573006291217";
+const MENSAJE_AVISO = "Escribieron. Puedes ir a https://ú.ws/qregalo-chat.html";
+const INTERVALO_AVISOS_MS = 60 * 60 * 1000;
+const TIEMPO_MAXIMO_AVISO_MS = 6000;
+
+async function enviarAvisoNoCritico(numeroCliente) {
+  try {
+    const resultado = await enviarMeta(WHATSAPP_PERSONAL, MENSAJE_AVISO, {
+      signal: AbortSignal.timeout(TIEMPO_MAXIMO_AVISO_MS)
+    });
+    if (!resultado.ok || !resultado.idWhatsapp) {
+      console.warn("QRegalo: aviso personal no enviado; chat sigue normal", {
+        numeroCliente, estadoMeta: resultado.status,
+        codigoMeta: resultado.datos?.error?.code || null
+      });
+      return;
+    }
+    console.log("QRegalo: aviso personal aceptado por Meta para cliente", numeroCliente);
+  } catch (error) {
+    // La notificación nunca debe hacer fallar el webhook ni el chat principal.
+    console.warn("QRegalo: fallo no crítico notificando al WhatsApp personal", {
+      numeroCliente, error: error?.message || String(error)
+    });
+  }
+}
 
 exports.handler = async (event) => {
   // La comprobación inicial de Meta sigue siendo compatible con la versión anterior.
@@ -35,6 +64,9 @@ exports.handler = async (event) => {
     payload = JSON.parse(raw);
   } catch (_) { return json(400, { error: "JSON inválido" }); }
 
+  // Primero guardamos y procesamos los mensajes, luego intentamos los avisos.
+  // Así un fallo de WhatsApp al avisar nunca deshace el guardado del cliente.
+  const numerosParaAvisar = new Set();
   try {
     const db = bd();
     for (const entry of payload.entry || []) {
@@ -74,6 +106,14 @@ exports.handler = async (event) => {
             const habilitado = anterior.autoEnabled !== false;
             const venceEn = new Date(ahora.getTime() + RETRASO_MS);
 
+            // Guardar el momento del INTENTO dentro de esta misma transacción
+            // evita avisos duplicados por mensajes simultáneos o reintentos.
+            // No notificar los mensajes enviados desde nuestro número personal.
+            const avisoAnterior = fechaMs(anterior.ultimaNotificacionPersonalIntentadaEn);
+            const correspondeAviso = numero !== WHATSAPP_PERSONAL &&
+              (!Number.isFinite(avisoAnterior) ||
+                ahora.getTime() - avisoAnterior >= INTERVALO_AVISOS_MS);
+
             t.create(msgRef, {
               numeroCliente: numero, direccion: "entrante", tipo, texto,
               idWhatsapp: mensaje.id,
@@ -91,7 +131,8 @@ exports.handler = async (event) => {
               ultimaEntradaId: mensaje.id,
               ultimaActividad: ahora,
               autoPendienteHasta: habilitado ? venceEn : null,
-              errorAutomatico: null
+              errorAutomatico: null,
+              ...(correspondeAviso ? { ultimaNotificacionPersonalIntentadaEn: ahora } : {})
             }, { merge: true });
 
             if (habilitado) {
@@ -103,17 +144,27 @@ exports.handler = async (event) => {
             } else {
               t.delete(pendRef);
             }
-            return true;
+            return { correspondeAviso };
           });
 
-          if (nuevo) console.log("QRegalo: mensaje guardado; espera automática 20 min:", numero);
-          else console.log("QRegalo: duplicado ignorado");
+          if (nuevo) {
+            console.log("QRegalo: mensaje guardado; espera automática 20 min:", numero);
+            if (nuevo.correspondeAviso) numerosParaAvisar.add(numero);
+          } else {
+            console.log("QRegalo: duplicado ignorado");
+          }
         }
       }
     }
   } catch (error) {
     console.error("QRegalo: fallo guardando webhook; Meta puede reintentar", error);
     return json(500, { error: "Error guardando el mensaje" });
+  }
+
+  // Independiente de la lógica existente. Los avisos se intentan solo cuando
+  // el mensaje ya fue guardado; cualquier error se registra y se ignora.
+  if (numerosParaAvisar.size) {
+    await Promise.all([...numerosParaAvisar].map(enviarAvisoNoCritico));
   }
 
   return { statusCode: 200, body: "OK" };
