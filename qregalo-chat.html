@@ -268,6 +268,8 @@
               <button id="btnBuscarCodigo" class="light-btn clave-gen" type="button"
                       title="Buscar el código en los últimos seis mensajes">cod</button>
             </div>
+            <button id="btnPedirNombre" class="light-btn clave-gen" type="button"
+                    title="Preparar un mensaje para pedir el nombre del QR reservado">nombre</button>
           </div>
           <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
@@ -674,7 +676,7 @@
       if (!conversacion) return;
 
       // Los mensajes ya están ordenados cronológicamente; considerar solo los seis últimos.
-      const ultimos = conversacion.mensajes.slice(-6);
+      const ultimos = conversacion.mensajes.slice(-12);//6
       for (let i = ultimos.length - 1; i >= 0; i--) {
         const mensaje = ultimos[i];
         if (typeof mensaje.texto !== "string") continue;
@@ -695,6 +697,15 @@
       // No sobreescribir el valor existente cuando no hay coincidencias.
       $("feedback").classList.remove("ok");
       $("feedback").textContent = 'No se encontró "el codigo" en los últimos 6 mensajes.';
+    });
+
+    // Preparar el mensaje predefinido sin enviarlo por WhatsApp.
+    $("btnPedirNombre").addEventListener("click", () => {
+      if (!numeroSeleccionado) return;
+      const texto = $("textoEnvio");
+      texto.value = "hola, me puedes regalar el nombre del QR que reservaste?";
+      texto.focus();
+      texto.setSelectionRange(texto.value.length, texto.value.length);
     });
 
     $("formEnviar").addEventListener("submit", enviarMensaje);
