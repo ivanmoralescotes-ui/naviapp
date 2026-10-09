@@ -150,10 +150,11 @@
     .auto-control input { accent-color: #187d74; width: 19px; height: 19px; cursor: pointer; }
     .auto-control input:disabled { cursor: wait; }
     /* Clave auxiliar visible para la conversación seleccionada */
-    .clave-row { display: flex; align-items: center; gap: 9px; padding: 8px 19px;
-      background: #fff; border-bottom: 1px solid var(--line); }
+    .clave-row { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap;
+      padding: 8px 19px; background: #fff; border-bottom: 1px solid var(--line); }
+    .clave-grupo { display: flex; align-items: center; gap: 7px; min-width: 0; }
     .clave-row label { color: #4d6e75; font-size: 12px; font-weight: 700; }
-    .clave-row input { width: 165px; min-width: 0; height: 33px; padding: 6px 10px;
+    .clave-row input { width: 140px; min-width: 0; height: 33px; padding: 6px 10px;
       border: 1px solid #d6e5e4; border-radius: 9px; background: #f8fbfb;
       color: var(--ink); font-size: 13px; }
     .clave-row input:focus { border-color: #64a99f; }
@@ -182,8 +183,8 @@
       .compose { padding: 11px 12px max(12px, env(safe-area-inset-bottom)); }
       .chat-heading { padding: 10px 12px; flex-wrap: wrap; }
       .auto-control { margin-left: auto; font-size: 11px; padding: 7px 9px; }
-      .clave-row { padding: 8px 12px; }
-      .clave-row input { width: min(165px, 48vw); }
+      .clave-row { padding: 8px 12px; gap: 7px 12px; }
+      .clave-row input { width: min(140px, 34vw); }
 
       .compose-row .solid-btn { padding: 10px; }
     }
@@ -250,13 +251,23 @@
               <span id="modoAutoTexto">Automático</span>
             </label>
           </header>
-          <div class="clave-row" role="group" aria-label="Clave de la conversación">
-            <label for="claveCliente">Clave</label>
-            <input id="claveCliente" type="text" autocomplete="off" autocapitalize="off"
-                   spellcheck="false" maxlength="40" placeholder="Escribe o genera"
-                   title="Clave visible; no se guarda en Firebase">
-            <button id="btnGenClave" class="light-btn clave-gen" type="button"
-                    title="Generar color aleatorio y dos dígitos">gen</button>
+          <div class="clave-row" role="group" aria-label="Datos de la conversación">
+            <div class="clave-grupo">
+              <label for="claveCliente">Clave</label>
+              <input id="claveCliente" type="text" autocomplete="off" autocapitalize="off"
+                     spellcheck="false" maxlength="40" placeholder="Escribe o genera"
+                     title="Clave visible; no se guarda en Firebase">
+              <button id="btnGenClave" class="light-btn clave-gen" type="button"
+                      title="Generar color aleatorio y dos dígitos">gen</button>
+            </div>
+            <div class="clave-grupo">
+              <label for="codigoCliente">Código</label>
+              <input id="codigoCliente" type="text" autocomplete="off" autocapitalize="off"
+                     spellcheck="false" placeholder="Código" aria-label="Código del chat"
+                     title="Código visible; no se guarda en Firebase">
+              <button id="btnBuscarCodigo" class="light-btn clave-gen" type="button"
+                      title="Buscar el código en los últimos seis mensajes">cod</button>
+            </div>
           </div>
           <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
@@ -304,6 +315,7 @@
     let modos = {};
     // Solo en memoria de esta pestaña, separadas por cliente; no se guardan en Firebase.
     const clavesPorNumero = new Map();
+    const codigosPorNumero = new Map();
     let numeroClaveVisible = null;
 
     function crear(tag, clase, texto) {
@@ -474,12 +486,14 @@
       if (!c) {
         numeroClaveVisible = null;
         $("claveCliente").value = "";
+        $("codigoCliente").value = "";
         return;
       }
-      // Al cambiar de cliente, no mostrar por error la clave del contacto anterior.
+      // Al cambiar de cliente, no mezclar la clave ni el código de distintos chats.
       if (numeroClaveVisible !== c.numero) {
         numeroClaveVisible = c.numero;
         $("claveCliente").value = clavesPorNumero.get(c.numero) || "";
+        $("codigoCliente").value = codigosPorNumero.get(c.numero) || "";
       }
       $("chatNumero").textContent = "+" + c.numero;
       $("chatAvatar").textContent = c.numero.slice(-2);
@@ -650,6 +664,39 @@
       $("claveCliente").select();
     });
 
+    // El campo Código se puede editar y se mantiene separado por conversación.
+    $("codigoCliente").addEventListener("input", () => {
+      if (numeroSeleccionado) codigosPorNumero.set(numeroSeleccionado, $("codigoCliente").value);
+    });
+
+    $("btnBuscarCodigo").addEventListener("click", () => {
+      const conversacion = conversaciones.find((item) => item.numero === numeroSeleccionado);
+      if (!conversacion) return;
+
+      // Los mensajes ya están ordenados cronológicamente; considerar solo los seis últimos.
+      const ultimos = conversacion.mensajes.slice(-6);
+      for (let i = ultimos.length - 1; i >= 0; i--) {
+        const mensaje = ultimos[i];
+        if (typeof mensaje.texto !== "string") continue;
+
+        // Permite «el codigo ABC» y «el código ABC», sin importar mayúsculas.
+        // Si un mensaje contiene varias coincidencias, gana la última.
+        const coincidencias = [...(mensaje.texto || "").matchAll(/el c[oó]digo\s+([\p{L}\p{N}_-]+)/giu)];
+        if (!coincidencias.length) continue;
+
+        const codigo = coincidencias[coincidencias.length - 1][1];
+        $("codigoCliente").value = codigo;
+        codigosPorNumero.set(numeroSeleccionado, codigo);
+        $("feedback").classList.add("ok");
+        $("feedback").textContent = "Código encontrado: " + codigo;
+        return;
+      }
+
+      // No sobreescribir el valor existente cuando no hay coincidencias.
+      $("feedback").classList.remove("ok");
+      $("feedback").textContent = 'No se encontró "el codigo" en los últimos 6 mensajes.';
+    });
+
     $("formEnviar").addEventListener("submit", enviarMensaje);
     $("textoEnvio").addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -673,8 +720,10 @@
         conversaciones = [];
         numeroSeleccionado = null;
         clavesPorNumero.clear();
+        codigosPorNumero.clear();
         numeroClaveVisible = null;
         $("claveCliente").value = "";
+        $("codigoCliente").value = "";
         $("workspace").classList.remove("chat-open");
       }
     }, (error) => {
