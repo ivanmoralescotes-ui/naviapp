@@ -1,219 +1,120 @@
+"use strict";
 
-const { getApps, initializeApp, cert } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
-const crypto = require("crypto"); 
-
-// Inicializar Firebase cuando sea necesario
-function obtenerFirestore() {
-
-  if (getApps().length === 0) {
-
-    const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-
-    if (!json) {
-      throw new Error("Falta GOOGLE_SERVICE_ACCOUNT_JSON en Netlify");
-    }
-
-    const credenciales = JSON.parse(json);
-
-    if (credenciales.private_key) {
-      credenciales.private_key =
-        credenciales.private_key.replace(/\\n/g, "\n");
-    }
-
-	
-	initializeApp({
-	  credential: cert(credenciales),
-	  projectId: "qrpro-f4709"
-	});
-  }
-
-  return getFirestore();
-}
-
-// Generar identificador único para cada mensaje
-function identificador(prefijo, idWhatsapp) {
-  const hash = crypto
-    .createHash("sha256")
-    .update(idWhatsapp)
-    .digest("hex");
-
-  return `${prefijo}_${hash}`;
-}
-
-// Guardar mensajes sin duplicarlos
-async function guardarMensaje(id, datos) {
-  try {
-    const db = obtenerFirestore();
-
-    await db.collection("whatsapp_mensajes")
-      .doc(id)
-      .create({
-        ...datos,
-        
-		fechaGuardado: FieldValue.serverTimestamp()
-      });
-
-    console.log("Mensaje guardado en Firestore:", id);
-    return "nuevo";
-
-  } catch (error) {
-    if (error.code === 6 || error.code === "already-exists") {
-      console.log("Mensaje duplicado, ignorado:", id);
-      return "duplicado";
-    }
-
-    console.error("Error guardando en Firestore:", error);
-    return "error";
-  }
-}
+const {
+  bd, json, identificador, validarFirmaMeta, FieldValue,
+  COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS
+} = require("../lib/qregalo-comun");
 
 exports.handler = async (event) => {
-
-  // 1. Verificación del webhook de Meta
+  // La comprobación inicial de Meta sigue siendo compatible con la versión anterior.
   if (event.httpMethod === "GET") {
-    const params = event.queryStringParameters || {};
-
-    if (
-      params["hub.mode"] === "subscribe" &&
-      process.env.META_VERIFY_TOKEN &&
-      params["hub.verify_token"] === process.env.META_VERIFY_TOKEN &&
-      params["hub.challenge"] != null
-    ) {
-      return {
-        statusCode: 200,
-        body: params["hub.challenge"]
-      };
+    const p = event.queryStringParameters || {};
+    if (p["hub.mode"] === "subscribe" &&
+        process.env.META_VERIFY_TOKEN &&
+        p["hub.verify_token"] === process.env.META_VERIFY_TOKEN &&
+        p["hub.challenge"] != null) {
+      return { statusCode: 200, body: String(p["hub.challenge"]) };
     }
+    return { statusCode: 403, body: "Verificación fallida" };
+  }
+  if (event.httpMethod !== "POST") return { statusCode: 405, body: "Método no permitido" };
 
-    return {
-      statusCode: 403,
-      body: "Verificación fallida"
-    };
+  // Rechazar webhooks falsificados ANTES de procesar o guardar datos.
+  const firma = validarFirmaMeta(event);
+  if (!firma.ok) {
+    console.error("QRegalo: webhook rechazado:", firma.reason || "firma incorrecta");
+    return { statusCode: firma.reason === "Falta META_APP_SECRET" ? 503 : 403,
+      body: "Solicitud no autenticada" };
   }
 
-  // 2. Recibir notificaciones de WhatsApp
-  if (event.httpMethod === "POST") {
-    try {
-      const data = JSON.parse(event.body || "{}");
+  let payload;
+  try {
+    const raw = event.isBase64Encoded
+      ? Buffer.from(event.body || "", "base64").toString("utf8")
+      : (event.body || "{}");
+    payload = JSON.parse(raw);
+  } catch (_) { return json(400, { error: "JSON inválido" }); }
 
-      for (const entry of data.entry || []) {
-        for (const change of entry.changes || []) {
+  try {
+    const db = bd();
+    for (const entry of payload.entry || []) {
+      for (const change of entry.changes || []) {
+        if (change.field !== "messages") continue;
+        const value = change.value || {};
+        const phoneId = value.metadata?.phone_number_id;
+        if (phoneId && phoneId !== process.env.META_PHONE_NUMBER_ID) continue;
 
-          // Solo procesar eventos del número configurado
-          const phoneId = change.value?.metadata?.phone_number_id;
+        // 'statuses' (entregado, leído, etc.) NO son mensajes de clientes.
+        for (const mensaje of value.messages || []) {
+          const numero = String(mensaje.from || "");
+          if (!mensaje.id || !/^\d{8,15}$/.test(numero)) continue;
 
-          if (
-            phoneId &&
-            phoneId !== process.env.META_PHONE_NUMBER_ID
-          ) {
-            continue;
-          }
+          const tipo = String(mensaje.type || "unknown");
+          const texto = tipo === "text"
+            ? (mensaje.text?.body || "")
+            : (mensaje[tipo]?.caption || "");
+          const id = identificador("in", mensaje.id);
+          const msgRef = db.collection(COLECCION).doc(id);
+          const convRef = db.collection(CONVERSACIONES).doc(numero);
+          const pendRef = db.collection(PENDIENTES).doc(numero);
+          const ahora = new Date();
+          const recibida = Number.isFinite(Number(mensaje.timestamp))
+            ? new Date(Number(mensaje.timestamp) * 1000)
+            : ahora;
 
-          const mensajes = change.value?.messages || [];
+          // Una transacción preserva deduplicación y reprogramación del plazo.
+          const nuevo = await db.runTransaction(async (t) => {
+            const [yaExiste, convActual] = await Promise.all([
+              t.get(msgRef), t.get(convRef)
+            ]);
+            if (yaExiste.exists) return false;
 
-          for (const mensaje of mensajes) {
-            if (!mensaje.id || !mensaje.from) continue;
+            const anterior = convActual.exists ? convActual.data() : {};
+            const version = (Number(anterior.version) || 0) + 1;
+            const habilitado = anterior.autoEnabled !== false;
+            const venceEn = new Date(ahora.getTime() + RETRASO_MS);
 
-            const numero = mensaje.from;
-            const tipo = mensaje.type;
-
-            const texto = tipo === "text"
-              ? (mensaje.text?.body || "")
-              : (mensaje[tipo]?.caption || "");
-
-            const idEntrada = identificador("in", mensaje.id);
-
-            // 3. Guardar el mensaje entrante
-            const estado = await guardarMensaje(idEntrada, {
-              numeroCliente: numero,
-              direccion: "entrante",
-              tipo: tipo,
-              texto: texto,
+            t.create(msgRef, {
+              numeroCliente: numero, direccion: "entrante", tipo, texto,
               idWhatsapp: mensaje.id,
               mediaId: mensaje[tipo]?.id || null,
               mimeType: mensaje[tipo]?.mime_type || null,
               nombreArchivo: mensaje.document?.filename || null,
-              fecha: mensaje.timestamp
-                ? new Date(Number(mensaje.timestamp) * 1000)
-                : new Date()
+              fecha: recibida,
+              fechaGuardado: FieldValue.serverTimestamp()
             });
+            t.set(convRef, {
+              numeroCliente: numero,
+              autoEnabled: habilitado,
+              version,
+              ultimaEntradaFecha: recibida,
+              ultimaEntradaId: mensaje.id,
+              ultimaActividad: ahora,
+              autoPendienteHasta: habilitado ? venceEn : null,
+              errorAutomatico: null
+            }, { merge: true });
 
-            // No contestar nuevamente mensajes duplicados
-            if (estado === "duplicado") continue;
-
-            console.log("Mensaje recibido:", tipo);
-
-            // Mantener la respuesta automática solo para texto
-            if (tipo !== "text") continue;
-
-            const textoRespuesta = "Hola, recibí tu mensaje 😊";
-
-            // 4. Enviar respuesta automática
-            const respuesta = await fetch(
-              `https://graph.facebook.com/v24.0/${process.env.META_PHONE_NUMBER_ID}/messages`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  messaging_product: "whatsapp",
-                  to: numero,
-                  type: "text",
-                  text: {
-                    body: textoRespuesta
-                  }
-                })
-              }
-            );
-
-            const resultado = await respuesta.json();
-
-            if (respuesta.ok) {
-              console.log("Respuesta enviada correctamente");
-
-              // 5. Guardar también la respuesta enviada
-              const idSalidaWhatsApp = resultado.messages?.[0]?.id;
-
-              const idSalida = identificador(
-                "out",
-                idSalidaWhatsApp || mensaje.id
-              );
-
-              await guardarMensaje(idSalida, {
-                numeroCliente: numero,
-                direccion: "saliente",
-                tipo: "text",
-                texto: textoRespuesta,
-                idWhatsapp: idSalidaWhatsApp || null,
-                fecha: new Date()
+            if (habilitado) {
+              // Solo una respuesta pendiente por contacto; mensajes nuevos reinician 5 min.
+              t.set(pendRef, {
+                numeroCliente: numero, version, mensajeId: mensaje.id,
+                estado: "pendiente", venceEn, fechaEntrada: recibida
               });
-
             } else {
-              console.error(
-                "Error enviando respuesta:",
-                respuesta.status,
-                resultado
-              );
+              t.delete(pendRef);
             }
-          }
+            return true;
+          });
+
+          if (nuevo) console.log("QRegalo: mensaje guardado; espera automática 5 min:", numero);
+          else console.log("QRegalo: duplicado ignorado");
         }
       }
-
-    } catch (error) {
-      console.error("Error procesando webhook:", error);
     }
-
-    return {
-      statusCode: 200,
-      body: "OK"
-    };
+  } catch (error) {
+    console.error("QRegalo: fallo guardando webhook; Meta puede reintentar", error);
+    return json(500, { error: "Error guardando el mensaje" });
   }
 
-  return {
-    statusCode: 405,
-    body: "Método no permitido"
-  };
+  return { statusCode: 200, body: "OK" };
 };

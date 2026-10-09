@@ -142,8 +142,17 @@
     .compose-row .solid-btn { white-space: nowrap; height: 49px; }
     .feedback { min-height: 18px; color: #aa4739; font-size: 12px; padding-top: 6px; }
     .feedback.ok { color: #277769; }
-    .top-banner { font-size: 12px; background: #fff6dd; color: #80642b; border-bottom: 1px solid #f5e6bd;
+    .top-banner { font-size: 12px; background: #eef7f5; color: #326f68; border-bottom: 1px solid #d8e7e4;
       padding: 10px 20px; }
+    .auto-control { display: flex; align-items: center; gap: 10px; border: 1px solid #d6e7e3;
+      background: #f4faf9; border-radius: 10px; padding: 8px 11px; font-size: 12px;
+      cursor: pointer; white-space: nowrap; color: #276e63; }
+    .auto-control input { accent-color: #187d74; width: 19px; height: 19px; cursor: pointer; }
+    .auto-control input:disabled { cursor: wait; }
+    .auto-warning { color: #a26214; background: #fff6e7; }
+    .contact-auto { display: inline-block; color: #197769; font-size: 10px; margin-top: 4px; }
+    .contact-auto.off { color: #aa6d35; }
+
     .refresh-row { padding: 6px 18px; border-bottom: 1px solid #d9e7e3; background: #e4f0ed;
       color: #567875; display: flex; align-items: center; justify-content: space-between; font-size: 11px; gap: 8px; }
     .refresh-row button { color: var(--primary); font-size: 12px; border: 0; background: transparent;
@@ -161,7 +170,9 @@
       .messages { padding: 16px 12px; }
       .bubble { max-width: 87%; }
       .compose { padding: 11px 12px max(12px, env(safe-area-inset-bottom)); }
-      .chat-heading { padding: 10px 12px; }
+      .chat-heading { padding: 10px 12px; flex-wrap: wrap; }
+      .auto-control { margin-left: auto; font-size: 11px; padding: 7px 9px; }
+
       .compose-row .solid-btn { padding: 10px; }
     }
   </style>
@@ -222,8 +233,12 @@
               <div class="chat-heading-name" id="chatNumero"></div>
               <div class="chat-heading-info">Conversación de WhatsApp</div>
             </div>
+            <label class="auto-control" title="Activa o desactiva respuestas automáticas para este cliente">
+              <input type="checkbox" id="modoAuto" checked>
+              <span id="modoAutoTexto">Automático</span>
+            </label>
           </header>
-          <div class="top-banner">La respuesta automática sigue activa. Podrás desactivarla cuando agreguemos ese control.</div>
+          <div class="top-banner" id="avisoAuto">Modo automático: se espera 5 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
           <div id="mensajes" class="messages" role="log" aria-live="polite"></div>
           <form id="formEnviar" class="compose">
@@ -265,6 +280,8 @@
     let numeroSeleccionado = null;
     let cargando = false;
     let enviando = false;
+    let cambiandoModo = false;
+    let modos = {};
 
     function crear(tag, clase, texto) {
       const el = document.createElement(tag);
@@ -347,6 +364,10 @@
         arriba.append(crear("span", "contact-time", fechaCorta(c.ultimo?.fecha)));
         cuerpo.append(arriba);
         cuerpo.append(crear("div", "contact-preview", (c.ultimo?.direccion === "saliente" ? "Tú: " : "") + textoVisible(c.ultimo)));
+        const modoContacto = modos[c.numero] || {};
+        const estadoAutomatico = modoContacto.autoEnabled !== false;
+        cuerpo.append(crear("div", "contact-auto" + (estadoAutomatico ? "" : " off"),
+          estadoAutomatico ? "● Automático" : "● Solo manual"));
         b.append(cuerpo);
         b.addEventListener("click", () => seleccionar(c.numero, true));
         lista.append(b);
@@ -373,6 +394,56 @@
       $("btnEnviar").disabled = !abierta || enviando;
     }
 
+    function pintarModo(numero) {
+      const modo = modos[numero] || {};
+      const habilitado = modo.autoEnabled !== false;
+      $("modoAuto").checked = habilitado;
+      $("modoAuto").disabled = cambiandoModo;
+      $("modoAutoTexto").textContent = habilitado ? "Automático" : "Solo manual";
+      const aviso = $("avisoAuto");
+      aviso.classList.toggle("auto-warning", !habilitado || !!modo.errorAutomatico);
+      if (!habilitado) {
+        aviso.textContent = "Solo manual: no se enviarán respuestas automáticas a este cliente.";
+      } else if (modo.errorAutomatico) {
+        aviso.textContent = "Aviso: falló una respuesta automática. Revisa los registros de Netlify y responde manualmente.";
+      } else if (modo.autoPendienteHasta) {
+        const momento = new Date(modo.autoPendienteHasta);
+        aviso.textContent = "Respuesta automática pendiente: aproximadamente " +
+          momento.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) +
+          ". Una respuesta manual la cancela.";
+      } else {
+        aviso.textContent = "Automático activo: si no respondes, el sistema contestará unos 5–6 minutos después del último mensaje del cliente.";
+      }
+    }
+
+    async function cambiarModo() {
+      if (cambiandoModo || !numeroSeleccionado) return;
+      const numero = numeroSeleccionado;
+      const activado = $("modoAuto").checked;
+      cambiandoModo = true;
+      $("modoAuto").disabled = true;
+      const feedback = $("feedback");
+      feedback.classList.remove("ok");
+      feedback.textContent = "Guardando modo de atención...";
+      try {
+        await peticionAutorizada("/.netlify/functions/qregalo-modo", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ numeroCliente: numero, activado })
+        });
+        modos[numero] = { autoEnabled: activado, autoPendienteHasta: null, errorAutomatico: null };
+        feedback.textContent = activado
+          ? "Automático activado para los próximos mensajes del cliente."
+          : "Modo manual activado; respuesta pendiente cancelada.";
+        feedback.classList.add("ok");
+        pintarLista();
+      } catch (error) {
+        feedback.textContent = "No se pudo cambiar el modo: " + error.message;
+      } finally {
+        cambiandoModo = false;
+        if (numeroSeleccionado === numero) pintarModo(numero);
+      }
+    }
+
     function pintarChat() {
       const c = conversaciones.find((item) => item.numero === numeroSeleccionado);
       $("vistaChat").hidden = !c;
@@ -380,6 +451,7 @@
       if (!c) return;
       $("chatNumero").textContent = "+" + c.numero;
       $("chatAvatar").textContent = c.numero.slice(-2);
+      pintarModo(c.numero);
       const panel = $("mensajes");
       const estabaAbajo = panel.scrollHeight - panel.scrollTop - panel.clientHeight < 110;
       const antes = panel.childElementCount;
@@ -439,6 +511,7 @@
       try {
         const datos = await peticionAutorizada("/.netlify/functions/qregalo-mensajes");
         mensajes = Array.isArray(datos.mensajes) ? datos.mensajes : [];
+        modos = datos.modos && typeof datos.modos === "object" ? datos.modos : {};
         reunirConversaciones();
         if (numeroSeleccionado && !conversaciones.some((c) => c.numero === numeroSeleccionado)) {
           numeroSeleccionado = null;
@@ -516,6 +589,7 @@
     $("btnRefresh").addEventListener("click", () => cargarMensajes());
     $("btnRefreshChat").addEventListener("click", () => cargarMensajes());
     $("busqueda").addEventListener("input", pintarLista);
+    $("modoAuto").addEventListener("change", cambiarModo);
     $("formEnviar").addEventListener("submit", enviarMensaje);
     $("textoEnvio").addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -535,6 +609,7 @@
         await cargarMensajes();
       } else {
         mensajes = [];
+        modos = {};
         conversaciones = [];
         numeroSeleccionado = null;
         $("workspace").classList.remove("chat-open");
