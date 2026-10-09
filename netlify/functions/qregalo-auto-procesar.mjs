@@ -1,10 +1,10 @@
-// Se ejecuta una vez por minuto mediante Netlify Scheduled Functions.
+// Se ejecuta cada 10 minutos mediante Netlify Scheduled Functions.
 // No es una función HTTP pública.
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const {
   bd, identificador, enviarMeta, FieldValue, COLECCION, CONVERSACIONES,
-  PENDIENTES, VENTANA_MS, MARGEN_MS, TEXTO_AUTO, fechaMs
+  PENDIENTES, RETRASO_MS, VENTANA_MS, MARGEN_MS, TEXTO_AUTO, fechaMs
 } = require("../lib/qregalo-comun.js");
 
 async function resolverPendiente(db, documento) {
@@ -27,6 +27,20 @@ async function resolverPendiente(db, documento) {
       t.set(convRef, { autoPendienteHasta: null }, { merge: true });
       return null;
     }
+
+    // Compatibilidad con pendientes creados antes de cambiar de 5 a 20 min:
+    // el cron jamás envía antes de 20 minutos desde la última entrada al webhook.
+    const ultimaRecepcionMs = fechaMs(c.ultimaActividad);
+    if (Number.isFinite(ultimaRecepcionMs)) {
+      const minimoEnvioMs = ultimaRecepcionMs + RETRASO_MS;
+      if (minimoEnvioMs > Date.now()) {
+        const nuevaFecha = new Date(minimoEnvioMs);
+        t.update(ref, { venceEn: nuevaFecha });
+        t.set(convRef, { autoPendienteHasta: nuevaFecha }, { merge: true });
+        return null;
+      }
+    }
+
     // Mientras 'enviando', el panel impide un envío manual que duplique la respuesta.
     t.update(ref, { estado: "enviando", fechaInicio: ahora,
       venceEn: new Date(Date.now() + 24 * 60 * 60 * 1000) });
@@ -54,7 +68,7 @@ async function resolverPendiente(db, documento) {
         t.set(db.collection(COLECCION).doc(identificador("out", idWhatsapp)), {
           numeroCliente: tarea.numero,
           direccion: "saliente", tipo: "text", texto: TEXTO_AUTO,
-          idWhatsapp, origen: "respuesta_automatica_5min",
+          idWhatsapp, origen: "respuesta_automatica_20min",
           fecha: new Date(), fechaGuardado: FieldValue.serverTimestamp()
         }, { merge: true });
       }
@@ -95,6 +109,7 @@ export default async () => {
   }
 };
 
-// Netlify comprueba pendientes cada minuto; respuesta desde los 5 minutos,
-// normalmente dentro del minuto siguiente. Solo se ejecuta en Production deploy.
-export const config = { schedule: "* * * * *" };
+// Netlify revisa cada 10 minutos. Envía DESPUÉS de 20 min sin respuesta manual;
+// normalmente lo hará entre los 20 y 30 min desde el último mensaje del cliente.
+// Solo se ejecuta en Production deploy.
+export const config = { schedule: "*/10 * * * *" };

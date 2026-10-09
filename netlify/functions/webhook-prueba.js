@@ -95,7 +95,7 @@ exports.handler = async (event) => {
             }, { merge: true });
 
             if (habilitado) {
-              // Solo una respuesta pendiente por contacto; mensajes nuevos reinician 5 min.
+              // Solo una respuesta pendiente por contacto; mensajes nuevos reinician 20 min.
               t.set(pendRef, {
                 numeroCliente: numero, version, mensajeId: mensaje.id,
                 estado: "pendiente", venceEn, fechaEntrada: recibida
@@ -106,7 +106,7 @@ exports.handler = async (event) => {
             return true;
           });
 
-          if (nuevo) console.log("QRegalo: mensaje guardado; espera automática 5 min:", numero);
+          if (nuevo) console.log("QRegalo: mensaje guardado; espera automática 20 min:", numero);
           else console.log("QRegalo: duplicado ignorado");
         }
       }
