@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>QRegalo - Mensajes</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(145deg, #101c32, #142f39);
+      color: white;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 420px;
+      padding: 35px 25px;
+      border-radius: 20px;
+      background: #ffffff;
+      color: #17283a;
+      text-align: center;
+      box-shadow: 0 15px 50px #0005;
+    }
+
+    .logo {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 27px;
+    }
+
+    p {
+      color: #657080;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 11px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .google {
+      background: #edf3fa;
+      color: #263c50;
+      border: 1px solid #cbd5e1;
+    }
+
+    .salir {
+      background: #e9edf2;
+      color: #334155;
+    }
+
+    .usuario {
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 12px;
+      background: #f1f6f8;
+      overflow-wrap: anywhere;
+      text-align: left;
+    }
+
+    .usuario small {
+      display: block;
+      color: #64748b;
+      margin-bottom: 5px;
+    }
+
+    .usuario strong {
+      font-size: 14px;
+    }
+
+    .uid {
+      font-size: 11px;
+      overflow-wrap: anywhere;
+      color: #64748b;
+    }
+
+    .estado {
+      margin-top: 18px;
+      font-size: 13px;
+      color: #c0392b;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="panel">
+
+    <div class="logo">💬</div>
+
+    <h1>QRegalo</h1>
+
+    <p>Administración de mensajes de WhatsApp</p>
+
+    <div id="cargando">
+      <p>Comprobando sesión...</p>
+    </div>
+
+    <div id="sinSesion" hidden>
+      <p>Inicia sesión para acceder al panel.</p>
+
+      <button class="google" id="btnEntrar">
+        Continuar con Google
+      </button>
+    </div>
+
+    <div id="conSesion" hidden>
+      <h2>¡Bienvenido!</h2>
+
+      <div class="usuario">
+        <small>Cuenta de Google</small>
+        <strong id="correo"></strong>
+      </div>
+
+      <div class="usuario">
+        <small>Identificador de usuario (UID)</small>
+        <span class="uid" id="uid"></span>
+      </div>
+
+      <p>
+        Inicio de sesión correcto.
+        Próximamente aparecerán aquí tus conversaciones.
+      </p>
+
+      <button class="salir" id="btnSalir">
+        Cerrar sesión
+      </button>
+    </div>
+
+    <div class="estado" id="estado"
+         role="status" aria-live="polite"></div>
+
+  </main>
+
+  <script type="module">
+
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtOaWY_FQQ_Rf6n5xUY--zE1R-ujI3SlQ",
+      authDomain: "qrpro-f4709.firebaseapp.com",
+      projectId: "qrpro-f4709",
+      storageBucket: "qrpro-f4709.firebasestorage.app",
+      messagingSenderId: "625303344201",
+      appId: "1:625303344201:web:cfac300229e2e48a6a5b98",
+      measurementId: "G-5MVKJV2XX2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const proveedor = new GoogleAuthProvider();
+
+    const cargando = document.getElementById("cargando");
+    const sinSesion = document.getElementById("sinSesion");
+    const conSesion = document.getElementById("conSesion");
+    const estado = document.getElementById("estado");
+
+    const btnEntrar = document.getElementById("btnEntrar");
+    const btnSalir = document.getElementById("btnSalir");
+
+    onAuthStateChanged(auth, usuario => {
+
+      cargando.hidden = true;
+      estado.textContent = "";
+
+      if (usuario) {
+        sinSesion.hidden = true;
+        conSesion.hidden = false;
+
+        document.getElementById("correo").textContent =
+          usuario.email || "";
+
+        document.getElementById("uid").textContent =
+          usuario.uid;
+
+      } else {
+        sinSesion.hidden = false;
+        conSesion.hidden = true;
+      }
+
+    }, error => {
+      cargando.hidden = true;
+      sinSesion.hidden = false;
+      estado.textContent = error.message;
+    });
+
+    btnEntrar.addEventListener("click", async () => {
+      btnEntrar.disabled = true;
+      estado.textContent = "";
+
+      try {
+        await signInWithPopup(auth, proveedor);
+      } catch (error) {
+        if (error.code !== "auth/popup-closed-by-user") {
+          estado.textContent =
+            "No se pudo iniciar sesión: " + error.message;
+        }
+      } finally {
+        btnEntrar.disabled = false;
+      }
+    });
+
+    btnSalir.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        estado.textContent = error.message;
+      }
+    });
+
+  </script>
+
+</body>
+</html>
