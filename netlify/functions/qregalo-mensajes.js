@@ -1,41 +1,33 @@
+"use strict";
 
-const { initializeApp, getApps, getApp, cert } =
-  require("firebase-admin/app");
-
+const { initializeApp, getApps, getApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
+const { getFirestore } = require("firebase-admin/firestore");
 
-const { getFirestore } =
-  require("firebase-admin/firestore");
+const PROJECT_ID = "qrpro-f4709";
+const COLECCION = "whatsapp_mensajes";
+const LIMITE = 300;
 
-// Conectar con Firebase
 function obtenerApp() {
-  if (getApps().length > 0) {
-    return getApp();
-  }
+  if (getApps().length) return getApp();
 
   const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-
-  if (!json) {
-    throw new Error("No hay credenciales de Firebase");
-  }
+  if (!json) throw new Error("No se configuraron las credenciales de Firebase");
 
   const credenciales = JSON.parse(json);
-
   if (credenciales.private_key) {
-    credenciales.private_key =
-      credenciales.private_key.replace(/\\n/g, "\n");
+    credenciales.private_key = credenciales.private_key.replace(/\\n/g, "\n");
   }
 
   return initializeApp({
     credential: cert(credenciales),
-    projectId: "qrpro-f4709"
+    projectId: PROJECT_ID
   });
 }
 
-// Preparar respuestas HTTP
-function responder(codigo, datos) {
+function respuesta(statusCode, datos) {
   return {
-    statusCode: codigo,
+    statusCode,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store"
@@ -44,103 +36,70 @@ function responder(codigo, datos) {
   };
 }
 
-// Convertir fechas de Firebase
-function convertirFecha(valor) {
+function fechaIso(valor) {
   if (valor && typeof valor.toDate === "function") {
     return valor.toDate().toISOString();
   }
+  if (valor instanceof Date) return valor.toISOString();
   return null;
 }
 
 exports.handler = async (event) => {
-
-  // Solamente permitir consultas GET
   if (event.httpMethod !== "GET") {
-    return responder(405, {
-      error: "Método no permitido"
-    });
+    return respuesta(405, { error: "Método no permitido" });
   }
 
-  // Verificar que exista el token del usuario
-  const autorizacion =
-    event.headers?.authorization ||
-    event.headers?.Authorization || "";
+  const cabecera = event.headers?.authorization || event.headers?.Authorization || "";
+  const coincidencia = cabecera.match(/^Bearer\s+(\S+)$/i);
+  if (!coincidencia) return respuesta(401, { error: "Debes iniciar sesión" });
 
-  const coincidencia =
-    autorizacion.match(/^Bearer\s+(\S+)$/i);
-
-  if (!coincidencia) {
-    return responder(401, {
-      error: "Debes iniciar sesión"
-    });
-  }
-
-  // No permitir acceso sin administrador configurado
   if (!process.env.QREGALO_ADMIN_UID) {
-    return responder(503, {
-      error: "Administrador no configurado"
-    });
+    return respuesta(503, { error: "Administrador no configurado" });
   }
 
   try {
     const app = obtenerApp();
-
-    // Verificar el token firmado por Firebase
-    const usuario = await getAuth(app)
-      .verifyIdToken(coincidencia[1]);
-
-    // Verificar que sea el administrador de QRegalo
-    if (usuario.uid !== process.env.QREGALO_ADMIN_UID) {
-      return responder(403, {
-        error: "No tienes permiso para ver los mensajes"
-      });
+    let usuario;
+    try {
+      usuario = await getAuth(app).verifyIdToken(coincidencia[1]);
+    } catch (_) {
+      return respuesta(401, { error: "Sesión inválida o caducada" });
     }
 
-    console.log("Administrador autorizado");
+    if (usuario.uid !== process.env.QREGALO_ADMIN_UID) {
+      return respuesta(403, { error: "No tienes permiso para ver los mensajes" });
+    }
 
-    // Consultar los últimos 100 mensajes
-    const db = getFirestore(app);
-
-    const consulta = await db
-      .collection("whatsapp_mensajes")
+    const consulta = await getFirestore(app)
+      .collection(COLECCION)
       .orderBy("fecha", "desc")
-      .limit(100)
+      .limit(LIMITE)
       .get();
 
-    const mensajes = consulta.docs.map(doc => {
-      const datos = doc.data();
-
+    const mensajes = consulta.docs.map((doc) => {
+      const d = doc.data();
       return {
         id: doc.id,
-        numeroCliente: datos.numeroCliente || "",
-        direccion: datos.direccion || "",
-        tipo: datos.tipo || "",
-        texto: datos.texto || "",
-        fecha: convertirFecha(datos.fecha),
-        idWhatsapp: datos.idWhatsapp || null
+        numeroCliente: String(d.numeroCliente || ""),
+        direccion: d.direccion || "",
+        tipo: d.tipo || "text",
+        texto: d.texto || "",
+        fecha: fechaIso(d.fecha || d.fechaGuardado),
+        idWhatsapp: d.idWhatsapp || null,
+        nombreArchivo: d.nombreArchivo || null,
+        mimeType: d.mimeType || null
       };
-    });
+    }).reverse();
 
-    return responder(200, {
+    return respuesta(200, {
       success: true,
+      mensajes,
       total: mensajes.length,
-      mensajes: mensajes.reverse()
+      limite: LIMITE,
+      hayMas: mensajes.length === LIMITE
     });
-
   } catch (error) {
-    if (
-      typeof error.code === "string" &&
-      error.code.startsWith("auth/")
-    ) {
-      return responder(401, {
-        error: "Sesión inválida o caducada"
-      });
-    }
-
-    console.error("Error consultando mensajes:", error);
-
-    return responder(500, {
-      error: "No se pudieron consultar los mensajes"
-    });
+    console.error("QRegalo: error consultando mensajes", error);
+    return respuesta(500, { error: "No se pudieron consultar los mensajes" });
   }
 };

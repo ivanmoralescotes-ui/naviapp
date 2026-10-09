@@ -1,190 +1,249 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>QRegalo - Mensajes</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d2632">
+  <title>QRegalo · Conversaciones</title>
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --ink: #18313d;
+      --muted: #6e8390;
+      --primary: #176b66;
+      --primary-hover: #11544f;
+      --surface: #ffffff;
+      --line: #e2e9ec;
+      --chat: #e9f1ef;
+      --bubble-me: #d3eee5;
+      --shadow: 0 22px 75px rgba(19, 46, 53, .17);
     }
-
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(145deg, #101c32, #142f39);
-      color: white;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(125deg, #dfecea, #eff3f6 55%, #dce6ee);
+      -webkit-font-smoothing: antialiased;
     }
-
-    .panel {
-      width: 100%;
-      max-width: 420px;
-      padding: 35px 25px;
-      border-radius: 20px;
-      background: #ffffff;
-      color: #17283a;
-      text-align: center;
-      box-shadow: 0 15px 50px #0005;
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid #79c8bc; outline-offset: 2px;
     }
-
-    .logo {
-      font-size: 42px;
-      margin-bottom: 10px;
+    .shell {
+      display: flex;
+      width: min(1400px, 100%);
+      height: min(900px, calc(100dvh - 40px));
+      min-height: 440px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid #d2dfdf;
+      border-radius: 21px;
+      box-shadow: var(--shadow);
+      background: var(--surface);
     }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 27px;
+    .login-layout {
+      width: 100%; display: grid; place-items: center;
+      background: radial-gradient(circle at 24% 18%, #236d67, transparent 45%),
+                  linear-gradient(130deg, #0d2632, #133b44);
+      padding: 22px;
     }
-
-    p {
-      color: #657080;
-      line-height: 1.6;
-      font-size: 14px;
+    .login-card { background: white; width: min(420px, 100%); padding: 35px;
+      text-align: center; border-radius: 20px; box-shadow: 0 15px 40px #091d2445; }
+    .brand-mark { width: 46px; height: 46px; background: #177d74; color: white; display: grid;
+      place-items: center; border-radius: 14px; font-size: 22px; font-weight: 800; }
+    .brand-mark.large { width: 62px; height: 62px; font-size: 30px; margin: 0 auto 17px; border-radius: 19px; }
+    h1 { font-size: 25px; letter-spacing: -.6px; margin: 0; }
+    .login-card p { color: var(--muted); line-height: 1.55; font-size: 14px; margin: 15px 0 23px; }
+    .solid-btn, .light-btn, .icon-btn, .google-btn {
+      border: 0; border-radius: 11px; padding: 12px 15px; font-weight: 650;
     }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 20px;
-      border: none;
-      border-radius: 11px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    .google {
-      background: #edf3fa;
-      color: #263c50;
-      border: 1px solid #cbd5e1;
-    }
-
-    .salir {
-      background: #e9edf2;
-      color: #334155;
-    }
-
-    .usuario {
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 12px;
-      background: #f1f6f8;
-      overflow-wrap: anywhere;
-      text-align: left;
-    }
-
-    .usuario small {
-      display: block;
-      color: #64748b;
-      margin-bottom: 5px;
-    }
-
-    .usuario strong {
-      font-size: 14px;
-    }
-
-    .uid {
-      font-size: 11px;
-      overflow-wrap: anywhere;
-      color: #64748b;
-    }
-
-    .estado {
-      margin-top: 18px;
-      font-size: 13px;
-      color: #c0392b;
-    }
-
-    [hidden] {
-      display: none !important;
+    .solid-btn { background: var(--primary); color: white; }
+    .solid-btn:not(:disabled):hover { background: var(--primary-hover); }
+    .google-btn { background: #edf5f4; color: #1d4e4d; width: 100%; border: 1px solid #d1e5e3; }
+    .light-btn { background: #eef3f4; color: #315461; }
+    .icon-btn { background: transparent; color: #597782; padding: 9px 12px; font-size: 18px; }
+    .icon-btn:hover { background: #eaf2f2; }
+    .login-card .tiny { margin-top: 23px; color: #93a3ab; font-size: 12px; }
+    .notice { font-size: 13px; color: #ae4136; line-height: 1.5; overflow-wrap: anywhere; }
+    .workspace { display: flex; width: 100%; height: 100%; min-width: 0; }
+    .sidebar { width: 365px; flex: none; display: flex; flex-direction: column;
+      background: #fff; border-right: 1px solid var(--line); min-width: 0; }
+    .sidebar-top { padding: 21px 20px 16px; border-bottom: 1px solid var(--line); }
+    .brand-row { display: flex; align-items: center; gap: 11px; }
+    .brand-title { font-weight: 800; font-size: 19px; letter-spacing: -.5px; }
+    .brand-subtitle { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .grow { flex: 1; }
+    .account-area { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 20px; }
+    .account-text { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      color: #6b8089; font-size: 12px; }
+    .account-area .light-btn { padding: 8px 10px; font-size: 12px; }
+    .search-wrap { margin-top: 19px; display: flex; align-items: center; gap: 8px;
+      padding: 0 12px; border: 1px solid #e0e9ea; border-radius: 12px; background: #f4f8f8; }
+    .search-wrap span { color: #84969c; }
+    .search-wrap input { width: 100%; min-width: 0; height: 42px; border: 0; background: transparent;
+      outline: 0; color: var(--ink); font-size: 14px; }
+    .list-header { display: flex; justify-content: space-between; align-items: center;
+      padding: 19px 20px 10px; }
+    .list-header strong { font-size: 13px; }
+    .count { background: #e8f4f0; padding: 4px 8px; border-radius: 7px;
+      color: #126f64; font-size: 12px; font-weight: 750; }
+    .conversations { overflow-y: auto; flex: 1; }
+    .contact { width: 100%; display: flex; gap: 12px; align-items: center; border: none;
+      background: white; text-align: left; padding: 14px 18px; border-bottom: 1px solid #f0f3f4; }
+    .contact:hover { background: #f4f8f8; }
+    .contact.active { background: #eaf5f2; box-shadow: inset 3px 0 #19847a; }
+    .avatar { flex: none; width: 44px; height: 44px; border-radius: 50%;
+      display: grid; place-items: center; background: #d6e9e4; color: #1c7369; font-weight: 800; font-size: 16px; }
+    .contact-body { min-width: 0; flex: 1; }
+    .contact-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .contact-name { font-size: 14px; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .contact-time { color: #93a1a7; font-size: 10px; flex: none; }
+    .contact-preview { color: #71838c; font-size: 12px; overflow: hidden; white-space: nowrap;
+      text-overflow: ellipsis; margin-top: 6px; }
+    .sidebar-bottom { border-top: 1px solid var(--line); padding: 11px 17px; color: #90a0a5;
+      font-size: 11px; background: #f9fbfb; }
+    .conversation { display: flex; flex-direction: column; flex: 1; min-width: 0; background: var(--chat); }
+    .empty-chat { height: 100%; display: grid; place-items: center; text-align: center; padding: 35px; }
+    .empty-chat .empty-inner { max-width: 340px; }
+    .empty-chat .art { font-size: 70px; color: #8ca6a5; }
+    .empty-chat h2 { font-size: 20px; }
+    .empty-chat p { color: #789091; font-size: 13px; line-height: 1.65; }
+    .chat-view { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+    .chat-heading { background: #fff; border-bottom: 1px solid var(--line); padding: 13px 19px;
+      display: flex; gap: 12px; align-items: center; min-height: 72px; }
+    .chat-heading .avatar { width: 40px; height: 40px; }
+    .chat-heading-name { font-size: 15px; font-weight: 800; }
+    .chat-heading-info { margin-top: 4px; color: #799096; font-size: 11px; }
+    .back-btn { display: none; }
+    .messages { flex: 1; overflow-y: auto; padding: 22px clamp(16px, 5%, 60px); }
+    .day-marker { display: table; margin: 14px auto 18px; background: #d9e9e6;
+      color: #627e7e; padding: 7px 12px; border-radius: 8px; font-size: 11px; }
+    .bubble-row { display: flex; margin: 8px 0; }
+    .bubble-row.out { justify-content: flex-end; }
+    .bubble { max-width: min(75%, 560px); border-radius: 13px 13px 13px 4px; background: white;
+      padding: 11px 12px 7px; box-shadow: 0 1px 2px #3d55551a; min-width: 90px; }
+    .bubble-row.out .bubble { background: var(--bubble-me); border-radius: 13px 13px 4px 13px; }
+    .bubble-text { font-size: 13px; line-height: 1.52; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bubble-time { text-align: right; font-size: 10px; color: #849b9c; padding-top: 6px; }
+    .bubble-source { color: #488b78; font-size: 10px; margin-top: 5px; }
+    .compose { background: #fff; padding: 13px 19px 17px; border-top: 1px solid #dce8e6; }
+    .window-status { color: #53777c; font-size: 11px; margin: 0 0 10px; }
+    .window-status.closed { color: #af513c; }
+    .compose-row { display: flex; gap: 10px; align-items: flex-end; }
+    .compose-row textarea { width: 100%; height: 49px; min-height: 49px; max-height: 132px;
+      resize: vertical; padding: 13px; border: 1px solid #dce5e6; border-radius: 11px;
+      outline: none; background: #f8fbfb; font-size: 13px; }
+    .compose-row textarea:focus { border-color: #64a99f; }
+    .compose-row .solid-btn { white-space: nowrap; height: 49px; }
+    .feedback { min-height: 18px; color: #aa4739; font-size: 12px; padding-top: 6px; }
+    .feedback.ok { color: #277769; }
+    .top-banner { font-size: 12px; background: #fff6dd; color: #80642b; border-bottom: 1px solid #f5e6bd;
+      padding: 10px 20px; }
+    .refresh-row { padding: 6px 18px; border-bottom: 1px solid #d9e7e3; background: #e4f0ed;
+      color: #567875; display: flex; align-items: center; justify-content: space-between; font-size: 11px; gap: 8px; }
+    .refresh-row button { color: var(--primary); font-size: 12px; border: 0; background: transparent;
+      padding: 4px; font-weight: 700; }
+    .list-empty { padding: 26px 20px; color: #829596; font-size: 13px; line-height: 1.6; text-align: center; }
+    .error-bar { padding: 10px 20px; background: #ffeae7; color: #9a4034; font-size: 12px; }
+    @media (max-width: 760px) {
+      body { padding: 0; }
+      .shell { height: 100dvh; min-height: 0; width: 100%; border-radius: 0; border: 0; box-shadow: none; }
+      .sidebar { width: 100%; }
+      .conversation { display: none; }
+      .workspace.chat-open .sidebar { display: none; }
+      .workspace.chat-open .conversation { display: flex; }
+      .back-btn { display: block; }
+      .messages { padding: 16px 12px; }
+      .bubble { max-width: 87%; }
+      .compose { padding: 11px 12px max(12px, env(safe-area-inset-bottom)); }
+      .chat-heading { padding: 10px 12px; }
+      .compose-row .solid-btn { padding: 10px; }
     }
   </style>
 </head>
-
 <body>
-
-  <main class="panel">
-
-    <div class="logo">💬</div>
-
-    <h1>QRegalo</h1>
-
-    <p>Administración de mensajes de WhatsApp</p>
-
-    <div id="cargando">
-      <p>Comprobando sesión...</p>
-    </div>
-
-    <div id="sinSesion" hidden>
-      <p>Inicia sesión para acceder al panel.</p>
-
-      <button class="google" id="btnEntrar">
-        Continuar con Google
-      </button>
-    </div>
-
-    <div id="conSesion" hidden>
-      <h2>¡Bienvenido!</h2>
-
-      <div class="usuario">
-        <small>Cuenta de Google</small>
-        <strong id="correo"></strong>
+  <main class="shell">
+    <section id="login" class="login-layout">
+      <div class="login-card">
+        <div class="brand-mark large">Q</div>
+        <h1>QRegalo</h1>
+        <p>Tu centro privado para atender mensajes de WhatsApp, estés donde estés.</p>
+        <div id="loginLoading">Comprobando sesión...</div>
+        <button id="btnLogin" class="google-btn" hidden>Continuar con Google</button>
+        <p id="loginError" class="notice" role="alert"></p>
+        <div class="tiny">Acceso reservado al administrador</div>
       </div>
+    </section>
 
-      <div class="usuario">
-        <small>Identificador de usuario (UID)</small>
-        <span class="uid" id="uid"></span>
-      </div>
+    <section id="workspace" class="workspace" hidden>
+      <aside class="sidebar">
+        <header class="sidebar-top">
+          <div class="brand-row">
+            <span class="brand-mark">Q</span>
+            <div>
+              <div class="brand-title">QRegalo</div>
+              <div class="brand-subtitle">Bandeja de WhatsApp</div>
+            </div>
+            <span class="grow"></span>
+            <button id="btnRefresh" class="icon-btn" aria-label="Actualizar mensajes" title="Actualizar">↻</button>
+          </div>
+          <div class="account-area">
+            <span id="cuentaEmail" class="account-text"></span>
+            <button id="btnLogout" class="light-btn">Salir</button>
+          </div>
+          <label class="search-wrap">
+            <span aria-hidden="true">⌕</span>
+            <input id="busqueda" type="search" placeholder="Buscar teléfono o mensaje" aria-label="Buscar conversaciones">
+          </label>
+        </header>
+        <div class="list-header"><strong>Conversaciones</strong><span class="count" id="contador">0</span></div>
+        <div id="lista" class="conversations"><p class="list-empty">Cargando conversaciones...</p></div>
+        <div class="sidebar-bottom">Los mensajes se guardan en Firebase · Últimos 300 registros</div>
+      </aside>
 
-      <p>
-        Inicio de sesión correcto.
-        Próximamente aparecerán aquí tus conversaciones.
-      </p>
-
-<button class="google" id="btnConsultar">
-  Ver mensajes de WhatsApp
-</button>
-
-<pre id="resultadoMensajes"
-     class="usuario"
-     style="white-space: pre-wrap; font-size: 12px;"
-     hidden></pre>
-	 
-      <button class="salir" id="btnSalir">
-        Cerrar sesión
-      </button>
-    </div>
-
-    <div class="estado" id="estado"
-         role="status" aria-live="polite"></div>
-
+      <section class="conversation">
+        <div id="estadoVacio" class="empty-chat">
+          <div class="empty-inner">
+            <div class="art">✉</div>
+            <h2>Tu bandeja está lista</h2>
+            <p>Selecciona una conversación para leerla y contestar desde aquí.</p>
+          </div>
+        </div>
+        <div id="vistaChat" class="chat-view" hidden>
+          <header class="chat-heading">
+            <button id="btnBack" class="icon-btn back-btn" aria-label="Volver a conversaciones">←</button>
+            <span class="avatar" id="chatAvatar">Q</span>
+            <div class="grow">
+              <div class="chat-heading-name" id="chatNumero"></div>
+              <div class="chat-heading-info">Conversación de WhatsApp</div>
+            </div>
+          </header>
+          <div class="top-banner">La respuesta automática sigue activa. Podrás desactivarla cuando agreguemos ese control.</div>
+          <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
+          <div id="mensajes" class="messages" role="log" aria-live="polite"></div>
+          <form id="formEnviar" class="compose">
+            <p id="estadoVentana" class="window-status"></p>
+            <div class="compose-row">
+              <textarea id="textoEnvio" rows="2" maxlength="4096" placeholder="Escribe tu respuesta..." aria-label="Tu mensaje"></textarea>
+              <button id="btnEnviar" class="solid-btn" type="submit">Enviar ➤</button>
+            </div>
+            <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script type="module">
-
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged
+      getAuth, GoogleAuthProvider, signInWithPopup,
+      signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -200,115 +259,297 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const proveedor = new GoogleAuthProvider();
+    const $ = (id) => document.getElementById(id);
+    let mensajes = [];
+    let conversaciones = [];
+    let numeroSeleccionado = null;
+    let cargando = false;
+    let enviando = false;
 
-    const cargando = document.getElementById("cargando");
-    const sinSesion = document.getElementById("sinSesion");
-    const conSesion = document.getElementById("conSesion");
-    const estado = document.getElementById("estado");
+    function crear(tag, clase, texto) {
+      const el = document.createElement(tag);
+      if (clase) el.className = clase;
+      if (texto !== undefined) el.textContent = String(texto);
+      return el;
+    }
 
-    const btnEntrar = document.getElementById("btnEntrar");
-    const btnSalir = document.getElementById("btnSalir");
+    function fechaMs(valor) {
+      const ms = valor ? new Date(valor).getTime() : 0;
+      return Number.isFinite(ms) ? ms : 0;
+    }
 
-    onAuthStateChanged(auth, usuario => { 
+    function hora(valor) {
+      if (!fechaMs(valor)) return "";
+      return new Date(valor).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    }
 
-      cargando.hidden = true;
-      estado.textContent = "";
+    function fechaCorta(valor) {
+      if (!fechaMs(valor)) return "";
+      return new Date(valor).toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+    }
 
-      if (usuario) {
-        sinSesion.hidden = true;
-        conSesion.hidden = false;
+    function fechaDia(valor) {
+      if (!fechaMs(valor)) return "Fecha desconocida";
+      return new Date(valor).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    }
 
-        document.getElementById("correo").textContent =
-          usuario.email || "";
+    function textoVisible(m) {
+      if (m.tipo === "text") return m.texto || "(sin texto)";
+      const titulos = {
+        image: "📷 Imagen", document: "📄 Documento", audio: "🎵 Audio",
+        video: "🎬 Video", sticker: "🖼️ Sticker", location: "📍 Ubicación",
+        contacts: "👤 Contacto"
+      };
+      const titulo = titulos[m.tipo] || `📎 ${m.tipo || "Adjunto"}`;
+      return [titulo, m.nombreArchivo || "", m.texto || ""].filter(Boolean).join(" · ");
+    }
 
-        document.getElementById("uid").textContent =
-          usuario.uid;
-
-      } else {
-        sinSesion.hidden = false;
-        conSesion.hidden = true;
+    function reunirConversaciones() {
+      const mapa = new Map();
+      for (const m of mensajes) {
+        if (!m.numeroCliente) continue;
+        if (!mapa.has(m.numeroCliente)) {
+          mapa.set(m.numeroCliente, { numero: m.numeroCliente, mensajes: [], ultimaEntrada: 0 });
+        }
+        const c = mapa.get(m.numeroCliente);
+        c.mensajes.push(m);
+        if (m.direccion === "entrante") {
+          c.ultimaEntrada = Math.max(c.ultimaEntrada, fechaMs(m.fecha));
+        }
       }
+      conversaciones = [...mapa.values()].map((c) => {
+        c.mensajes.sort((a, b) => fechaMs(a.fecha) - fechaMs(b.fecha));
+        c.ultimo = c.mensajes[c.mensajes.length - 1];
+        return c;
+      }).sort((a, b) => fechaMs(b.ultimo?.fecha) - fechaMs(a.ultimo?.fecha));
+    }
 
-    }, error => {
-      cargando.hidden = true;
-      sinSesion.hidden = false;
-      estado.textContent = error.message;
-    });
+    function pintarLista() {
+      const lista = $("lista");
+      lista.replaceChildren();
+      $("contador").textContent = conversaciones.length;
+      const q = $("busqueda").value.toLowerCase().trim();
+      const filtradas = conversaciones.filter((c) =>
+        c.numero.includes(q) || c.mensajes.some((m) => (m.texto || "").toLowerCase().includes(q))
+      );
+      if (!filtradas.length) {
+        lista.append(crear("p", "list-empty", q ? "No hay coincidencias." : "Todavía no hay mensajes guardados."));
+        return;
+      }
+      for (const c of filtradas) {
+        const b = crear("button", "contact" + (c.numero === numeroSeleccionado ? " active" : ""));
+        b.type = "button";
+        b.setAttribute("aria-label", `Abrir conversación ${c.numero}`);
+        b.append(crear("span", "avatar", c.numero.slice(-2)));
+        const cuerpo = crear("span", "contact-body");
+        const arriba = crear("span", "contact-top");
+        arriba.append(crear("span", "contact-name", "+" + c.numero));
+        arriba.append(crear("span", "contact-time", fechaCorta(c.ultimo?.fecha)));
+        cuerpo.append(arriba);
+        cuerpo.append(crear("div", "contact-preview", (c.ultimo?.direccion === "saliente" ? "Tú: " : "") + textoVisible(c.ultimo)));
+        b.append(cuerpo);
+        b.addEventListener("click", () => seleccionar(c.numero, true));
+        lista.append(b);
+      }
+    }
 
-    btnEntrar.addEventListener("click", async () => {
-      btnEntrar.disabled = true;
-      estado.textContent = "";
+    function ventanaAbierta(c) {
+      return !!c && c.ultimaEntrada > 0 && (Date.now() - c.ultimaEntrada < 24 * 60 * 60 * 1000 - 2 * 60 * 1000);
+    }
 
+    function actualizarEstadoEnvio(c) {
+      const abierta = ventanaAbierta(c);
+      const estado = $("estadoVentana");
+      estado.classList.toggle("closed", !abierta);
+      if (abierta) {
+        const hasta = new Date(c.ultimaEntrada + 24 * 60 * 60 * 1000);
+        estado.textContent = "Ventana de respuesta abierta · Hasta " + hasta.toLocaleString("es-CO", {
+          day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+        });
+      } else {
+        estado.textContent = "Ventana de 24 h cerrada. El cliente debe escribir de nuevo o debes usar una plantilla aprobada.";
+      }
+      $("textoEnvio").disabled = !abierta || enviando;
+      $("btnEnviar").disabled = !abierta || enviando;
+    }
+
+    function pintarChat() {
+      const c = conversaciones.find((item) => item.numero === numeroSeleccionado);
+      $("vistaChat").hidden = !c;
+      $("estadoVacio").hidden = !!c;
+      if (!c) return;
+      $("chatNumero").textContent = "+" + c.numero;
+      $("chatAvatar").textContent = c.numero.slice(-2);
+      const panel = $("mensajes");
+      const estabaAbajo = panel.scrollHeight - panel.scrollTop - panel.clientHeight < 110;
+      const antes = panel.childElementCount;
+      panel.replaceChildren();
+      let diaAnterior = "";
+      for (const m of c.mensajes) {
+        const dia = fechaDia(m.fecha);
+        if (dia !== diaAnterior) {
+          panel.append(crear("div", "day-marker", dia));
+          diaAnterior = dia;
+        }
+        const saliente = m.direccion === "saliente";
+        const fila = crear("div", "bubble-row" + (saliente ? " out" : ""));
+        const burbuja = crear("div", "bubble");
+        burbuja.append(crear("div", "bubble-text", textoVisible(m)));
+        if (saliente && m.origen === "panel_qregalo") {
+          burbuja.append(crear("div", "bubble-source", "Respuesta manual"));
+        }
+        burbuja.append(crear("div", "bubble-time", hora(m.fecha)));
+        fila.append(burbuja);
+        panel.append(fila);
+      }
+      if (estabaAbajo || antes === 0) panel.scrollTop = panel.scrollHeight;
+      actualizarEstadoEnvio(c);
+    }
+
+    function seleccionar(numero, desdeClick = false) {
+      numeroSeleccionado = numero;
+      $("feedback").textContent = "";
+      if (desdeClick) $("workspace").classList.add("chat-open");
+      pintarLista();
+      pintarChat();
+    }
+
+    async function peticionAutorizada(url, opciones = {}) {
+      const usuario = auth.currentUser;
+      if (!usuario) throw new Error("Debes iniciar sesión con Google");
+      const token = await usuario.getIdToken();
+      const respuesta = await fetch(url, {
+        ...opciones,
+        headers: {
+          ...(opciones.headers || {}),
+          Authorization: `Bearer ${token}`
+        },
+        cache: "no-store"
+      });
+      const datos = await respuesta.json();
+      if (!respuesta.ok) throw new Error(datos.error || `Error HTTP ${respuesta.status}`);
+      return datos;
+    }
+
+    async function cargarMensajes(silencioso = false) {
+      if (cargando || !auth.currentUser) return;
+      cargando = true;
+      $("btnRefresh").disabled = true;
+      if (!silencioso) $("ultimaActualizacion").textContent = "Consultando...";
+      try {
+        const datos = await peticionAutorizada("/.netlify/functions/qregalo-mensajes");
+        mensajes = Array.isArray(datos.mensajes) ? datos.mensajes : [];
+        reunirConversaciones();
+        if (numeroSeleccionado && !conversaciones.some((c) => c.numero === numeroSeleccionado)) {
+          numeroSeleccionado = null;
+        }
+        if (!numeroSeleccionado && conversaciones.length) numeroSeleccionado = conversaciones[0].numero;
+        pintarLista();
+        pintarChat();
+        $("ultimaActualizacion").textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) + (datos.hayMas ? " · Mostrando solo los 300 mensajes más recientes" : "");
+        $("loginError").textContent = "";
+      } catch (error) {
+        $("ultimaActualizacion").textContent = "No se pudieron actualizar los mensajes";
+        $("feedback").classList.remove("ok");
+        $("feedback").textContent = error.message;
+        if (!silencioso) {
+          $("lista").replaceChildren(crear("p", "list-empty", "Error: " + error.message));
+        }
+      } finally {
+        cargando = false;
+        $("btnRefresh").disabled = false;
+      }
+    }
+
+    async function enviarMensaje(event) {
+      event.preventDefault();
+      if (enviando || !numeroSeleccionado) return;
+      const texto = $("textoEnvio").value.trim();
+      if (!texto) return;
+      const c = conversaciones.find((item) => item.numero === numeroSeleccionado);
+      if (!ventanaAbierta(c)) {
+        $("feedback").textContent = "Esta conversación ya superó la ventana de 24 horas.";
+        actualizarEstadoEnvio(c);
+        return;
+      }
+      enviando = true;
+      actualizarEstadoEnvio(c);
+      const feedback = $("feedback");
+      feedback.classList.remove("ok");
+      feedback.textContent = "Enviando mensaje...";
+      try {
+        const datos = await peticionAutorizada("/.netlify/functions/qregalo-enviar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ numeroCliente: numeroSeleccionado, texto })
+        });
+        $("textoEnvio").value = "";
+        feedback.textContent = datos.guardado ? "✓ Mensaje enviado y guardado." : (datos.aviso || "Mensaje enviado, pero no guardado.");
+        feedback.classList.toggle("ok", !!datos.guardado);
+        await cargarMensajes(true);
+      } catch (error) {
+        feedback.classList.remove("ok");
+        feedback.textContent = error.message;
+      } finally {
+        enviando = false;
+        actualizarEstadoEnvio(conversaciones.find((item) => item.numero === numeroSeleccionado));
+      }
+    }
+
+    $("btnLogin").addEventListener("click", async () => {
+      $("btnLogin").disabled = true;
+      $("loginError").textContent = "";
       try {
         await signInWithPopup(auth, proveedor);
       } catch (error) {
         if (error.code !== "auth/popup-closed-by-user") {
-          estado.textContent =
-            "No se pudo iniciar sesión: " + error.message;
+          $("loginError").textContent = "No se pudo iniciar sesión: " + error.message;
         }
       } finally {
-        btnEntrar.disabled = false;
+        $("btnLogin").disabled = false;
       }
     });
 
-    btnSalir.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        estado.textContent = error.message;
+    $("btnLogout").addEventListener("click", async () => {
+      await signOut(auth);
+    });
+    $("btnRefresh").addEventListener("click", () => cargarMensajes());
+    $("btnRefreshChat").addEventListener("click", () => cargarMensajes());
+    $("busqueda").addEventListener("input", pintarLista);
+    $("formEnviar").addEventListener("submit", enviarMensaje);
+    $("textoEnvio").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        $("formEnviar").requestSubmit();
       }
     });
-	
-	
-document.getElementById("btnConsultar")
-  .addEventListener("click", async () => {
+    $("btnBack").addEventListener("click", () => $("workspace").classList.remove("chat-open"));
 
-    const boton = document.getElementById("btnConsultar");
-    const resultado = document.getElementById("resultadoMensajes");
-
-    boton.disabled = true;
-    resultado.hidden = false;
-    resultado.textContent = "Consultando mensajes...";
-
-    try {
-      const usuario = auth.currentUser;
-
-      if (!usuario) {
-        throw new Error("Debes iniciar sesión con Google");
+    onAuthStateChanged(auth, async (usuario) => {
+      $("loginLoading").hidden = true;
+      $("btnLogin").hidden = !!usuario;
+      $("login").hidden = !!usuario;
+      $("workspace").hidden = !usuario;
+      if (usuario) {
+        $("cuentaEmail").textContent = usuario.email || "Sesión iniciada";
+        await cargarMensajes();
+      } else {
+        mensajes = [];
+        conversaciones = [];
+        numeroSeleccionado = null;
+        $("workspace").classList.remove("chat-open");
       }
+    }, (error) => {
+      $("loginLoading").hidden = true;
+      $("btnLogin").hidden = false;
+      $("loginError").textContent = error.message;
+    });
 
-      // Obtener token de autenticación de Firebase
-      const token = await usuario.getIdToken();
-
-      // Consultar nuestra función segura de Netlify
-      const respuesta = await fetch(
-        "/.netlify/functions/qregalo-mensajes",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(datos.error || "Error consultando mensajes");
+    setInterval(() => {
+      if (auth.currentUser && document.visibilityState === "visible") {
+        cargarMensajes(true);
       }
-
-      // Mostrar los mensajes recibidos
-      resultado.textContent =
-        JSON.stringify(datos, null, 2);
-
-    } catch (error) {
-      resultado.textContent = "Error: " + error.message;
-    } finally {
-      boton.disabled = false;
-    }
-  });
-
-
+    }, 15000);
   </script>
-
 </body>
 </html>
