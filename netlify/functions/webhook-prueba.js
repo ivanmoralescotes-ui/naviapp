@@ -1,7 +1,7 @@
 
 const { getApps, initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
-const crypto = require("crypto");
+const crypto = require("crypto"); 
 
 // Inicializar Firebase cuando sea necesario
 function obtenerFirestore() {
