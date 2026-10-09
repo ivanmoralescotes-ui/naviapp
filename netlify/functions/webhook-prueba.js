@@ -8,7 +8,7 @@ function obtenerFirestore() {
 
   if (getApps().length === 0) {
 
-    const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    const json = process.env.WHATSAPP_FIREBASE_SERVICE_ACCOUNT_JSON;
 
     if (!json) {
       throw new Error("Falta GOOGLE_SERVICE_ACCOUNT_JSON en Netlify");
