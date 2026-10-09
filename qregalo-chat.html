@@ -149,6 +149,16 @@
       cursor: pointer; white-space: nowrap; color: #276e63; }
     .auto-control input { accent-color: #187d74; width: 19px; height: 19px; cursor: pointer; }
     .auto-control input:disabled { cursor: wait; }
+    /* Clave auxiliar visible para la conversación seleccionada */
+    .clave-row { display: flex; align-items: center; gap: 9px; padding: 8px 19px;
+      background: #fff; border-bottom: 1px solid var(--line); }
+    .clave-row label { color: #4d6e75; font-size: 12px; font-weight: 700; }
+    .clave-row input { width: 165px; min-width: 0; height: 33px; padding: 6px 10px;
+      border: 1px solid #d6e5e4; border-radius: 9px; background: #f8fbfb;
+      color: var(--ink); font-size: 13px; }
+    .clave-row input:focus { border-color: #64a99f; }
+    .clave-gen { padding: 7px 11px; border-radius: 8px; font-size: 12px;
+      font-weight: 750; line-height: 1.25; }
     .auto-warning { color: #a26214; background: #fff6e7; }
     .contact-auto { display: inline-block; color: #197769; font-size: 10px; margin-top: 4px; }
     .contact-auto.off { color: #aa6d35; }
@@ -172,6 +182,8 @@
       .compose { padding: 11px 12px max(12px, env(safe-area-inset-bottom)); }
       .chat-heading { padding: 10px 12px; flex-wrap: wrap; }
       .auto-control { margin-left: auto; font-size: 11px; padding: 7px 9px; }
+      .clave-row { padding: 8px 12px; }
+      .clave-row input { width: min(165px, 48vw); }
 
       .compose-row .solid-btn { padding: 10px; }
     }
@@ -238,6 +250,14 @@
               <span id="modoAutoTexto">Automático</span>
             </label>
           </header>
+          <div class="clave-row" role="group" aria-label="Clave de la conversación">
+            <label for="claveCliente">Clave</label>
+            <input id="claveCliente" type="text" autocomplete="off" autocapitalize="off"
+                   spellcheck="false" maxlength="40" placeholder="Escribe o genera"
+                   title="Clave visible; no se guarda en Firebase">
+            <button id="btnGenClave" class="light-btn clave-gen" type="button"
+                    title="Generar color aleatorio y dos dígitos">gen</button>
+          </div>
           <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
           <div id="mensajes" class="messages" role="log" aria-live="polite"></div>
@@ -282,6 +302,9 @@
     let enviando = false;
     let cambiandoModo = false;
     let modos = {};
+    // Solo en memoria de esta pestaña, separadas por cliente; no se guardan en Firebase.
+    const clavesPorNumero = new Map();
+    let numeroClaveVisible = null;
 
     function crear(tag, clase, texto) {
       const el = document.createElement(tag);
@@ -448,7 +471,16 @@
       const c = conversaciones.find((item) => item.numero === numeroSeleccionado);
       $("vistaChat").hidden = !c;
       $("estadoVacio").hidden = !!c;
-      if (!c) return;
+      if (!c) {
+        numeroClaveVisible = null;
+        $("claveCliente").value = "";
+        return;
+      }
+      // Al cambiar de cliente, no mostrar por error la clave del contacto anterior.
+      if (numeroClaveVisible !== c.numero) {
+        numeroClaveVisible = c.numero;
+        $("claveCliente").value = clavesPorNumero.get(c.numero) || "";
+      }
       $("chatNumero").textContent = "+" + c.numero;
       $("chatAvatar").textContent = c.numero.slice(-2);
       pintarModo(c.numero);
@@ -590,6 +622,34 @@
     $("btnRefreshChat").addEventListener("click", () => cargarMensajes());
     $("busqueda").addEventListener("input", pintarLista);
     $("modoAuto").addEventListener("change", cambiarModo);
+
+    // El campo es texto normal, nunca tipo password. Generación local sin envíos.
+    $("claveCliente").addEventListener("input", () => {
+      if (numeroSeleccionado) clavesPorNumero.set(numeroSeleccionado, $("claveCliente").value);
+    });
+
+    const coloresClave = [
+      "rojo", "azul", "verde", "amarillo", "naranja", "morado", "rosa",
+      "violeta", "gris", "blanco", "negro", "celeste", "turquesa",
+      "marron", "dorado", "plateado"
+    ];
+    function aleatorioEntero(maximo) {
+      const numero = new Uint32Array(1);
+      crypto.getRandomValues(numero);
+      return numero[0] % maximo;
+    }
+
+    $("btnGenClave").addEventListener("click", () => {
+      if (!numeroSeleccionado) return;
+      const color = coloresClave[aleatorioEntero(coloresClave.length)];
+      const digitos = String(aleatorioEntero(100)).padStart(2, "0");
+      const clave = color + digitos;
+      $("claveCliente").value = clave;
+      clavesPorNumero.set(numeroSeleccionado, clave);
+      $("claveCliente").focus();
+      $("claveCliente").select();
+    });
+
     $("formEnviar").addEventListener("submit", enviarMensaje);
     $("textoEnvio").addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -612,6 +672,9 @@
         modos = {};
         conversaciones = [];
         numeroSeleccionado = null;
+        clavesPorNumero.clear();
+        numeroClaveVisible = null;
+        $("claveCliente").value = "";
         $("workspace").classList.remove("chat-open");
       }
     }, (error) => {
