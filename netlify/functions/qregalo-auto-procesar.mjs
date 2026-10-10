@@ -22,14 +22,18 @@ async function resolverPendiente(db, documento) {
     if (p.estado !== "pendiente" || fechaMs(p.venceEn) > Date.now()) return null;
     const caducada = !Number.isFinite(fechaMs(c.ultimaEntradaFecha)) ||
       Date.now() - fechaMs(c.ultimaEntradaFecha) >= VENTANA_MS - MARGEN_MS;
-    if (c.autoEnabled === false || c.version !== p.version || caducada) {
+    // Solo enviar pendientes de una sesión realmente iniciada después
+    // de más de una hora de silencio (o del primer mensaje del cliente).
+    // Los pendientes sin la marca nueva son anteriores al despliegue: cancelarlos.
+    if (p.autoElegible !== true || c.autoEnabled === false ||
+        c.version !== p.version || caducada) {
       t.delete(ref);
       t.set(convRef, { autoPendienteHasta: null }, { merge: true });
       return null;
     }
 
-    // Compatibilidad con pendientes creados antes de cambiar de 5 a 20 min:
-    // el cron jamás envía antes de 20 minutos desde la última entrada al webhook.
+    // Evitar envíos antes de 19 minutos desde el último mensaje recibido,
+    // incluso si un pendiente tiene por error una fecha más temprana.
     const ultimaRecepcionMs = fechaMs(c.ultimaActividad);
     if (Number.isFinite(ultimaRecepcionMs)) {
       const minimoEnvioMs = ultimaRecepcionMs + RETRASO_MS;
@@ -68,7 +72,7 @@ async function resolverPendiente(db, documento) {
         t.set(db.collection(COLECCION).doc(identificador("out", idWhatsapp)), {
           numeroCliente: tarea.numero,
           direccion: "saliente", tipo: "text", texto: TEXTO_AUTO,
-          idWhatsapp, origen: "respuesta_automatica_20min",
+          idWhatsapp, origen: "respuesta_automatica_19min",
           fecha: new Date(), fechaGuardado: FieldValue.serverTimestamp()
         }, { merge: true });
       }
@@ -109,7 +113,7 @@ export default async () => {
   }
 };
 
-// Netlify revisa cada 10 minutos. Envía DESPUÉS de 20 min sin respuesta manual;
-// normalmente lo hará entre los 20 y 30 min desde el último mensaje del cliente.
+// Netlify revisa cada 10 minutos. Envía DESPUÉS de 19 min sin respuesta manual;
+// normalmente lo hará entre los 19 y 29 min desde el último mensaje del cliente.
 // Solo se ejecuta en Production deploy.
 export const config = { schedule: "*/10 * * * *" };

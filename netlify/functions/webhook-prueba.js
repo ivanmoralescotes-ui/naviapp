@@ -2,7 +2,7 @@
 
 const {
   bd, json, identificador, validarFirmaMeta, fechaMs, enviarMeta, FieldValue,
-  COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS
+  COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS, INTERVALO_SESION_MS
 } = require("../lib/qregalo-comun");
 
 // Notificar al administrador como máximo una vez cada 60 minutos por cliente.
@@ -131,10 +131,12 @@ exports.handler = async (event) => {
             ? new Date(Number(mensaje.timestamp) * 1000)
             : ahora;
 
-          // Una transacción preserva deduplicación y reprogramación del plazo.
+          // La hora de silencio se compara con el mensaje ANTERIOR del mismo
+          // cliente, nunca con la hora del aviso enviado al administrador.
+          // La deduplicación y la planificación se hacen en una sola transacción.
           const nuevo = await db.runTransaction(async (t) => {
-            const [yaExiste, convActual] = await Promise.all([
-              t.get(msgRef), t.get(convRef)
+            const [yaExiste, convActual, pendActual] = await Promise.all([
+              t.get(msgRef), t.get(convRef), t.get(pendRef)
             ]);
             if (yaExiste.exists) return false;
 
@@ -142,10 +144,20 @@ exports.handler = async (event) => {
             const version = (Number(anterior.version) || 0) + 1;
             const habilitado = anterior.autoEnabled !== false;
             const venceEn = new Date(ahora.getTime() + RETRASO_MS);
+            const fechaAnteriorMs = fechaMs(anterior.ultimaEntradaFecha);
+            const nuevaSesion = !Number.isFinite(fechaAnteriorMs) ||
+              recibida.getTime() - fechaAnteriorMs > INTERVALO_SESION_MS;
 
-            // Guardar el momento del INTENTO dentro de esta misma transacción
-            // evita avisos duplicados por mensajes simultáneos o reintentos.
-            // No notificar los mensajes enviados desde nuestro número personal.
+            // En una ráfaga de mensajes no se crea otra respuesta automática.
+            // Solo se aplaza una respuesta de la misma sesión que siga pendiente.
+            // Si se respondió manualmente, ya no hay pendiente que aplazar.
+            const pendiente = pendActual.exists ? pendActual.data() : {};
+            const pendienteDeSesion = pendiente.estado === "pendiente" &&
+              pendiente.autoElegible === true;
+            const programarAuto = habilitado && (nuevaSesion || pendienteDeSesion);
+
+            // El aviso al WhatsApp personal conserva su intervalo independiente
+            // de una hora y NO depende del modo automático del cliente.
             const avisoAnterior = fechaMs(anterior.ultimaNotificacionPersonalIntentadaEn);
             const correspondeAviso = numero !== WHATSAPP_PERSONAL &&
               (!Number.isFinite(avisoAnterior) ||
@@ -164,28 +176,38 @@ exports.handler = async (event) => {
               numeroCliente: numero,
               autoEnabled: habilitado,
               version,
-              ultimaEntradaFecha: recibida,
+              // No retroceder la fecha ante webhooks entregados fuera de orden.
+              ultimaEntradaFecha: new Date(Math.max(recibida.getTime(),
+                Number.isFinite(fechaAnteriorMs) ? fechaAnteriorMs : 0)),
               ultimaEntradaId: mensaje.id,
               ultimaActividad: ahora,
-              autoPendienteHasta: habilitado ? venceEn : null,
+              autoPendienteHasta: programarAuto ? venceEn : null,
               errorAutomatico: null,
               ...(correspondeAviso ? { ultimaNotificacionPersonalIntentadaEn: ahora } : {})
             }, { merge: true });
 
-            if (habilitado) {
-              // Solo una respuesta pendiente por contacto; mensajes nuevos reinician 20 min.
+            if (programarAuto) {
               t.set(pendRef, {
                 numeroCliente: numero, version, mensajeId: mensaje.id,
-                estado: "pendiente", venceEn, fechaEntrada: recibida
+                estado: "pendiente", venceEn, fechaEntrada: recibida,
+                autoElegible: true
               });
-            } else {
+            } else if (pendActual.exists && pendiente.estado !== "enviando") {
+              // También limpiar pendientes antiguos sin marca de elegibilidad.
               t.delete(pendRef);
             }
-            return { correspondeAviso };
+            return { correspondeAviso, programarAuto,
+              nuevaSesion: nuevaSesion && habilitado };
           });
 
           if (nuevo) {
-            console.log("QRegalo: mensaje guardado; espera automática 20 min:", numero);
+            if (nuevo.programarAuto) {
+              console.log(nuevo.nuevaSesion
+                ? "QRegalo: inicio de sesión; automática en >=19 min:"
+                : "QRegalo: automática pendiente reprogramada 19 min:", numero);
+            } else {
+              console.log("QRegalo: mensaje guardado; sin respuesta automática nueva:", numero);
+            }
             if (nuevo.correspondeAviso) numerosParaAvisar.add(numero);
           } else {
             console.log("QRegalo: duplicado ignorado");

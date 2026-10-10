@@ -9,10 +9,11 @@ const PROJECT_ID = "qrpro-f4709";
 const COLECCION = "whatsapp_mensajes";
 const CONVERSACIONES = "qregalo_conversaciones";
 const PENDIENTES = "qregalo_pendientes";
-const RETRASO_MS = 20 * 60 * 1000;
+const RETRASO_MS = 19 * 60 * 1000;
+const INTERVALO_SESION_MS = 60 * 60 * 1000;
 const VENTANA_MS = 24 * 60 * 60 * 1000;
 const MARGEN_MS = 2 * 60 * 1000;
-const TEXTO_AUTO = "¡Hola! 😊 Estamos revisando tu solicitud. Te responderemos lo antes posible.";
+const TEXTO_AUTO = "¡Hola! 😊 Estamos revisando tu mensaje. Te responderemos lo antes posible.";
 
 function appFirebase() {
   const existente = getApps().find((a) => a.name === "qregalo");
@@ -118,6 +119,6 @@ async function enviarMeta(numero, texto, { signal } = {}) {
 module.exports = {
   bd, json, verificarAdmin, fechaIso, fechaMs, identificador,
   validaNumero, validarFirmaMeta, enviarMeta, FieldValue,
-  COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS,
+  COLECCION, CONVERSACIONES, PENDIENTES, RETRASO_MS, INTERVALO_SESION_MS,
   VENTANA_MS, MARGEN_MS, TEXTO_AUTO
 };

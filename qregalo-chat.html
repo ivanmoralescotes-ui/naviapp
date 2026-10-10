@@ -287,7 +287,7 @@
             <button id="btnAsignarClave" class="light-btn clave-gen" type="button"
                     title="Verificar los documentos antes de asignar la clave">asignarClave</button>
           </div>
-          <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
+          <div class="top-banner" id="avisoAuto">Modo automático: si el cliente lleva más de 1 hora sin escribir, se responderá desde los 19 minutos si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
           <div id="mensajes" class="messages" role="log" aria-live="polite"></div>
           <form id="formEnviar" class="compose">
@@ -483,7 +483,7 @@
           momento.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) +
           ". Una respuesta manual la cancela.";
       } else {
-        aviso.textContent = "Automático activo: si no respondes, el sistema contestará aproximadamente entre 20 y 30 minutos después del último mensaje del cliente.";
+        aviso.textContent = "Automático activo: solo se programa una respuesta cuando el cliente escribe por primera vez o vuelve después de más de 1 hora. Si no respondes, se enviará aproximadamente entre 19 y 29 minutos después del último mensaje.";
       }
     }
 
