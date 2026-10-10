@@ -160,6 +160,18 @@
     .clave-row input:focus { border-color: #64a99f; }
     .clave-gen { padding: 7px 11px; border-radius: 8px; font-size: 12px;
       font-weight: 750; line-height: 1.25; }
+    /* Confirmación de asignación: no modifica nada hasta pulsar «confirmar». */
+    .asignacion-overlay { position: fixed; inset: 0; z-index: 1000; display: grid;
+      place-items: center; padding: 18px; background: rgba(12, 34, 43, .65); }
+    .asignacion-dialogo { width: min(440px, 100%); padding: 23px; background: white;
+      border-radius: 17px; box-shadow: 0 20px 60px #0c202f55; }
+    .asignacion-dialogo h2 { margin: 0 0 11px; font-size: 19px; }
+    .asignacion-dialogo p { margin: 0 0 11px; font-size: 13px; line-height: 1.5; }
+    .asignacion-dato { font-size: 13px; margin: 10px 0; color: var(--ink);
+      overflow-wrap: anywhere; }
+    .asignacion-dato strong { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .asignacion-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 19px; }
+    .asignacion-acciones button { min-height: 39px; }
     .auto-warning { color: #a26214; background: #fff6e7; }
     .contact-auto { display: inline-block; color: #197769; font-size: 10px; margin-top: 4px; }
     .contact-auto.off { color: #aa6d35; }
@@ -272,6 +284,8 @@
                     title="Preparar un mensaje para pedir el nombre del QR reservado">nombre</button>
             <button id="btnMensajeMM" class="light-btn clave-gen" type="button"
                     title="Preparar mensaje de revisión e instrucciones">mm</button>
+            <button id="btnAsignarClave" class="light-btn clave-gen" type="button"
+                    title="Verificar los documentos antes de asignar la clave">asignarClave</button>
           </div>
           <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
@@ -288,6 +302,21 @@
       </section>
     </section>
   </main>
+
+  <div id="modalAsignarClave" class="asignacion-overlay" hidden>
+    <div class="asignacion-dialogo" role="dialog" aria-modal="true" aria-labelledby="tituloAsignarClave">
+      <h2 id="tituloAsignarClave">Confirmar asignación de clave</h2>
+      <p>Comprueba que estos sean los documentos correctos. La clave solo se modificará al confirmar.</p>
+      <div class="asignacion-dato"><strong>Nombre del QR</strong><span id="asignarNombre"></span></div>
+      <div class="asignacion-dato"><strong>URL de codigos</strong><span id="asignarUrl"></span></div>
+      <div class="asignacion-dato"><strong>Documento de configg</strong><span id="asignarDocumento"></span></div>
+      <div class="asignacion-dato"><strong>Nueva clave</strong><span id="asignarNuevaClave"></span></div>
+      <div class="asignacion-acciones">
+        <button id="btnCancelarAsignacion" class="light-btn" type="button">Cancelar</button>
+        <button id="btnConfirmarAsignacion" class="solid-btn" type="button">confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -321,6 +350,8 @@
     const clavesPorNumero = new Map();
     const codigosPorNumero = new Map();
     let numeroClaveVisible = null;
+    let asignacionPendiente = null;
+    let consultandoAsignacion = false;
 
     function crear(tag, clase, texto) {
       const el = document.createElement(tag);
@@ -717,6 +748,113 @@
       texto.value = "Estamos revisando tu mensaje. En caso que quieras ver las instrucciones puedes visitar https://ú.ws/qxb";
       texto.focus();
       texto.setSelectionRange(texto.value.length, texto.value.length);
+    });
+
+    const API_ASIGNAR_CLAVE = "/.netlify/functions/qregalo-asignar-clave";
+
+    function avisoAsignacion(mensaje, correcto = false) {
+      const area = $("feedback");
+      area.classList.toggle("ok", correcto);
+      area.textContent = mensaje;
+    }
+
+    function cerrarAsignacion() {
+      if (consultandoAsignacion || !asignacionPendiente) return;
+      asignacionPendiente = null;
+      $("modalAsignarClave").hidden = true;
+      $("btnAsignarClave").focus();
+    }
+
+    $("btnAsignarClave").addEventListener("click", async () => {
+      if (!numeroSeleccionado || consultandoAsignacion || asignacionPendiente) return;
+      const nombre = $("codigoCliente").value.trim();
+      const clave = $("claveCliente").value.trim();
+      if (!nombre) {
+        avisoAsignacion("Primero escribe el nombre exacto del QR en Código.");
+        $("codigoCliente").focus();
+        return;
+      }
+      if (clave.length < 3 || clave.length > 20) {
+        avisoAsignacion("La clave debe tener entre 3 y 20 caracteres, como en el monitor.");
+        $("claveCliente").focus();
+        return;
+      }
+      const numero = numeroSeleccionado;
+      consultandoAsignacion = true;
+      $("btnAsignarClave").disabled = true;
+      avisoAsignacion("Buscando el código y su documento de configuración...");
+      try {
+        const datos = await peticionAutorizada(API_ASIGNAR_CLAVE, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accion: "consultar", nombre })
+        });
+        if (numeroSeleccionado !== numero ||
+            $("codigoCliente").value.trim() !== nombre || $("claveCliente").value.trim() !== clave) {
+          throw new Error("Cambiaste de conversación, código o clave durante la consulta. Vuelve a pulsar asignarClave.");
+        }
+        asignacionPendiente = { numero, nombre, clave,
+          idCodigo: datos.idCodigo, url: datos.url,
+          documentoConfig: datos.documentoConfig };
+        $("asignarNombre").textContent = nombre;
+        $("asignarUrl").textContent = datos.url;
+        $("asignarDocumento").textContent = datos.documentoConfig;
+        $("asignarNuevaClave").textContent = clave;
+        $("modalAsignarClave").hidden = false;
+        $("btnConfirmarAsignacion").focus();
+        avisoAsignacion("");
+      } catch (error) {
+        avisoAsignacion(error.message || "No se encontraron los documentos.");
+      } finally {
+        consultandoAsignacion = false;
+        $("btnAsignarClave").disabled = false;
+      }
+    });
+
+    $("btnCancelarAsignacion").addEventListener("click", cerrarAsignacion);
+    $("btnConfirmarAsignacion").addEventListener("click", async () => {
+      const pendiente = asignacionPendiente;
+      if (!pendiente || consultandoAsignacion) return;
+      if (pendiente.numero !== numeroSeleccionado ||
+          $("codigoCliente").value.trim() !== pendiente.nombre ||
+          $("claveCliente").value.trim() !== pendiente.clave) {
+        $("modalAsignarClave").hidden = true;
+        asignacionPendiente = null;
+        avisoAsignacion("Cambió el código, la clave o el cliente. Vuelve a verificar antes de confirmar.");
+        return;
+      }
+      consultandoAsignacion = true;
+      $("btnConfirmarAsignacion").disabled = true;
+      $("btnCancelarAsignacion").disabled = true;
+      $("btnConfirmarAsignacion").textContent = "Actualizando...";
+      try {
+        const datos = await peticionAutorizada(API_ASIGNAR_CLAVE, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accion: "confirmar", nombre: pendiente.nombre,
+            claveNueva: pendiente.clave, idCodigo: pendiente.idCodigo,
+            urlEsperada: pendiente.url, documentoConfig: pendiente.documentoConfig
+          })
+        });
+        // Éxito de Firestore confirmado; escribir el borrador sin hacer ningún envío.
+        asignacionPendiente = null;
+        $("modalAsignarClave").hidden = true;
+        const borrador = `Hola, gracias por tu compra. La página para configurar tu QR es https://ú.ws/config1?codigo=${datos.codigoConfig}  Tu clave (que puedes cambiar) es: ${pendiente.clave} y tienes las instrucciones en https://ú.ws/qxb`;
+        if (numeroSeleccionado === pendiente.numero) {
+          $("textoEnvio").value = borrador;
+          $("textoEnvio").focus();
+          $("textoEnvio").setSelectionRange(borrador.length, borrador.length);
+          avisoAsignacion("✓ Clave asignada a " + datos.documentoConfig + ". Mensaje preparado, aún NO enviado.", true);
+        } else {
+          avisoAsignacion("✓ Clave asignada. Regresa al cliente original antes de preparar su mensaje.", true);
+        }
+      } catch (error) {
+        avisoAsignacion(error.message || "No se pudo asignar la clave. No se preparó el mensaje.");
+      } finally {
+        consultandoAsignacion = false;
+        $("btnConfirmarAsignacion").disabled = false;
+        $("btnCancelarAsignacion").disabled = false;
+        $("btnConfirmarAsignacion").textContent = "confirmar";
+      }
     });
 
     $("formEnviar").addEventListener("submit", enviarMensaje);
