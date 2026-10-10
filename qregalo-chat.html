@@ -270,6 +270,8 @@
             </div>
             <button id="btnPedirNombre" class="light-btn clave-gen" type="button"
                     title="Preparar un mensaje para pedir el nombre del QR reservado">nombre</button>
+            <button id="btnMensajeMM" class="light-btn clave-gen" type="button"
+                    title="Preparar mensaje de revisión e instrucciones">mm</button>
           </div>
           <div class="top-banner" id="avisoAuto">Modo automático: se esperan 20 minutos antes de responder si no intervienes.</div>
           <div class="refresh-row"><span id="ultimaActualizacion">Actualizando...</span><button id="btnRefreshChat">Actualizar</button></div>
@@ -704,6 +706,15 @@
       if (!numeroSeleccionado) return;
       const texto = $("textoEnvio");
       texto.value = "hola, me puedes regalar el nombre del QR que reservaste?";
+      texto.focus();
+      texto.setSelectionRange(texto.value.length, texto.value.length);
+    });
+
+    // Preparar el mensaje de revisión sin enviarlo al cliente.
+    $("btnMensajeMM").addEventListener("click", () => {
+      if (!numeroSeleccionado) return;
+      const texto = $("textoEnvio");
+      texto.value = "Estamos revisando tu mensaje. En caso que quieras ver las instrucciones puedes visitar https://ú.ws/qxb";
       texto.focus();
       texto.setSelectionRange(texto.value.length, texto.value.length);
     });
