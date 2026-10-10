@@ -685,6 +685,23 @@
       overflow-wrap: anywhere;
     }
 
+    .qr-target-url a {
+      color: var(--primary-dark);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .qr-target-url a:hover {
+      color: var(--primary);
+    }
+
+    .qr-target-url a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
     .qr-preview-box {
       min-height: 248px;
       display: flex;
@@ -1391,7 +1408,14 @@
           return;
         }
 
-        elements.qrTargetUrl.textContent = urlQr;
+        // La URL visible también funciona como enlace sin alterar el QR descargable.
+        const enlaceQr = document.createElement("a");
+        enlaceQr.href = urlQrCodificable;
+        enlaceQr.textContent = urlQr;
+        enlaceQr.target = "_blank";
+        enlaceQr.rel = "noopener noreferrer";
+        enlaceQr.title = "Abrir la dirección del QR en una pestaña nueva";
+        elements.qrTargetUrl.replaceChildren(enlaceQr);
         elements.qrPreviewContainer.replaceChildren();
 
         if (elements.qrDownloadButton) {

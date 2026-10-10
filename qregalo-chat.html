@@ -309,6 +309,7 @@
       <p>Comprueba que estos sean los documentos correctos. La clave solo se modificará al confirmar.</p>
       <div class="asignacion-dato"><strong>Nombre del QR</strong><span id="asignarNombre"></span></div>
       <div class="asignacion-dato"><strong>URL de codigos</strong><span id="asignarUrl"></span></div>
+      <div class="asignacion-dato"><strong>Estado en codigos</strong><span id="asignarEstado"></span></div>
       <div class="asignacion-dato"><strong>Documento de configg</strong><span id="asignarDocumento"></span></div>
       <div class="asignacion-dato"><strong>Nueva clave</strong><span id="asignarNuevaClave"></span></div>
       <div class="asignacion-acciones">
@@ -797,6 +798,7 @@
           documentoConfig: datos.documentoConfig };
         $("asignarNombre").textContent = nombre;
         $("asignarUrl").textContent = datos.url;
+        $("asignarEstado").textContent = datos.estado;
         $("asignarDocumento").textContent = datos.documentoConfig;
         $("asignarNuevaClave").textContent = clave;
         $("modalAsignarClave").hidden = false;

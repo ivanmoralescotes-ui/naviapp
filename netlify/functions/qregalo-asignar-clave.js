@@ -66,6 +66,8 @@ function infoDocumento(documento) {
   return {
     nombre: datos.nombre,
     idCodigo: documento.id,
+    estado: typeof datos.estado === "string" && datos.estado.trim()
+      ? datos.estado.trim() : "(sin estado)",
     url,
     carpeta,
     documentoConfig: `prop${carpeta}`,
