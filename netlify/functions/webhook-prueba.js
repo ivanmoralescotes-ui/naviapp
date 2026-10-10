@@ -25,12 +25,43 @@ async function enviarAvisoNoCritico(numeroCliente) {
       });
       return;
     }
-    console.log("QRegalo: aviso personal aceptado por Meta para cliente", numeroCliente);
+    // El idWhatsapp sirve para relacionar esta aceptación con los eventos
+    // posteriores «sent», «delivered», «read» o «failed» que mande Meta.
+    console.log("QRegalo: aviso personal aceptado por Meta", {
+      numeroCliente, idWhatsapp: resultado.idWhatsapp
+    });
   } catch (error) {
     // La notificación nunca debe hacer fallar el webhook ni el chat principal.
     console.warn("QRegalo: fallo no crítico notificando al WhatsApp personal", {
       numeroCliente, error: error?.message || String(error)
     });
+  }
+}
+
+// Los estados de entrega llegan en value.statuses (no en value.messages).
+// No se guardan ni cambian la lógica del chat: solo sirven para diagnóstico.
+function registrarEstadosWhatsAppPersonal(value) {
+  for (const estado of (Array.isArray(value.statuses) ? value.statuses : [])) {
+    // Limitar los logs a mensajes destinados al WhatsApp del administrador.
+    if (String(estado?.recipient_id || "").replace(/\D/g, "") !== WHATSAPP_PERSONAL) continue;
+
+    const errores = (Array.isArray(estado.errors) ? estado.errors : []).map((e) => ({
+      codigo: e.code ?? null,
+      titulo: String(e.title || "").slice(0, 300),
+      mensaje: String(e.message || "").slice(0, 400),
+      detalle: String(e.error_data?.details || "").slice(0, 500)
+    }));
+    const diagnostico = {
+      estado: String(estado.status || "desconocido"),
+      idWhatsapp: String(estado.id || ""),
+      fechaMeta: estado.timestamp || null,
+      ...(errores.length ? { errores } : {})
+    };
+    if (estado.status === "failed") {
+      console.warn("QRegalo: entrega WhatsApp personal FALLIDA", diagnostico);
+    } else {
+      console.log("QRegalo: estado entrega WhatsApp personal", diagnostico);
+    }
   }
 }
 
@@ -76,7 +107,13 @@ exports.handler = async (event) => {
         const phoneId = value.metadata?.phone_number_id;
         if (phoneId && phoneId !== process.env.META_PHONE_NUMBER_ID) continue;
 
-        // 'statuses' (entregado, leído, etc.) NO son mensajes de clientes.
+        // Los estados no son mensajes entrantes y nunca deben generar avisos.
+        // Cualquier fallo del diagnóstico no afecta al webhook principal.
+        try { registrarEstadosWhatsAppPersonal(value); }
+        catch (error) {
+          console.warn("QRegalo: no se pudo registrar un estado de entrega", error?.message);
+        }
+
         for (const mensaje of value.messages || []) {
           const numero = String(mensaje.from || "");
           if (!mensaje.id || !/^\d{8,15}$/.test(numero)) continue;
