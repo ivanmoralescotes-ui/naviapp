@@ -82,6 +82,13 @@
     .account-text { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       color: #6b8089; font-size: 12px; }
     .account-area .light-btn { padding: 8px 10px; font-size: 12px; }
+    /* El sonido se habilita por un gesto del usuario; en móvil, el botón está también en el chat. */
+    .sonido-sidebar-row { display: flex; justify-content: flex-end; margin-top: 11px; }
+    .sonido-btn { display: inline-flex; align-items: center; justify-content: center;
+      padding: 8px 11px; font-size: 12px; white-space: nowrap;
+      border: 1px solid #d5e5e2; }
+    .sonido-btn[aria-pressed="true"] { background: #d6eee6; border-color: #9bcbc1; color: #115c53; }
+    .sonido-chat { display: none; }
     .search-wrap { margin-top: 19px; display: flex; align-items: center; gap: 8px;
       padding: 0 12px; border: 1px solid #e0e9ea; border-radius: 12px; background: #f4f8f8; }
     .search-wrap span { color: #84969c; }
@@ -218,6 +225,7 @@
       .bubble { max-width: 87%; }
       .compose { padding: 11px 12px max(12px, env(safe-area-inset-bottom)); }
       .chat-heading { padding: 10px 12px; flex-wrap: wrap; }
+      .sonido-chat { display: inline-flex; }
       .auto-control { margin-left: auto; font-size: 11px; padding: 7px 9px; }
       .clave-row { padding: 8px 12px; gap: 7px 12px; }
       .clave-row input { width: min(140px, 34vw); }
@@ -256,6 +264,10 @@
             <span id="cuentaEmail" class="account-text"></span>
             <button id="btnLogout" class="light-btn">Salir</button>
           </div>
+          <div class="sonido-sidebar-row">
+            <button id="btnSonidoSidebar" class="light-btn sonido-btn" type="button"
+                    aria-pressed="false" title="Activar aviso de mensajes nuevos">🔔 Activar sonido</button>
+          </div>
           <label class="search-wrap">
             <span aria-hidden="true">⌕</span>
             <input id="busqueda" type="search" placeholder="Buscar teléfono o mensaje" aria-label="Buscar conversaciones">
@@ -282,6 +294,8 @@
               <div class="chat-heading-name" id="chatNumero"></div>
               <div class="chat-heading-info">Conversación de WhatsApp</div>
             </div>
+            <button id="btnSonidoChat" class="light-btn sonido-btn sonido-chat" type="button"
+                    aria-pressed="false" title="Activar aviso de mensajes nuevos">🔔 Activar sonido</button>
             <label class="auto-control" title="Activa o desactiva respuestas automáticas para este cliente">
               <input type="checkbox" id="modoAuto" checked>
               <span id="modoAutoTexto">Automático</span>
@@ -384,6 +398,88 @@
     let numeroClaveVisible = null;
     let asignacionPendiente = null;
     let consultandoAsignacion = false;
+
+    // No sonar al abrir el historial por primera vez; comparar los IDs de mensajes
+    // en cada actualización y avisar solo por NUEVOS mensajes entrantes.
+    let historialMensajesInicializado = false;
+    let idsMensajesConocidos = new Set();
+    let sonidoActivo = false;
+    let contextoSonido = null;
+
+    function pintarControlSonido() {
+      for (const id of ["btnSonidoSidebar", "btnSonidoChat"]) {
+        const boton = $(id);
+        boton.textContent = sonidoActivo ? "🔕 Silenciar" : "🔔 Activar sonido";
+        boton.title = sonidoActivo ? "Silenciar los mensajes nuevos" : "Activar aviso de mensajes nuevos";
+        boton.setAttribute("aria-pressed", String(sonidoActivo));
+      }
+    }
+
+    function reproducirSonido() {
+      if (!sonidoActivo || !contextoSonido || contextoSonido.state !== "running") return;
+      try {
+        const t = contextoSonido.currentTime;
+        // Dos notas suaves: no necesitamos descargar un archivo MP3.
+        for (const [frecuencia, demora] of [[740, 0], [988, 0.15]]) {
+          const inicio = t + demora;
+          const duracion = 0.18;
+          const oscilador = contextoSonido.createOscillator();
+          const volumen = contextoSonido.createGain();
+          oscilador.type = "sine";
+          oscilador.frequency.setValueAtTime(frecuencia, inicio);
+          volumen.gain.setValueAtTime(0.0001, inicio);
+          volumen.gain.exponentialRampToValueAtTime(0.075, inicio + 0.025);
+          volumen.gain.exponentialRampToValueAtTime(0.0001, inicio + duracion);
+          oscilador.connect(volumen);
+          volumen.connect(contextoSonido.destination);
+          oscilador.start(inicio);
+          oscilador.stop(inicio + duracion + 0.02);
+        }
+      } catch (error) {
+        console.warn("QRegalo: no se pudo reproducir el aviso", error);
+      }
+    }
+
+    async function alternarSonido() {
+      if (sonidoActivo) {
+        sonidoActivo = false;
+        pintarControlSonido();
+        // Dejar de consumir audio mientras el sonido está silenciado.
+        if (contextoSonido && contextoSonido.state === "running") {
+          void contextoSonido.suspend().catch(() => {});
+        }
+        return;
+      }
+      try {
+        const FabricaAudio = window.AudioContext || window.webkitAudioContext;
+        if (!FabricaAudio) throw new Error("Este navegador no admite sonidos desde la página.");
+        if (!contextoSonido || contextoSonido.state === "closed") {
+          contextoSonido = new FabricaAudio();
+        }
+        // La solicitud de habilitación se inicia directamente al pulsar el botón.
+        await contextoSonido.resume();
+        if (contextoSonido.state !== "running") {
+          throw new Error("El navegador no autorizó la reproducción de sonido.");
+        }
+        sonidoActivo = true;
+        pintarControlSonido();
+        reproducirSonido(); // Prueba corta que confirma que ya está habilitado.
+      } catch (error) {
+        sonidoActivo = false;
+        pintarControlSonido();
+        alert("No se pudo activar el sonido: " + (error.message || "error desconocido"));
+      }
+    }
+
+    function registrarMensajesNuevos(lista) {
+      const idsActuales = new Set(lista.map((m) => m.id).filter(Boolean));
+      const llegaronNuevos = historialMensajesInicializado && lista.some((m) =>
+        m.direccion === "entrante" && m.id && !idsMensajesConocidos.has(m.id)
+      );
+      idsMensajesConocidos = idsActuales;
+      historialMensajesInicializado = true;
+      if (llegaronNuevos) reproducirSonido();
+    }
 
     // Las imágenes se mantienen solo durante la sesión y conversación activa.
     // No se almacenan en Firebase ni se descargan automáticamente al dispositivo.
@@ -737,6 +833,7 @@
       try {
         const datos = await peticionAutorizada("/.netlify/functions/qregalo-mensajes");
         mensajes = Array.isArray(datos.mensajes) ? datos.mensajes : [];
+        registrarMensajesNuevos(mensajes);
         modos = datos.modos && typeof datos.modos === "object" ? datos.modos : {};
         reunirConversaciones();
         if (numeroSeleccionado && !conversaciones.some((c) => c.numero === numeroSeleccionado)) {
@@ -815,6 +912,9 @@
     });
     $("btnRefresh").addEventListener("click", () => cargarMensajes());
     $("btnRefreshChat").addEventListener("click", () => cargarMensajes());
+    $("btnSonidoSidebar").addEventListener("click", alternarSonido);
+    $("btnSonidoChat").addEventListener("click", alternarSonido);
+    pintarControlSonido();
     $("busqueda").addEventListener("input", pintarLista);
     $("modoAuto").addEventListener("change", cambiarModo);
 
@@ -1030,6 +1130,13 @@
         await cargarMensajes();
       } else {
         liberarImagenesChat();
+        idsMensajesConocidos.clear();
+        historialMensajesInicializado = false;
+        sonidoActivo = false;
+        pintarControlSonido();
+        if (contextoSonido && contextoSonido.state === "running") {
+          void contextoSonido.suspend().catch(() => {});
+        }
         mensajes = [];
         modos = {};
         conversaciones = [];
@@ -1047,11 +1154,14 @@
       $("loginError").textContent = error.message;
     });
 
+    // El navegador puede limitar las pestañas en segundo plano, especialmente en móviles.
+    // Mientras la página siga activa, intentamos consultar también si está oculta.
     setInterval(() => {
-      if (auth.currentUser && document.visibilityState === "visible") {
-        cargarMensajes(true);
-      }
+      if (auth.currentUser) cargarMensajes(true);
     }, 15000);
+    document.addEventListener("visibilitychange", () => {
+      if (auth.currentUser && document.visibilityState === "visible") cargarMensajes(true);
+    });
   </script>
 </body>
 </html>
