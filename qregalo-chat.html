@@ -322,6 +322,8 @@
                     title="Preparar un mensaje para pedir el nombre del QR reservado">nombre</button>
             <button id="btnMensajeMM" class="light-btn clave-gen" type="button"
                     title="Preparar mensaje de revisión e instrucciones">mm</button>
+            <button id="btnMensajeVA" class="light-btn clave-gen" type="button"
+                    title="Preparar respuesta rápida, sin enviarla">va</button>
             <button id="btnAsignarClave" class="light-btn clave-gen" type="button"
                     title="Verificar los documentos antes de asignar la clave">asignarClave</button>
           </div>
@@ -759,9 +761,13 @@
         $("codigoCliente").value = "";
         return;
       }
-      // Al cambiar de cliente, no mezclar la clave ni el código de distintos chats.
+      // Generar una clave al abrir por primera vez cada chat (incluido el inicial).
+      // No reemplazar claves que el administrador ya haya escrito o generado.
       if (numeroClaveVisible !== c.numero) {
         numeroClaveVisible = c.numero;
+        if (!clavesPorNumero.has(c.numero)) {
+          clavesPorNumero.set(c.numero, generarClaveAleatoria());
+        }
         $("claveCliente").value = clavesPorNumero.get(c.numero) || "";
         $("codigoCliente").value = codigosPorNumero.get(c.numero) || "";
       }
@@ -934,11 +940,15 @@
       return numero[0] % maximo;
     }
 
-    $("btnGenClave").addEventListener("click", () => {
-      if (!numeroSeleccionado) return;
+    function generarClaveAleatoria() {
       const color = coloresClave[aleatorioEntero(coloresClave.length)];
       const digitos = String(aleatorioEntero(100)).padStart(2, "0");
-      const clave = color + digitos;
+      return color + digitos;
+    }
+
+    $("btnGenClave").addEventListener("click", () => {
+      if (!numeroSeleccionado) return;
+      const clave = generarClaveAleatoria();
       $("claveCliente").value = clave;
       clavesPorNumero.set(numeroSeleccionado, clave);
       $("claveCliente").focus();
@@ -992,6 +1002,15 @@
       if (!numeroSeleccionado) return;
       const texto = $("textoEnvio");
       texto.value = "Estamos revisando tu mensaje. En caso que quieras ver las instrucciones puedes visitar https://ú.ws/qxb";
+      texto.focus();
+      texto.setSelectionRange(texto.value.length, texto.value.length);
+    });
+
+    // Preparar una respuesta breve sin enviarla al cliente.
+    $("btnMensajeVA").addEventListener("click", () => {
+      if (!numeroSeleccionado) return;
+      const texto = $("textoEnvio");
+      texto.value = "Hola, estamos revisando tu mensaje y te responderemos lo antes posible.";
       texto.focus();
       texto.setSelectionRange(texto.value.length, texto.value.length);
     });
