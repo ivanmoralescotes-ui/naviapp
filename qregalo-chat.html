@@ -131,6 +131,30 @@
     .bubble-text { font-size: 13px; line-height: 1.52; white-space: pre-wrap; overflow-wrap: anywhere; }
     .bubble-time { text-align: right; font-size: 10px; color: #849b9c; padding-top: 6px; }
     .bubble-source { color: #488b78; font-size: 10px; margin-top: 5px; }
+
+    /* Imágenes de clientes recibidas por WhatsApp */
+    .imagen-chat-contenedor { width: min(250px, 100%); margin-bottom: 5px; }
+    .imagen-chat-miniatura { display: block; width: 100%; max-height: 250px;
+      object-fit: cover; border-radius: 9px; }
+    .imagen-chat-boton { display: block; width: 100%; padding: 0; border: 0;
+      border-radius: 9px; background: #eef3f3; overflow: hidden; cursor: zoom-in; }
+    .imagen-chat-boton:hover { outline: 2px solid #62b6a6; }
+    .imagen-chat-espera { width: 210px; min-height: 90px; display: flex;
+      align-items: center; justify-content: center; text-align: center; padding: 12px;
+      font-size: 12px; color: #587878; background: #edf4f2; border-radius: 9px; }
+    .imagen-chat-error { width: 220px; max-width: 100%; padding: 10px;
+      background: #fff1ec; color: #994734; border-radius: 9px;
+      font-size: 12px; line-height: 1.4; }
+    .imagen-chat-reintentar { display: block; margin-top: 8px; border: 1px solid #d69e92;
+      background: white; border-radius: 7px; padding: 6px; font-size: 12px; }
+    .imagen-modal { position: fixed; inset: 0; z-index: 1400; padding: 16px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; background: rgba(5, 21, 26, .92); }
+    .imagen-modal img { max-width: 95vw; max-height: 83dvh; object-fit: contain; }
+    .imagen-modal-cerrar { align-self: flex-end; margin-right: min(4vw, 24px);
+      border: 1px solid #b5d6d2; border-radius: 8px; padding: 10px 16px;
+      color: #173b38; background: #fff; font-weight: 750; }
+
     .compose { background: #fff; padding: 13px 19px 17px; border-top: 1px solid #dce8e6; }
     .window-status { color: #53777c; font-size: 11px; margin: 0 0 10px; }
     .window-status.closed { color: #af513c; }
@@ -319,6 +343,13 @@
     </div>
   </div>
 
+
+  <div id="modalImagenChat" class="imagen-modal" role="dialog" aria-modal="true"
+       aria-label="Imagen recibida ampliada" hidden>
+    <button id="btnCerrarImagen" type="button" class="imagen-modal-cerrar">Cerrar ✕</button>
+    <img id="imagenChatAmpliada" alt="Imagen recibida del cliente ampliada">
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import {
@@ -353,6 +384,113 @@
     let numeroClaveVisible = null;
     let asignacionPendiente = null;
     let consultandoAsignacion = false;
+
+    // Las imágenes se mantienen solo durante la sesión y conversación activa.
+    // No se almacenan en Firebase ni se descargan automáticamente al dispositivo.
+    const imagenesCache = new Map();
+    let epocaImagenes = 0;
+    const observadorImagenes = typeof IntersectionObserver === "function"
+      ? new IntersectionObserver((entradas) => {
+          for (const entrada of entradas) {
+            if (!entrada.isIntersecting) continue;
+            observadorImagenes.unobserve(entrada.target);
+            const mensajeId = entrada.target.dataset.imagenId;
+            const cliente = entrada.target.dataset.cliente;
+            if (mensajeId && cliente) cargarImagenChat(mensajeId, cliente);
+          }
+        }, { root: $("mensajes"), rootMargin: "280px" })
+      : null;
+
+    function liberarImagenesChat() {
+      epocaImagenes++;
+      if (observadorImagenes) observadorImagenes.disconnect();
+      for (const item of imagenesCache.values()) {
+        if (item.url) URL.revokeObjectURL(item.url);
+      }
+      imagenesCache.clear();
+      cerrarImagenAmpliada();
+    }
+
+    function cerrarImagenAmpliada() {
+      $("modalImagenChat").hidden = true;
+      $("imagenChatAmpliada").removeAttribute("src");
+    }
+
+    function ampliarImagenChat(url) {
+      $("imagenChatAmpliada").src = url;
+      $("modalImagenChat").hidden = false;
+      $("btnCerrarImagen").focus();
+    }
+
+    async function cargarImagenChat(mensajeId, cliente) {
+      if (cliente !== numeroSeleccionado || imagenesCache.has(mensajeId)) return;
+      const epoca = epocaImagenes;
+      imagenesCache.set(mensajeId, { cargando: true });
+      try {
+        const usuario = auth.currentUser;
+        if (!usuario) throw new Error("Debes iniciar sesión nuevamente.");
+        const token = await usuario.getIdToken();
+        const respuesta = await fetch(
+          "/.netlify/functions/qregalo-imagen?mensajeId=" + encodeURIComponent(mensajeId),
+          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+        );
+        if (!respuesta.ok) {
+          const error = await respuesta.json().catch(() => ({}));
+          throw new Error(error.error || "No se pudo cargar la imagen.");
+        }
+        const archivo = await respuesta.blob();
+        if (!archivo.type.startsWith("image/")) throw new Error("El archivo no es una imagen.");
+        const url = URL.createObjectURL(archivo);
+        if (cliente !== numeroSeleccionado || epoca !== epocaImagenes || !auth.currentUser) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        imagenesCache.set(mensajeId, { url });
+      } catch (error) {
+        if (cliente !== numeroSeleccionado || epoca !== epocaImagenes) return;
+        imagenesCache.set(mensajeId, { error: error.message || "Error de imagen" });
+      }
+      if (cliente === numeroSeleccionado && epoca === epocaImagenes) pintarChat();
+    }
+
+    function insertarImagenChat(burbuja, mensaje, numero) {
+      const contenedor = crear("div", "imagen-chat-contenedor");
+      const imagenGuardada = imagenesCache.get(mensaje.id);
+      if (imagenGuardada?.url) {
+        const boton = crear("button", "imagen-chat-boton");
+        boton.type = "button";
+        boton.setAttribute("aria-label", "Ampliar imagen recibida");
+        const imagen = crear("img", "imagen-chat-miniatura");
+        imagen.src = imagenGuardada.url;
+        imagen.alt = "Imagen recibida del cliente";
+        boton.append(imagen);
+        boton.addEventListener("click", () => ampliarImagenChat(imagenGuardada.url));
+        contenedor.append(boton);
+      } else if (imagenGuardada?.error) {
+        const error = crear("div", "imagen-chat-error", imagenGuardada.error);
+        const reintentar = crear("button", "imagen-chat-reintentar", "Reintentar");
+        reintentar.type = "button";
+        reintentar.addEventListener("click", () => {
+          imagenesCache.delete(mensaje.id);
+          cargarImagenChat(mensaje.id, numero);
+        });
+        error.append(reintentar);
+        contenedor.append(error);
+      } else {
+        const esperando = crear("div", "imagen-chat-espera", "🖼️ " +
+          (imagenGuardada?.cargando ? "Cargando imagen..." : "Preparando imagen..."));
+        if (!imagenGuardada) {
+          esperando.dataset.imagenId = mensaje.id;
+          esperando.dataset.cliente = numero;
+          if (observadorImagenes) observadorImagenes.observe(esperando);
+          else cargarImagenChat(mensaje.id, numero);
+        }
+        contenedor.append(esperando);
+      }
+      burbuja.append(contenedor);
+      if (mensaje.texto) burbuja.append(crear("div", "bubble-text", mensaje.texto));
+    }
+
 
     function crear(tag, clase, texto) {
       const el = document.createElement(tag);
@@ -537,6 +675,7 @@
       const panel = $("mensajes");
       const estabaAbajo = panel.scrollHeight - panel.scrollTop - panel.clientHeight < 110;
       const antes = panel.childElementCount;
+      if (observadorImagenes) observadorImagenes.disconnect();
       panel.replaceChildren();
       let diaAnterior = "";
       for (const m of c.mensajes) {
@@ -548,7 +687,11 @@
         const saliente = m.direccion === "saliente";
         const fila = crear("div", "bubble-row" + (saliente ? " out" : ""));
         const burbuja = crear("div", "bubble");
-        burbuja.append(crear("div", "bubble-text", textoVisible(m)));
+        if (m.tipo === "image" && m.direccion === "entrante") {
+          insertarImagenChat(burbuja, m, c.numero);
+        } else {
+          burbuja.append(crear("div", "bubble-text", textoVisible(m)));
+        }
         if (saliente && m.origen === "panel_qregalo") {
           burbuja.append(crear("div", "bubble-source", "Respuesta manual"));
         }
@@ -561,6 +704,7 @@
     }
 
     function seleccionar(numero, desdeClick = false) {
+      if (numero !== numeroSeleccionado) liberarImagenesChat();
       numeroSeleccionado = numero;
       $("feedback").textContent = "";
       if (desdeClick) $("workspace").classList.add("chat-open");
@@ -596,6 +740,7 @@
         modos = datos.modos && typeof datos.modos === "object" ? datos.modos : {};
         reunirConversaciones();
         if (numeroSeleccionado && !conversaciones.some((c) => c.numero === numeroSeleccionado)) {
+          liberarImagenesChat();
           numeroSeleccionado = null;
         }
         if (!numeroSeleccionado && conversaciones.length) numeroSeleccionado = conversaciones[0].numero;
@@ -867,6 +1012,13 @@
       }
     });
     $("btnBack").addEventListener("click", () => $("workspace").classList.remove("chat-open"));
+    $("btnCerrarImagen").addEventListener("click", cerrarImagenAmpliada);
+    $("modalImagenChat").addEventListener("click", (e) => {
+      if (e.target === $("modalImagenChat")) cerrarImagenAmpliada();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !$("modalImagenChat").hidden) cerrarImagenAmpliada();
+    });
 
     onAuthStateChanged(auth, async (usuario) => {
       $("loginLoading").hidden = true;
@@ -877,6 +1029,7 @@
         $("cuentaEmail").textContent = usuario.email || "Sesión iniciada";
         await cargarMensajes();
       } else {
+        liberarImagenesChat();
         mensajes = [];
         modos = {};
         conversaciones = [];
