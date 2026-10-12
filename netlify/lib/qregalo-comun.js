@@ -15,6 +15,12 @@ const VENTANA_MS = 24 * 60 * 60 * 1000;
 const MARGEN_MS = 2 * 60 * 1000;
 const TEXTO_AUTO = "¡Hola! 😊 Estamos revisando tu mensaje. Te responderemos lo antes posible.";
 
+// Cuentas adicionales con los mismos permisos dentro del panel QRegalo.
+// La cuenta principal permanece autorizada por QREGALO_ADMIN_UID en Netlify.
+const CORREOS_ADMIN_ADICIONALES = new Set([
+  "fparga821220@gmail.com"
+]); //danielva1027    fparga821220
+
 function appFirebase() {
   const existente = getApps().find((a) => a.name === "qregalo");
   if (existente) return existente;
@@ -54,7 +60,14 @@ async function verificarAdmin(event) {
   } catch (_) {
     return { status: 401, error: "Sesión inválida o caducada" };
   }
-  if (usuario.uid !== process.env.QREGALO_ADMIN_UID) {
+  // El administrador principal continúa identificado por UID. Para las cuentas
+  // adicionales exigimos un correo Google verificado: no basta escribirlo.
+  const adminPrincipal = usuario.uid === process.env.QREGALO_ADMIN_UID;
+  const correo = typeof usuario.email === "string" ? usuario.email.trim().toLowerCase() : "";
+  const adminAdicional = usuario.email_verified === true &&
+    usuario.firebase?.sign_in_provider === "google.com" &&
+    CORREOS_ADMIN_ADICIONALES.has(correo);
+  if (!adminPrincipal && !adminAdicional) {
     return { status: 403, error: "No tienes permiso para acceder" };
   }
   return { usuario };
