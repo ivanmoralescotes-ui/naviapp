@@ -158,13 +158,14 @@ body {
       background: rgba(0,0,0,0.55);
       color: #fff;
       z-index: 9000; /* por encima del video/html */
-      display: flex;
+      display: none; /* Se muestran solo cuando navegar realmente es posible. */
       align-items: center;
       justify-content: center;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
+    .nav-btn.nav-ready { display: flex; }
     .nav-btn:hover { background: rgba(0,0,0,0.75); }
 
     #btn-prev { left: 14px; }
@@ -477,7 +478,10 @@ body {
 	  authFailed = false;
 	  preloadedVideoElements = [];
 	  imageLoadPromises = new Map();
+	  imagenesListas = new Set();
+	  navegacionOcupada = true;
 	  slideRenderToken += 1;
+	  actualizarBotonesNavegacion();
 	  storageSlidesLoaded = false;
 	  storageSlidesPromise = null;
 	  loadingOverlay.textContent = "Loading...";
@@ -599,7 +603,9 @@ async function delayedTask() {
     let authFailed = false;
     let preloadedVideoElements = [];
     let imageLoadPromises = new Map();
+    let imagenesListas = new Set();
     let slideRenderToken = 0;
+    let navegacionOcupada = true;
     let storageSlidesLoaded = false;
     let storageSlidesPromise = null;
 
@@ -620,6 +626,33 @@ async function delayedTask() {
 	//}   
  
 
+    // Cada flecha aparece cuando su destino está listo. Esto evita botones
+    // aparentemente inactivos mientras el navegador descarga una imagen pesada.
+    function actualizarBotonesNavegacion() {
+      const habilitado = firstSlideLoaded && !navegacionOcupada && !isRedirecting &&
+        !authFailed && (!authRequired || authValidated) && slides.length > 1;
+
+      const destinoListo = (indice) => {
+        const slide = slides[indice];
+        return !!slide && (slide.type !== "image" ||
+          (slide.file && imagenesListas.has(slide.file)));
+      };
+
+      const anterior = (currentIndex - 1 + slides.length) % slides.length;
+      const siguiente = (currentIndex + 1) % slides.length;
+      const controles = [
+        [btnPrev, habilitado && destinoListo(anterior)],
+        [btnNext, habilitado && destinoListo(siguiente)]
+      ];
+
+      for (const [boton, listo] of controles) {
+        boton.classList.toggle("nav-ready", listo);
+        boton.disabled = !listo;
+        boton.setAttribute("aria-hidden", String(!listo));
+        boton.tabIndex = listo ? 0 : -1;
+      }
+    }
+
     function prevSlide(isManual = true) {
       if (!slides.length) return;
       currentIndex = (currentIndex - 1 + slides.length) % slides.length;
@@ -629,6 +662,7 @@ async function delayedTask() {
 
     // ====== NUEVO: navegación manual ======
     function goNextManual() {
+      if (btnNext.disabled || navegacionOcupada) return;
       if (authRequired && !authValidated) return;
       if (authFailed) return;
 
@@ -641,6 +675,7 @@ async function delayedTask() {
     }
 
     function goPrevManual() {
+      if (btnPrev.disabled || navegacionOcupada) return;
       if (authRequired && !authValidated) return;
       if (authFailed) return;
 
@@ -715,6 +750,7 @@ async function delayedTask() {
       authRequired = requiredClaveLectura.trim() !== "";
       authValidated = !authRequired;
       authFailed = false;
+      actualizarBotonesNavegacion();
 
       if (authRequired) {
         authOverlay.style.display = "flex";
@@ -727,6 +763,7 @@ async function delayedTask() {
     function failAuth() {
       authFailed = true;
       authValidated = false;
+      actualizarBotonesNavegacion();
       stopSlideshow();
       hideAllSlides();
       loadingOverlay.classList.add("hide");
@@ -757,6 +794,7 @@ async function delayedTask() {
 
         authValidated = true;
         authOverlay.style.display = "none";
+        actualizarBotonesNavegacion();
 
         if (firstSlideLoaded) {
           loadingOverlay.classList.add("hide");
@@ -942,6 +980,11 @@ async function delayedTask() {
 
           preloadImg.onload = null;
           preloadImg.onerror = null;
+          // No habilitar flechas por descargas de una inicialización anterior.
+          if (imageLoadPromises.get(url) === promesa) {
+            imagenesListas.add(url);
+            actualizarBotonesNavegacion();
+          }
           resolve(true);
         };
 
@@ -970,6 +1013,23 @@ async function delayedTask() {
           });
           break;
         }
+      }
+    }
+
+    // Precargar destinos inmediatos en ambas direcciones; no descargamos
+    // todas las imágenes de golpe (pueden ser grandes).
+    function precargarImagenesVecinas(indice) {
+      if (slides.length < 2) return;
+      const vecinos = new Set([
+        (indice - 1 + slides.length) % slides.length,
+        (indice + 1) % slides.length
+      ]);
+      for (const vecino of vecinos) {
+        const slide = slides[vecino];
+        if (slide?.type !== "image" || !slide.file) continue;
+        void cargarImagenEnCache(slide.file).catch((error) => {
+          console.debug("No fue posible precargar una imagen vecina:", error);
+        });
       }
     }
 
@@ -1230,6 +1290,14 @@ async function delayedTask() {
     }
 
     // ----------------- Mostrar slides -----------------
+    function finalizarCambioSlide(indice, token) {
+      if (token !== slideRenderToken || indice !== currentIndex) return;
+      navegacionOcupada = false;
+      // Al finalizar el slide actual, preparar los dos destinos manuales.
+      precargarImagenesVecinas(indice);
+      actualizarBotonesNavegacion();
+    }
+
     async function showSlide(index, isManual) {
       if (!slides.length) {
         showMessage("No hay slides configurados..");
@@ -1238,6 +1306,8 @@ async function delayedTask() {
 
       const slide = slides[index];
       const renderToken = ++slideRenderToken;
+      navegacionOcupada = true;
+      actualizarBotonesNavegacion();
 
       // El tiempo del slide empieza cuando el contenido YA está visible.
       // Si una imagen pesa mucho, el slide anterior permanece visible mientras carga.
@@ -1289,6 +1359,7 @@ async function delayedTask() {
           }
 
           precargarSiguienteImagen(index);
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         } catch (error) {
           if (renderToken !== slideRenderToken || currentIndex !== index) {
@@ -1299,6 +1370,7 @@ async function delayedTask() {
           showMessage("No se pudo cargar una imagen.");
 
           // Si falla una foto, dejamos el slide anterior visible en vez de mostrar negro.
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         }
         return;
@@ -1330,6 +1402,14 @@ async function delayedTask() {
             }
 
             precargarSiguienteImagen(index);
+            finalizarCambioSlide(index, renderToken);
+            startSlideshow();
+          }, { once: true });
+
+          videoElement.addEventListener("error", () => {
+            if (renderToken !== slideRenderToken || currentIndex !== index) return;
+            showMessage("No se pudo cargar un video.");
+            finalizarCambioSlide(index, renderToken);
             startSlideshow();
           }, { once: true });
 
@@ -1372,6 +1452,7 @@ async function delayedTask() {
           }
 
           precargarSiguienteImagen(index);
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         }
       }, 500);
