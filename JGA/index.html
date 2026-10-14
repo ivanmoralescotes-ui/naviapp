@@ -158,13 +158,14 @@ body {
       background: rgba(0,0,0,0.55);
       color: #fff;
       z-index: 9000; /* por encima del video/html */
-      display: flex;
+      display: none; /* Se muestran solo cuando navegar realmente es posible. */
       align-items: center;
       justify-content: center;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
+    .nav-btn.nav-ready { display: flex; }
     .nav-btn:hover { background: rgba(0,0,0,0.75); }
 
     #btn-prev { left: 14px; }
@@ -476,8 +477,14 @@ body {
 	  authValidated = true;
 	  authFailed = false;
 	  preloadedVideoElements = [];
+	  // Reiniciar también las referencias de imágenes decodificadas.
 	  imageLoadPromises = new Map();
+	  imagenesCacheDecodificadas.clear();
+	  memoriaCacheImagenes = 0;
+	  imagenesListas = new Set();
+	  navegacionOcupada = true;
 	  slideRenderToken += 1;
+	  actualizarBotonesNavegacion();
 	  storageSlidesLoaded = false;
 	  storageSlidesPromise = null;
 	  loadingOverlay.textContent = "Loading...";
@@ -598,8 +605,17 @@ async function delayedTask() {
     let authValidated = true;
     let authFailed = false;
     let preloadedVideoElements = [];
-    let imageLoadPromises = new Map();
+    // Mantener referencias a las imágenes decodificadas para acelerar las
+    // siguientes vueltas. Caché LRU acotada: protege la memoria de los móviles.
+    const dispositivoMovil = window.matchMedia("(max-width: 768px)").matches;
+    const maximoImagenesCache = dispositivoMovil ? 8 : 20;
+    const maximoBytesCache = (dispositivoMovil ? 64 : 192) * 1024 * 1024;
+    let imagenesCacheDecodificadas = new Map(); // URL -> { imagen, bytes }
+    let memoriaCacheImagenes = 0;
+    let imageLoadPromises = new Map(); // Solo cargas que todavía están en curso.
+    let imagenesListas = new Set();
     let slideRenderToken = 0;
+    let navegacionOcupada = true;
     let storageSlidesLoaded = false;
     let storageSlidesPromise = null;
 
@@ -620,6 +636,33 @@ async function delayedTask() {
 	//}   
  
 
+    // Cada flecha aparece cuando su destino está listo. Esto evita botones
+    // aparentemente inactivos mientras el navegador descarga una imagen pesada.
+    function actualizarBotonesNavegacion() {
+      const habilitado = firstSlideLoaded && !navegacionOcupada && !isRedirecting &&
+        !authFailed && (!authRequired || authValidated) && slides.length > 1;
+
+      const destinoListo = (indice) => {
+        const slide = slides[indice];
+        return !!slide && (slide.type !== "image" ||
+          (slide.file && imagenesListas.has(slide.file)));
+      };
+
+      const anterior = (currentIndex - 1 + slides.length) % slides.length;
+      const siguiente = (currentIndex + 1) % slides.length;
+      const controles = [
+        [btnPrev, habilitado && destinoListo(anterior)],
+        [btnNext, habilitado && destinoListo(siguiente)]
+      ];
+
+      for (const [boton, listo] of controles) {
+        boton.classList.toggle("nav-ready", listo);
+        boton.disabled = !listo;
+        boton.setAttribute("aria-hidden", String(!listo));
+        boton.tabIndex = listo ? 0 : -1;
+      }
+    }
+
     function prevSlide(isManual = true) {
       if (!slides.length) return;
       currentIndex = (currentIndex - 1 + slides.length) % slides.length;
@@ -629,6 +672,7 @@ async function delayedTask() {
 
     // ====== NUEVO: navegación manual ======
     function goNextManual() {
+      if (btnNext.disabled || navegacionOcupada) return;
       if (authRequired && !authValidated) return;
       if (authFailed) return;
 
@@ -641,6 +685,7 @@ async function delayedTask() {
     }
 
     function goPrevManual() {
+      if (btnPrev.disabled || navegacionOcupada) return;
       if (authRequired && !authValidated) return;
       if (authFailed) return;
 
@@ -715,6 +760,7 @@ async function delayedTask() {
       authRequired = requiredClaveLectura.trim() !== "";
       authValidated = !authRequired;
       authFailed = false;
+      actualizarBotonesNavegacion();
 
       if (authRequired) {
         authOverlay.style.display = "flex";
@@ -727,6 +773,7 @@ async function delayedTask() {
     function failAuth() {
       authFailed = true;
       authValidated = false;
+      actualizarBotonesNavegacion();
       stopSlideshow();
       hideAllSlides();
       loadingOverlay.classList.add("hide");
@@ -757,6 +804,7 @@ async function delayedTask() {
 
         authValidated = true;
         authOverlay.style.display = "none";
+        actualizarBotonesNavegacion();
 
         if (firstSlideLoaded) {
           loadingOverlay.classList.add("hide");
@@ -916,15 +964,51 @@ async function delayedTask() {
       return "";
     }
 
+    function buscarImagenCache(url) {
+      const entrada = imagenesCacheDecodificadas.get(url);
+      if (!entrada) return null;
+      // Actualizamos la recencia para eliminar primero las fotos menos usadas.
+      imagenesCacheDecodificadas.delete(url);
+      imagenesCacheDecodificadas.set(url, entrada);
+      return entrada.imagen;
+    }
+
+    function guardarImagenCache(url, imagen) {
+      // Memoria aproximada de un bitmap RGBA, independiente del tamaño del JPG.
+      const bytes = imagen.naturalWidth * imagen.naturalHeight * 4;
+      if (!Number.isFinite(bytes) || bytes <= 0 || bytes > maximoBytesCache) return;
+
+      const anterior = imagenesCacheDecodificadas.get(url);
+      if (anterior) {
+        memoriaCacheImagenes -= anterior.bytes;
+        imagenesCacheDecodificadas.delete(url);
+      }
+      imagenesCacheDecodificadas.set(url, { imagen, bytes });
+      memoriaCacheImagenes += bytes;
+
+      // Si se superan los límites, soltamos las imágenes menos recientes.
+      // El navegador todavía podrá reutilizar su caché HTTP normalmente.
+      while (imagenesCacheDecodificadas.size > maximoImagenesCache ||
+             memoriaCacheImagenes > maximoBytesCache) {
+        const masAntigua = imagenesCacheDecodificadas.keys().next().value;
+        const liberada = imagenesCacheDecodificadas.get(masAntigua);
+        imagenesCacheDecodificadas.delete(masAntigua);
+        memoriaCacheImagenes -= liberada.bytes;
+      }
+    }
+
     function cargarImagenEnCache(url) {
       if (!url) {
         return Promise.reject(new Error("La imagen no tiene una URL válida."));
       }
 
-      if (imageLoadPromises.has(url)) {
-        return imageLoadPromises.get(url);
-      }
+      // Una foto ya decodificada se reutiliza sin crear otro objeto Image.
+      if (buscarImagenCache(url)) return Promise.resolve(true);
 
+      // Las peticiones simultáneas para la misma URL comparten la carga.
+      if (imageLoadPromises.has(url)) return imageLoadPromises.get(url);
+
+      const cargasActuales = imageLoadPromises;
       const promesa = new Promise((resolve, reject) => {
         const preloadImg = new Image();
         preloadImg.referrerPolicy = "no-referrer";
@@ -936,24 +1020,37 @@ async function delayedTask() {
               await preloadImg.decode();
             }
           } catch (error) {
-            // La descarga terminó; algunos navegadores pueden rechazar decode().
+            // El archivo está descargado aunque decode() falle en algún navegador.
             console.debug("decode() no estuvo disponible para:", url, error);
           }
 
           preloadImg.onload = null;
           preloadImg.onerror = null;
+          // Si la página se reinició mientras cargaba, ignorar la carga vieja.
+          if (imageLoadPromises === cargasActuales &&
+              cargasActuales.get(url) === promesa) {
+            guardarImagenCache(url, preloadImg);
+            imagenesListas.add(url);
+            cargasActuales.delete(url);
+            actualizarBotonesNavegacion();
+          }
           resolve(true);
         };
 
         preloadImg.onerror = () => {
-          imageLoadPromises.delete(url);
+          preloadImg.onload = null;
+          preloadImg.onerror = null;
+          if (imageLoadPromises === cargasActuales &&
+              cargasActuales.get(url) === promesa) {
+            cargasActuales.delete(url);
+          }
           reject(new Error("No se pudo cargar la imagen."));
         };
 
         preloadImg.src = url;
       });
 
-      imageLoadPromises.set(url, promesa);
+      cargasActuales.set(url, promesa);
       return promesa;
     }
 
@@ -970,6 +1067,23 @@ async function delayedTask() {
           });
           break;
         }
+      }
+    }
+
+    // Precargar destinos inmediatos en ambas direcciones; no descargamos
+    // todas las imágenes de golpe (pueden ser grandes).
+    function precargarImagenesVecinas(indice) {
+      if (slides.length < 2) return;
+      const vecinos = new Set([
+        (indice - 1 + slides.length) % slides.length,
+        (indice + 1) % slides.length
+      ]);
+      for (const vecino of vecinos) {
+        const slide = slides[vecino];
+        if (slide?.type !== "image" || !slide.file) continue;
+        void cargarImagenEnCache(slide.file).catch((error) => {
+          console.debug("No fue posible precargar una imagen vecina:", error);
+        });
       }
     }
 
@@ -1230,6 +1344,14 @@ async function delayedTask() {
     }
 
     // ----------------- Mostrar slides -----------------
+    function finalizarCambioSlide(indice, token) {
+      if (token !== slideRenderToken || indice !== currentIndex) return;
+      navegacionOcupada = false;
+      // Al finalizar el slide actual, preparar los dos destinos manuales.
+      precargarImagenesVecinas(indice);
+      actualizarBotonesNavegacion();
+    }
+
     async function showSlide(index, isManual) {
       if (!slides.length) {
         showMessage("No hay slides configurados..");
@@ -1238,6 +1360,8 @@ async function delayedTask() {
 
       const slide = slides[index];
       const renderToken = ++slideRenderToken;
+      navegacionOcupada = true;
+      actualizarBotonesNavegacion();
 
       // El tiempo del slide empieza cuando el contenido YA está visible.
       // Si una imagen pesa mucho, el slide anterior permanece visible mientras carga.
@@ -1289,6 +1413,7 @@ async function delayedTask() {
           }
 
           precargarSiguienteImagen(index);
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         } catch (error) {
           if (renderToken !== slideRenderToken || currentIndex !== index) {
@@ -1299,6 +1424,7 @@ async function delayedTask() {
           showMessage("No se pudo cargar una imagen.");
 
           // Si falla una foto, dejamos el slide anterior visible en vez de mostrar negro.
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         }
         return;
@@ -1330,6 +1456,14 @@ async function delayedTask() {
             }
 
             precargarSiguienteImagen(index);
+            finalizarCambioSlide(index, renderToken);
+            startSlideshow();
+          }, { once: true });
+
+          videoElement.addEventListener("error", () => {
+            if (renderToken !== slideRenderToken || currentIndex !== index) return;
+            showMessage("No se pudo cargar un video.");
+            finalizarCambioSlide(index, renderToken);
             startSlideshow();
           }, { once: true });
 
@@ -1372,6 +1506,7 @@ async function delayedTask() {
           }
 
           precargarSiguienteImagen(index);
+          finalizarCambioSlide(index, renderToken);
           startSlideshow();
         }
       }, 500);
