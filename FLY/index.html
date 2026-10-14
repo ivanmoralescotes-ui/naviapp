@@ -477,7 +477,10 @@ body {
 	  authValidated = true;
 	  authFailed = false;
 	  preloadedVideoElements = [];
+	  // Reiniciar también las referencias de imágenes decodificadas.
 	  imageLoadPromises = new Map();
+	  imagenesCacheDecodificadas.clear();
+	  memoriaCacheImagenes = 0;
 	  imagenesListas = new Set();
 	  navegacionOcupada = true;
 	  slideRenderToken += 1;
@@ -602,7 +605,14 @@ async function delayedTask() {
     let authValidated = true;
     let authFailed = false;
     let preloadedVideoElements = [];
-    let imageLoadPromises = new Map();
+    // Mantener referencias a las imágenes decodificadas para acelerar las
+    // siguientes vueltas. Caché LRU acotada: protege la memoria de los móviles.
+    const dispositivoMovil = window.matchMedia("(max-width: 768px)").matches;
+    const maximoImagenesCache = dispositivoMovil ? 8 : 20;
+    const maximoBytesCache = (dispositivoMovil ? 64 : 192) * 1024 * 1024;
+    let imagenesCacheDecodificadas = new Map(); // URL -> { imagen, bytes }
+    let memoriaCacheImagenes = 0;
+    let imageLoadPromises = new Map(); // Solo cargas que todavía están en curso.
     let imagenesListas = new Set();
     let slideRenderToken = 0;
     let navegacionOcupada = true;
@@ -954,15 +964,51 @@ async function delayedTask() {
       return "";
     }
 
+    function buscarImagenCache(url) {
+      const entrada = imagenesCacheDecodificadas.get(url);
+      if (!entrada) return null;
+      // Actualizamos la recencia para eliminar primero las fotos menos usadas.
+      imagenesCacheDecodificadas.delete(url);
+      imagenesCacheDecodificadas.set(url, entrada);
+      return entrada.imagen;
+    }
+
+    function guardarImagenCache(url, imagen) {
+      // Memoria aproximada de un bitmap RGBA, independiente del tamaño del JPG.
+      const bytes = imagen.naturalWidth * imagen.naturalHeight * 4;
+      if (!Number.isFinite(bytes) || bytes <= 0 || bytes > maximoBytesCache) return;
+
+      const anterior = imagenesCacheDecodificadas.get(url);
+      if (anterior) {
+        memoriaCacheImagenes -= anterior.bytes;
+        imagenesCacheDecodificadas.delete(url);
+      }
+      imagenesCacheDecodificadas.set(url, { imagen, bytes });
+      memoriaCacheImagenes += bytes;
+
+      // Si se superan los límites, soltamos las imágenes menos recientes.
+      // El navegador todavía podrá reutilizar su caché HTTP normalmente.
+      while (imagenesCacheDecodificadas.size > maximoImagenesCache ||
+             memoriaCacheImagenes > maximoBytesCache) {
+        const masAntigua = imagenesCacheDecodificadas.keys().next().value;
+        const liberada = imagenesCacheDecodificadas.get(masAntigua);
+        imagenesCacheDecodificadas.delete(masAntigua);
+        memoriaCacheImagenes -= liberada.bytes;
+      }
+    }
+
     function cargarImagenEnCache(url) {
       if (!url) {
         return Promise.reject(new Error("La imagen no tiene una URL válida."));
       }
 
-      if (imageLoadPromises.has(url)) {
-        return imageLoadPromises.get(url);
-      }
+      // Una foto ya decodificada se reutiliza sin crear otro objeto Image.
+      if (buscarImagenCache(url)) return Promise.resolve(true);
 
+      // Las peticiones simultáneas para la misma URL comparten la carga.
+      if (imageLoadPromises.has(url)) return imageLoadPromises.get(url);
+
+      const cargasActuales = imageLoadPromises;
       const promesa = new Promise((resolve, reject) => {
         const preloadImg = new Image();
         preloadImg.referrerPolicy = "no-referrer";
@@ -974,29 +1020,37 @@ async function delayedTask() {
               await preloadImg.decode();
             }
           } catch (error) {
-            // La descarga terminó; algunos navegadores pueden rechazar decode().
+            // El archivo está descargado aunque decode() falle en algún navegador.
             console.debug("decode() no estuvo disponible para:", url, error);
           }
 
           preloadImg.onload = null;
           preloadImg.onerror = null;
-          // No habilitar flechas por descargas de una inicialización anterior.
-          if (imageLoadPromises.get(url) === promesa) {
+          // Si la página se reinició mientras cargaba, ignorar la carga vieja.
+          if (imageLoadPromises === cargasActuales &&
+              cargasActuales.get(url) === promesa) {
+            guardarImagenCache(url, preloadImg);
             imagenesListas.add(url);
+            cargasActuales.delete(url);
             actualizarBotonesNavegacion();
           }
           resolve(true);
         };
 
         preloadImg.onerror = () => {
-          imageLoadPromises.delete(url);
+          preloadImg.onload = null;
+          preloadImg.onerror = null;
+          if (imageLoadPromises === cargasActuales &&
+              cargasActuales.get(url) === promesa) {
+            cargasActuales.delete(url);
+          }
           reject(new Error("No se pudo cargar la imagen."));
         };
 
         preloadImg.src = url;
       });
 
-      imageLoadPromises.set(url, promesa);
+      cargasActuales.set(url, promesa);
       return promesa;
     }
 
