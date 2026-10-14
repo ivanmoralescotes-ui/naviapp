@@ -388,6 +388,11 @@
     const proveedor = new GoogleAuthProvider();
     const $ = (id) => document.getElementById(id);
     let mensajes = [];
+    // Primera consulta completa; después solo mensajes guardados desde el último cursor.
+    let cursorMensajes = null;
+    let ultimaCargaModos = 0;
+    let historialRecortado = false;
+    const ACTUALIZACION_MODOS_MS = 5 * 60 * 1000;
     let conversaciones = [];
     let numeroSeleccionado = null;
     let cargando = false;
@@ -831,16 +836,44 @@
       return datos;
     }
 
-    async function cargarMensajes(silencioso = false) {
+    async function cargarMensajes(silencioso = false, forzarModos = false) {
       if (cargando || !auth.currentUser) return;
       cargando = true;
       $("btnRefresh").disabled = true;
       if (!silencioso) $("ultimaActualizacion").textContent = "Consultando...";
+      const usuarioAlIniciar = auth.currentUser;
       try {
-        const datos = await peticionAutorizada("/.netlify/functions/qregalo-mensajes");
-        mensajes = Array.isArray(datos.mensajes) ? datos.mensajes : [];
+        const cargaInicial = cursorMensajes === null;
+        const consultarModos = cargaInicial || forzarModos ||
+          Date.now() - ultimaCargaModos >= ACTUALIZACION_MODOS_MS;
+        const parametros = new URLSearchParams();
+        if (!cargaInicial) parametros.set("cursor", cursorMensajes);
+        if (consultarModos) parametros.set("modos", "1");
+        const datos = await peticionAutorizada(
+          "/.netlify/functions/qregalo-mensajes?" + parametros.toString()
+        );
+        if (auth.currentUser !== usuarioAlIniciar) return;
+        if (typeof datos.cursor !== "string" || !Array.isArray(datos.mensajes)) {
+          throw new Error("El servicio no devolvió los datos esperados. Comprueba que publicaste los dos archivos.");
+        }
+
+        if (cargaInicial) {
+          mensajes = datos.mensajes;
+          historialRecortado = !!datos.hayMas;
+        } else if (datos.mensajes.length) {
+          // Fusionar usando ID evita duplicados causados por el margen de la primera carga.
+          const porId = new Map(mensajes.map((m) => [m.id, m]));
+          for (const mensaje of datos.mensajes) porId.set(mensaje.id, mensaje);
+          mensajes = [...porId.values()].sort((a, b) =>
+            fechaMs(a.fecha) - fechaMs(b.fecha) || String(a.id).localeCompare(String(b.id))
+          ).slice(-300);
+        }
+        cursorMensajes = datos.cursor;
         registrarMensajesNuevos(mensajes);
-        modos = datos.modos && typeof datos.modos === "object" ? datos.modos : {};
+        if (datos.modos && typeof datos.modos === "object") {
+          modos = datos.modos;
+          ultimaCargaModos = Date.now();
+        }
         reunirConversaciones();
         if (numeroSeleccionado && !conversaciones.some((c) => c.numero === numeroSeleccionado)) {
           liberarImagenesChat();
@@ -849,7 +882,8 @@
         if (!numeroSeleccionado && conversaciones.length) numeroSeleccionado = conversaciones[0].numero;
         pintarLista();
         pintarChat();
-        $("ultimaActualizacion").textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) + (datos.hayMas ? " · Mostrando solo los 300 mensajes más recientes" : "");
+        $("ultimaActualizacion").textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) +
+          (historialRecortado ? " · Mostrando solo los 300 mensajes más recientes" : "");
         $("loginError").textContent = "";
       } catch (error) {
         $("ultimaActualizacion").textContent = "No se pudieron actualizar los mensajes";
@@ -889,7 +923,7 @@
         $("textoEnvio").value = "";
         feedback.textContent = datos.guardado ? "✓ Mensaje enviado y guardado." : (datos.aviso || "Mensaje enviado, pero no guardado.");
         feedback.classList.toggle("ok", !!datos.guardado);
-        await cargarMensajes(true);
+        await cargarMensajes(true, true);
       } catch (error) {
         feedback.classList.remove("ok");
         feedback.textContent = error.message;
@@ -916,8 +950,8 @@
     $("btnLogout").addEventListener("click", async () => {
       await signOut(auth);
     });
-    $("btnRefresh").addEventListener("click", () => cargarMensajes());
-    $("btnRefreshChat").addEventListener("click", () => cargarMensajes());
+    $("btnRefresh").addEventListener("click", () => cargarMensajes(false, true));
+    $("btnRefreshChat").addEventListener("click", () => cargarMensajes(false, true));
     $("btnSonidoSidebar").addEventListener("click", alternarSonido);
     $("btnSonidoChat").addEventListener("click", alternarSonido);
     pintarControlSonido();
@@ -1157,6 +1191,9 @@
           void contextoSonido.suspend().catch(() => {});
         }
         mensajes = [];
+        cursorMensajes = null;
+        ultimaCargaModos = 0;
+        historialRecortado = false;
         modos = {};
         conversaciones = [];
         numeroSeleccionado = null;
