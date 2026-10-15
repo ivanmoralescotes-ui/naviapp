@@ -18,7 +18,8 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 .url-wrap{display:flex;align-items:center;gap:8px;min-width:280px}.url-link{flex:1;color:var(--primary-dark);overflow-wrap:anywhere}.config-short-link{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border:1px solid #bfdbfe;border-radius:8px;color:var(--primary-dark);background:#eff6ff;font-size:.8rem;font-weight:900;text-decoration:none}.config-short-link:hover{background:#dbeafe}.copy{flex:0 0 auto;border:1px solid #bfdbfe;border-radius:9px;padding:7px 10px;color:var(--primary-dark);background:#eff6ff;font-size:.8rem;font-weight:800;cursor:pointer}.name-row{display:flex;align-items:center;gap:7px}.name-row input{min-width:0;flex:1}.extract-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.extract-btn:hover{background:#dbeafe}.extract-btn:disabled{opacity:.55;cursor:not-allowed}.password-tool{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;grid-column:1/-1;padding:10px;border:1px solid #e4eaf2;border-radius:14px;background:#f8fafc}.password-tool::before{content:"Nueva clave";grid-column:1/-1;color:#344054;font-size:.84rem;font-weight:800}.password-tool input{grid-column:1/-1;min-width:0;min-height:46px;font-weight:700}.mini-btn{width:100%;min-width:0;min-height:40px;padding:7px 8px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.mini-btn:hover{background:#dbeafe}.mini-btn:disabled{opacity:.55;cursor:not-allowed}.change-link{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid #bfdbfe;border-radius:9px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;text-decoration:none;white-space:nowrap}.change-link:hover{background:#dbeafe}
 .row-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.state-btn{border:1px solid #bfdbfe;border-radius:9px;padding:7px 10px;color:var(--primary-dark);background:#eff6ff;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap}.state-btn:hover{background:#dbeafe}.state-modal[hidden]{display:none!important}.state-modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.62);backdrop-filter:blur(2px)}.state-modal-card{width:min(92vw,390px);padding:20px;border:1px solid var(--border);border-radius:18px;background:#fff;box-shadow:0 22px 60px rgba(15,23,42,.25)}.state-modal-card h3{margin:0 0 6px;font-size:1.08rem}.state-modal-card p{margin:0 0 16px;color:var(--muted);font-size:.88rem}.state-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.state-cancel{min-height:44px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text);font-weight:800;cursor:pointer}.state-confirm{min-height:44px;border:0;border-radius:12px;background:var(--primary);color:#fff;font-weight:800;cursor:pointer}.state-confirm:hover{background:var(--primary-dark)}.state-confirm:disabled,.state-cancel:disabled{opacity:.55;cursor:not-allowed}.empty{margin:0;padding:24px 16px;color:var(--muted);text-align:center}[hidden]{display:none!important}
 @media(max-width:460px){.password-tool{grid-template-columns:1fr 1fr}.password-tool #copyPasswordTextButton{grid-column:1/-1}}
-@media(min-width:700px){.page{padding-inline:24px}.card{padding:24px}.grid.horizontal{grid-template-columns:minmax(180px,1fr) minmax(220px,1.4fr) auto;align-items:end}.grid.horizontal .button{min-width:150px}}
+@media(min-width:700px){.page{padding-inline:24px}.card{padding:24px}.grid.horizontal{grid-template-columns:minmax(140px,1fr) minmax(140px,1fr);align-items:end}.grid.horizontal .button{min-width:150px}}
+@media(min-width:1050px){.grid.horizontal{grid-template-columns:minmax(125px,.8fr) minmax(140px,1fr) minmax(240px,1.6fr) auto}}
 </style>
 </head>
 <body>
@@ -26,7 +27,7 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 <header class="header">
 <p class="eyebrow">Monitor</p>
 <h1>Monitor de QR</h1>
-<p class="subtitle">Consulta la colección de codigos por estado y/o nombre exacto.</p>
+<p class="subtitle">Consulta la colección de codigos por código de URL, estado y/o nombre exacto.</p>
 </header>
 
 <div id="notification" class="notification" role="status" aria-live="polite"></div>
@@ -49,8 +50,12 @@ input,select{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(-
 
 <section id="querySection" class="card" hidden>
 <h2>Consulta</h2>
-<p class="desc">Puedes usar cualquiera de los dos filtros por separado o ambos al mismo tiempo.</p>
+<p class="desc">Puedes combinar los filtros Código, Estado y Nombre, o usarlos por separado.</p>
 <form id="queryForm" class="grid horizontal" novalidate>
+<div class="field">
+<label for="codigo">Código</label>
+<input id="codigo" type="text" maxlength="80" placeholder="Ejemplo: qnv" autocomplete="off" autocapitalize="off" spellcheck="false" title="Último segmento de la URL; por ejemplo qnv en https://ú.ws/qnv">
+</div>
 <div class="field">
 <label for="estado">Estado</label>
 <select id="estado">
@@ -135,6 +140,7 @@ passwordError:document.getElementById("passwordError"),
 accessButton:document.getElementById("accessButton"),
 querySection:document.getElementById("querySection"),
 queryForm:document.getElementById("queryForm"),
+codigo:document.getElementById("codigo"),
 estado:document.getElementById("estado"),
 nombre:document.getElementById("nombre"),
 extractQrButton:document.getElementById("extractQrButton"),
@@ -228,7 +234,7 @@ if(!password){el.passwordError.textContent="Escribe la contraseña.";el.password
 el.accessButton.disabled=true;el.accessButton.textContent="Validando...";
 try{
 const datos=await llamar({accion:"validar",password});
-passwordSesion=password;el.password.value="";el.accessSection.hidden=true;el.querySection.hidden=false;el.queryButton.disabled=false;el.estado.focus();
+passwordSesion=password;el.password.value="";el.accessSection.hidden=true;el.querySection.hidden=false;el.queryButton.disabled=false;el.codigo.focus();
 }catch(error){el.passwordError.textContent=error.message||"La contraseña no es correcta.";el.password.select()}
 finally{el.accessButton.disabled=false;el.accessButton.textContent="Continuar"}
 });
@@ -236,12 +242,17 @@ finally{el.accessButton.disabled=false;el.accessButton.textContent="Continuar"}
 el.queryForm.addEventListener("submit",async e=>{
 e.preventDefault();ocultarNotificacion();
 if(!passwordSesion){mostrarError("Recarga la página e ingresa nuevamente.");return}
+const codigo=el.codigo.value.trim();
 const estado=el.estado.value;
 const nombre=el.nombre.value.trim();
+if(codigo&&!/^[a-zA-Z0-9_-]{1,80}$/.test(codigo)){
+  mostrarError("El Código debe contener solo letras, números, guiones o guiones bajos.");
+  el.codigo.focus();return;
+}
 setConsultando(true);
 try{
-const datos=await llamar({accion:"consultar",password:passwordSesion,estado,nombre});
-render(Array.isArray(datos.resultados)?datos.resultados:[],estado,nombre);
+const datos=await llamar({accion:"consultar",password:passwordSesion,codigo,estado,nombre});
+render(Array.isArray(datos.resultados)?datos.resultados:[],codigo,estado,nombre);
 }catch(error){mostrarError(error.message||"No fue posible consultar los códigos.");el.resultsSection.hidden=true}
 finally{setConsultando(false)}
 });
@@ -253,9 +264,9 @@ if(!r.ok)throw new Error(d.error||`La operación falló con estado ${r.status}.`
 return d;
 }
 
-function render(resultados,estado,nombre){
+function render(resultados,codigo,estado,nombre){
 el.resultsBody.replaceChildren();el.resultsSection.hidden=false;el.totalText.textContent=`Total: ${resultados.length}`;
-const f=[];if(estado)f.push(`estado = ${estado}`);if(nombre)f.push(`nombre = ${nombre}`);el.filterText.textContent=f.length?f.join(" · "):"Sin filtros";
+const f=[];if(codigo)f.push(`código de URL = ${codigo}`);if(estado)f.push(`estado = ${estado}`);if(nombre)f.push(`nombre = ${nombre}`);el.filterText.textContent=f.length?f.join(" · "):"Sin filtros";
 if(!resultados.length){el.tableWrap.hidden=true;el.emptyState.hidden=false;return}
 const frag=document.createDocumentFragment();
 resultados.forEach(x=>{
@@ -420,9 +431,9 @@ const r=await fetch(API_ESTADO,{method:"POST",headers:{"Content-Type":"applicati
 let d={};try{d=await r.json()}catch{}
 if(!r.ok)throw new Error(d.error||`La operación falló con estado ${r.status}.`);
 el.stateModal.hidden=true;el.stateModal.setAttribute("aria-hidden","true");codigoEstadoSeleccionado="";ocultarNotificacion();
-const estadoFiltro=el.estado.value;const nombreFiltro=el.nombre.value.trim();
-const datos=await llamar({accion:"consultar",password:passwordSesion,estado:estadoFiltro,nombre:nombreFiltro});
-render(Array.isArray(datos.resultados)?datos.resultados:[],estadoFiltro,nombreFiltro);
+const codigoFiltro=el.codigo.value.trim();const estadoFiltro=el.estado.value;const nombreFiltro=el.nombre.value.trim();
+const datos=await llamar({accion:"consultar",password:passwordSesion,codigo:codigoFiltro,estado:estadoFiltro,nombre:nombreFiltro});
+render(Array.isArray(datos.resultados)?datos.resultados:[],codigoFiltro,estadoFiltro,nombreFiltro);
 }catch(error){mostrarError(error.message||"No fue posible cambiar el estado.")}
 finally{el.stateModalConfirm.disabled=false;el.stateModalCancel.disabled=false;el.stateModalSelect.disabled=false;el.stateModalConfirm.textContent="Cambiar"}
 }
@@ -478,7 +489,7 @@ return `ccW${base64}i`;
 }
 
 function formatearFecha(f){if(!(f instanceof Date)||Number.isNaN(f.getTime()))return"—";return new Intl.DateTimeFormat("es-CO",{timeZone:"America/Bogota",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(f)}
-function setConsultando(v){el.queryButton.disabled=v;el.estado.disabled=v;el.nombre.disabled=v;el.extractQrButton.disabled=v;el.generatePasswordButton.disabled=v;el.copyPasswordButton.disabled=v;el.copyPasswordTextButton.disabled=v;el.queryButton.textContent=v?"Consultando...":"Consultar"}
+function setConsultando(v){el.queryButton.disabled=v;el.codigo.disabled=v;el.estado.disabled=v;el.nombre.disabled=v;el.extractQrButton.disabled=v;el.generatePasswordButton.disabled=v;el.copyPasswordButton.disabled=v;el.copyPasswordTextButton.disabled=v;el.queryButton.textContent=v?"Consultando...":"Consultar"}
 function mostrarError(m){el.notification.className="notification show error";el.notification.textContent=m}
 function mostrarExito(m){el.notification.className="notification show success";el.notification.textContent=m}
 function ocultarNotificacion(){el.notification.className="notification";el.notification.textContent=""}

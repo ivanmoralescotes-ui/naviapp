@@ -22,17 +22,31 @@ exports.handler = async function(event) {
     if (accion === "validar") return responder(200, { ok: true });
     if (accion !== "consultar") return responder(400, { error: "La acción solicitada no es válida." });
 
+    const codigo = normalizarCodigo(body.codigo);
     const estado = normalizarEstado(body.estado);
     const nombre = normalizarNombre(body.nombre);
 
     if (typeof body.estado === "string" && body.estado.trim() && !estado) {
       return responder(400, { error: "El estado recibido no es válido." });
     }
+    if (body.codigo != null && typeof body.codigo !== "string") {
+      return responder(400, { error: "El Código recibido no es válido." });
+    }
+    if (typeof body.codigo === "string" && body.codigo.trim() && !codigo) {
+      return responder(400, { error: "El Código debe contener solo letras, números, guiones o guiones bajos." });
+    }
 
     const firestore = crearClienteFirestore();
     let consulta = firestore.collection(FIRESTORE_COLLECTION);
 
-    if (estado) {
+    if (codigo) {
+      // El Código es el sufijo de la URL, no el ID del documento de Firestore.
+      // El mismo dominio puede haberse guardado en Unicode o en formato Punycode.
+      consulta = consulta.where("url", "in", [
+        `https://ú.ws/${codigo}`,
+        `https://xn--rda.ws/${codigo}`
+      ]);
+    } else if (estado) {
       consulta = consulta.where("estado", "==", estado);
     } else if (nombre) {
       consulta = consulta.where("nombre", "==", nombre);
@@ -51,7 +65,11 @@ exports.handler = async function(event) {
       };
     });
 
-    if (estado && nombre) {
+    // Al buscar por URL, combinar Estado y Nombre sin requerir índices compuestos.
+    if (estado && (codigo || nombre)) {
+      resultados = resultados.filter(item => item.estado === estado);
+    }
+    if (nombre && (codigo || estado)) {
       resultados = resultados.filter(item => item.nombre === nombre);
     }
 
@@ -73,6 +91,12 @@ function validarPassword(passwordIngresado) {
   const b = crypto.createHash("sha256").update(passwordConfigurado, "utf8").digest();
 
   return crypto.timingSafeEqual(a, b);
+}
+
+function normalizarCodigo(valor) {
+  if (typeof valor !== "string") return "";
+  const codigo = valor.trim();
+  return /^[a-zA-Z0-9_-]{1,80}$/.test(codigo) ? codigo : "";
 }
 
 function normalizarEstado(valor) {
