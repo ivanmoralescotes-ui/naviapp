@@ -53,7 +53,10 @@ async function listarDisponibles() {
     })
     .filter(Boolean)
     .sort((a, b) =>
-      a.id.localeCompare(b.id, "es", {
+      a.nombre.localeCompare(b.nombre, "es", {
+        numeric: true,
+        sensitivity: "base"
+      }) || a.id.localeCompare(b.id, "es", {
         numeric: true,
         sensitivity: "base"
       })
