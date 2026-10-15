@@ -56,8 +56,10 @@ function validarEntrada(body) {
   if (!/^[a-zA-Z0-9_-]{1,120}$/.test(nombre)) {
     throw errorHTTP(400, "Nombre inválido. Utiliza entre 1 y 120 letras, números, guiones o guiones bajos.");
   }
-  if (!/^\/imgs\/qr\/[a-zA-Z0-9._-]+\.(?:png|jpg|jpeg|gif|webp|svg|avif)$/i.test(ruta) || ruta.includes("..")) {
-    throw errorHTTP(400, "La ruta debe ser /imgs/qr/ seguida del nombre de un archivo de imagen válido.");
+  // "bucketqr" es un indicador compartido: la ruta física depende del sufijo de la URL.
+  // Las rutas locales siguen requiriendo una ubicación de archivo concreta.
+  if (ruta !== "bucketqr" && (!/^\/imgs\/qr\/[a-zA-Z0-9._-]+\.(?:png|jpg|jpeg|gif|webp|svg|avif)$/i.test(ruta) || ruta.includes(".."))) {
+    throw errorHTTP(400, "La ruta debe ser bucketqr o /imgs/qr/ seguida del nombre de un archivo de imagen válido.");
   }
 
   let parsed;
@@ -95,11 +97,14 @@ async function insertarSinDuplicados(db, dato) {
   const coleccion = db.collection(COLECCION);
   const ref = coleccion.doc(dato.id);
   const indices = db.collection(INDICES_UNICOS);
-  const indicesRef = [
-    indices.doc(idIndice("nombre", dato.nombre.toLowerCase())),
-    indices.doc(idIndice("ruta", dato.ruta)),
-    indices.doc(idIndice("url", dato.id.toLowerCase()))
+  // A diferencia de una ruta local, el indicador "bucketqr" no es único.
+  // Cada QR apunta a su propia carpeta, calculada desde el sufijo de su URL.
+  const indiceCampos = [
+    ["nombre", dato.nombre.toLowerCase()],
+    ...(dato.ruta === "bucketqr" ? [] : [["ruta", dato.ruta]]),
+    ["url", dato.id.toLowerCase()]
   ];
+  const indicesRef = indiceCampos.map(([tipo, valor]) => indices.doc(idIndice(tipo, valor)));
   const variantesURL = [dato.url, `https://xn--rda.ws/${dato.id}`];
   const variantesNombre = [...new Set([dato.nombre, dato.nombre.toUpperCase(), dato.nombre.toLowerCase()])];
 
@@ -109,7 +114,9 @@ async function insertarSinDuplicados(db, dato) {
       tx.get(ref),
       Promise.all(indicesRef.map((r) => tx.get(r))),
       tx.get(coleccion.where("nombre", "in", variantesNombre).limit(1)),
-      tx.get(coleccion.where("ruta", "==", dato.ruta).limit(1)),
+      dato.ruta === "bucketqr"
+        ? Promise.resolve({ empty: true })
+        : tx.get(coleccion.where("ruta", "==", dato.ruta).limit(1)),
       tx.get(coleccion.where("url", "in", variantesURL).limit(1))
     ]);
 
@@ -132,7 +139,7 @@ async function insertarSinDuplicados(db, dato) {
     // Marcadores transaccionales: impiden que dos peticiones desde este formulario
     // creen simultáneamente valores repetidos bajo IDs diferentes.
     for (let i = 0; i < indicesRef.length; i++) {
-      tx.create(indicesRef[i], { codigoId: dato.id, tipo: ["nombre", "ruta", "url"][i] });
+      tx.create(indicesRef[i], { codigoId: dato.id, tipo: indiceCampos[i][0] });
     }
     return fecha.toISOString();
   });
