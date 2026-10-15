@@ -6,7 +6,7 @@ const { Storage } = require("@google-cloud/storage");
 
 // Se reutilizan las mismas variables de entorno que ya utiliza monitor.html
 // y las funciones de subida de config1.html.
-const MAX_BYTES = 15 * 1024 * 1024;
+const MAX_BYTES = 27 * 1024 * 1024;
 const TIPOS = new Map([
   ["image/jpeg", ".jpg"],
   ["image/png", ".png"],
@@ -85,7 +85,7 @@ function validarArchivo(datos) {
   const nombre = typeof datos.nombre === "string" ? datos.nombre.trim() : "";
   const tamano = Number(datos.tamanoBytes);
   if (!nombre || nombre.length > 255 || !Number.isSafeInteger(tamano) || tamano < 1 || tamano > MAX_BYTES) {
-    throw errorHttp("Selecciona una imagen válida de hasta 15 MB.", 400);
+    throw errorHttp("Selecciona una imagen válida de hasta 27 MB.", 400);
   }
 
   const basename = path.posix.basename(nombre.replace(/\\/g, "/"));
