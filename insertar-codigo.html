@@ -15,17 +15,17 @@ button,input{font:inherit}button{cursor:pointer}.page{width:min(100%,750px);marg
 </head>
 <body>
 <main class="page">
-<header class="header"><p class="eyebrow">Administración QR</p><h1>Insertar código</h1><p class="subtitle">Registra un nuevo documento en la colección <strong>codigos</strong> de Firebase, sin sobrescribir registros existentes.</p></header>
+<header class="header"><p class="eyebrow">Administración QR</p><h1>Insertar código</h1><p class="subtitle">Registra un nuevo <strong>codigo</strong>, sin sobrescribir registros existentes.</p></header>
 <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
 <section id="accessSection" class="card">
-<h2>Acceso</h2><p class="desc">Utiliza la misma contraseña de <strong>monitor.html</strong>.</p>
+<h2>Acceso</h2><p class="desc">Utiliza la contraseña.</p>
 <form id="accessForm" class="fields">
 <div class="field"><label for="password">Contraseña</label><div class="password-box"><input id="password" type="password" autocomplete="current-password" maxlength="200" required><button id="showPassword" class="toggle" type="button">Mostrar</button></div></div>
 <button id="accessButton" class="button" type="submit">Continuar</button>
 </form>
 </section>
 <section id="createSection" class="card" hidden>
-<h2>Nuevo documento QR</h2><p class="desc">El ID se obtiene automáticamente de los caracteres (3 caracteres) situados después de <strong>https://ú.ws/</strong>.</p>
+<h2>Nuevo documento QR</h2><p class="desc">El ID se obtiene automáticamente de los caracteres (3 caracteres).</p>
 <form id="createForm" class="fields" autocomplete="off">
 <div class="field"><label for="nombre">Nombre</label><input id="nombre" maxlength="120" placeholder="Ej.: QR83" spellcheck="false" required><small>Es el campo <code>nombre</code>, independiente del ID del documento.</small></div>
 <div class="field"><label for="ruta">Ruta de imagen</label><input id="ruta" value="/imgs/qr/" maxlength="250" autocapitalize="off" spellcheck="false" required><small>Escribe al final el nombre del archivo, por ejemplo: <code>qr-https-ws-qnv-seed672363805.png</code>. Esta página no sube el archivo.</small></div>
