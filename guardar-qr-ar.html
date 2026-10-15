@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="referrer" content="no-referrer">
+<title>Guardar QR · Imágenes AR</title>
+<style>
+:root{color-scheme:light;--bg:#f4f7fb;--surface:#fff;--ink:#172033;--muted:#667085;--line:#d8e0ea;--blue:#2563eb;--bluehover:#1d4ed8;--green:#067647;--red:#b42318;--focus:rgba(37,99,235,.18)}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at top left,rgba(37,99,235,.1),transparent 32rem),var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+.page{width:min(100%,610px);padding:26px 16px 44px;margin:auto}.eyebrow{text-transform:uppercase;font-size:12px;color:var(--blue);font-weight:850;letter-spacing:.1em;margin:0 0 7px}h1{font-size:clamp(24px,5vw,31px);margin:0}.subtitle{line-height:1.55;color:var(--muted);margin:9px 0 20px;font-size:14px}.card{background:white;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 12px 35px rgba(23,32,51,.08)}.card h2{font-size:17px;margin:0 0 4px}.desc{color:var(--muted);font-size:13px;line-height:1.5;margin:6px 0 0}
+.field{display:grid;gap:7px;margin-top:17px}label{font-size:13px;font-weight:750}input[type=text],input[type=password],input[type=file]{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fff;color:var(--ink);font:inherit;font-size:14px}input[type=file]{padding:10px;font-size:13px}input:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}input:disabled{background:#f6f7f9}button{cursor:pointer;font:inherit}.button{width:100%;min-height:49px;background:var(--blue);color:#fff;border:0;border-radius:12px;font-weight:800;padding:10px 15px;margin-top:20px}.button:hover:not(:disabled){background:var(--bluehover)}button:disabled{opacity:.5;cursor:not-allowed}.password-wrap{display:flex;gap:7px;align-items:center}.password-wrap input{min-width:0}.toggle{border:1px solid var(--line);border-radius:10px;background:#f1f6ff;color:var(--blue);font-size:12px;font-weight:750;padding:11px 12px;white-space:nowrap}.example{color:var(--muted);font-size:12px;margin-top:4px}.folder{margin-top:8px;padding:10px 12px;background:#f1f6ff;border-radius:10px;font-size:13px;overflow-wrap:anywhere}.folder strong{color:var(--bluehover);font-family:ui-monospace,Consolas,monospace}.preview{margin-top:13px;display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}.preview img{width:84px;height:84px;object-fit:contain;border-radius:9px;background:white;border:1px solid var(--line)}.preview .name{font-size:13px;font-weight:700;overflow-wrap:anywhere}.preview .meta{color:var(--muted);font-size:12px;margin-top:4px}.status{display:none;margin-top:16px;border-radius:12px;padding:12px 13px;font-size:13px;line-height:1.5;font-weight:650;overflow-wrap:anywhere}.status.show{display:block}.status.error{background:#fef3f2;border:1px solid #f7b6b2;color:var(--red)}.status.ok{background:#ecfdf3;border:1px solid #a6f4c5;color:var(--green)}.status.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin:18px 2px 0}[hidden]{display:none!important}@media(max-width:420px){.page{padding:17px 12px 35px}.card{padding:17px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="eyebrow">QRegalo · Herramientas</p>
+  <h1>Guardar imagen QR</h1>
+  <p class="subtitle">Añade una imagen a la carpeta <strong>código_ar</strong> de Google Cloud Storage.</p>
+
+  <section class="card" id="seccionAcceso">
+    <h2>Acceso</h2>
+    <p class="desc">Utiliza la misma contraseña de <strong>monitor.html</strong>.</p>
+    <form id="formAcceso">
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="password-wrap">
+          <input id="password" name="password" type="password" maxlength="100" autocomplete="current-password" required>
+          <button id="btnMostrar" class="toggle" type="button">Mostrar</button>
+        </div>
+      </div>
+      <button class="button" id="btnContinuar" type="submit">Continuar</button>
+    </form>
+    <div id="estadoAcceso" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card" id="seccionSubida" hidden>
+    <h2>Guardar QR</h2>
+    <p class="desc">Escribe el identificador de la carpeta y selecciona una imagen.</p>
+    <form id="formSubida">
+      <div class="field">
+        <label for="codigo">Código</label>
+        <input id="codigo" type="text" placeholder="Ejemplo: fly" maxlength="36" autocomplete="off" autocapitalize="off" spellcheck="false" required pattern="[a-zA-Z0-9_-]+">
+        <p class="example">Se respetarán las mayúsculas y minúsculas tal como las escribas.</p>
+      </div>
+      <div class="folder">Carpeta de destino: <strong id="rutaDestino">—</strong></div>
+      <div class="field">
+        <label for="imagen">Imagen</label>
+        <input id="imagen" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.heic,.heif" required>
+        <p class="example">JPG, PNG, WEBP, GIF, AVIF, BMP, HEIC o HEIF · Máximo 15 MB.</p>
+      </div>
+      <div id="preview" class="preview" hidden>
+        <img id="imagenPrevia" alt="Vista previa de la imagen seleccionada" hidden>
+        <div>
+          <div class="name" id="nombreArchivo"></div>
+          <div class="meta" id="tamanoArchivo"></div>
+        </div>
+      </div>
+      <button class="button" id="btnGuardar" type="submit">Guardar QR</button>
+    </form>
+    <div id="estadoSubida" class="status" role="status" aria-live="polite"></div>
+    <p class="hint">Si <strong>fly_ar</strong> no existe, aparecerá automáticamente al guardar la primera imagen. Si ya existe, sus archivos anteriores se conservarán.</p>
+  </section>
+</main>
+<script>
+"use strict";
+const API = "/.netlify/functions/guardar-qr-ar";
+const MAX_BYTES = 15 * 1024 * 1024;
+const TIPOS = new Map([
+  [".jpg", "image/jpeg"], [".jpeg", "image/jpeg"], [".png", "image/png"],
+  [".webp", "image/webp"], [".gif", "image/gif"], [".avif", "image/avif"],
+  [".bmp", "image/bmp"], [".heic", "image/heic"], [".heif", "image/heif"]
+]);
+const $ = (id) => document.getElementById(id);
+let claveSesion = "";
+let previewURL = null;
+let ocupada = false;
+
+function estado(id, mensaje, tipo = "info") {
+  const el = $(id);
+  el.className = "status show " + tipo;
+  el.textContent = mensaje;
+}
+function limpiarEstado(id) {
+  const el = $(id);
+  el.textContent = "";
+  el.className = "status";
+}
+async function llamar(payload) {
+  const respuesta = await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store"
+  });
+  const datos = await respuesta.json().catch(() => ({}));
+  if (!respuesta.ok) throw new Error(datos.error || `Error ${respuesta.status} al preparar la subida.`);
+  return datos;
+}
+
+$("btnMostrar").addEventListener("click", () => {
+  const input = $("password");
+  const visible = input.type === "text";
+  input.type = visible ? "password" : "text";
+  $("btnMostrar").textContent = visible ? "Mostrar" : "Ocultar";
+  input.focus();
+});
+
+$("formAcceso").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  limpiarEstado("estadoAcceso");
+  const clave = $("password").value;
+  if (!clave) return estado("estadoAcceso", "Escribe la contraseña.", "error");
+  $("btnContinuar").disabled = true;
+  $("btnContinuar").textContent = "Validando...";
+  try {
+    await llamar({ accion: "validar", password: clave });
+    claveSesion = clave; // Solo memoria de esta pestaña; no localStorage.
+    $("password").value = "";
+    $("seccionAcceso").hidden = true;
+    $("seccionSubida").hidden = false;
+    $("codigo").focus();
+  } catch (error) {
+    estado("estadoAcceso", error.message || "No se pudo validar la contraseña.", "error");
+    $("password").select();
+  } finally {
+    $("btnContinuar").disabled = false;
+    $("btnContinuar").textContent = "Continuar";
+  }
+});
+
+$("codigo").addEventListener("input", () => {
+  const codigo = $("codigo").value.trim();
+  $("rutaDestino").textContent = /^[a-zA-Z0-9_-]{1,36}$/.test(codigo) ? `${codigo}_ar/` : "—";
+  limpiarEstado("estadoSubida");
+});
+
+function soltarPrevia() {
+  if (previewURL) URL.revokeObjectURL(previewURL);
+  previewURL = null;
+}
+$("imagen").addEventListener("change", () => {
+  soltarPrevia();
+  limpiarEstado("estadoSubida");
+  const archivo = $("imagen").files[0];
+  $("preview").hidden = !archivo;
+  $("imagenPrevia").hidden = true;
+  if (!archivo) return;
+  $("nombreArchivo").textContent = archivo.name;
+  $("tamanoArchivo").textContent = (archivo.size / (1024 * 1024)).toFixed(2) + " MB";
+  if (archivo.type.startsWith("image/") && !/heic|heif/.test(archivo.type)) {
+    previewURL = URL.createObjectURL(archivo);
+    $("imagenPrevia").src = previewURL;
+    $("imagenPrevia").hidden = false;
+  }
+});
+window.addEventListener("pagehide", soltarPrevia);
+
+$("formSubida").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (ocupada) return;
+  limpiarEstado("estadoSubida");
+  const codigo = $("codigo").value.trim();
+  const archivo = $("imagen").files[0];
+  if (!/^[a-zA-Z0-9_-]{1,36}$/.test(codigo)) {
+    return estado("estadoSubida", "Escribe un código válido: letras, números, _ o -.", "error");
+  }
+  if (!archivo || archivo.size === 0 || archivo.size > MAX_BYTES) {
+    return estado("estadoSubida", "Selecciona una imagen de hasta 15 MB.", "error");
+  }
+  const extension = /\.[^.]+$/.exec(archivo.name)?.[0].toLowerCase() || "";
+  const tipo = archivo.type || TIPOS.get(extension);
+  if (!TIPOS.has(extension) || (archivo.type && archivo.type !== TIPOS.get(extension))) {
+    return estado("estadoSubida", "El formato de archivo no es válido o no corresponde a una imagen admitida.", "error");
+  }
+  if (!claveSesion) {
+    return estado("estadoSubida", "Recarga la página y vuelve a ingresar la contraseña.", "error");
+  }
+  ocupada = true;
+  for (const id of ["codigo", "imagen", "btnGuardar"]) $(id).disabled = true;
+  $("btnGuardar").textContent = "Guardando...";
+  estado("estadoSubida", "Preparando la subida segura...", "info");
+  try {
+    const datos = await llamar({
+      accion: "preparar", password: claveSesion, codigo,
+      archivo: { nombre: archivo.name, tipo, tamanoBytes: archivo.size }
+    });
+    estado("estadoSubida", `Subiendo imagen a ${datos.carpeta}/ ...`, "info");
+    const respuesta = await fetch(datos.urlSubida, {
+      method: "PUT",
+      headers: { "Content-Type": datos.tipo },
+      body: archivo
+    });
+    if (!respuesta.ok) throw new Error(`Google Cloud Storage rechazó la subida (HTTP ${respuesta.status}).`);
+    estado("estadoSubida",
+      `✓ Imagen guardada en ${datos.ruta}. ` +
+      (datos.carpetaExistia ? "La carpeta ya existía; se conservaron las imágenes anteriores." : "Se creó la carpeta con esta primera imagen."),
+      "ok"
+    );
+    $("imagen").value = "";
+    $("preview").hidden = true;
+    soltarPrevia();
+  } catch (error) {
+    const texto = error instanceof TypeError
+      ? "No se pudo conectar con Google Cloud Storage. Comprueba la conexión y el CORS del bucket para este dominio."
+      : (error.message || "Error al guardar la imagen.");
+    estado("estadoSubida", texto, "error");
+  } finally {
+    ocupada = false;
+    for (const id of ["codigo", "imagen", "btnGuardar"]) $(id).disabled = false;
+    $("btnGuardar").textContent = "Guardar QR";
+  }
+});
+</script>
+</body>
+</html>
