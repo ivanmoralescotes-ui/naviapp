@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Insertar código QR</title>
+<style>
+:root{color-scheme:light;--bg:#f4f7fb;--surface:#fff;--text:#172033;--muted:#667085;--border:#d8e0ea;--primary:#2563eb;--primary-dark:#1d4ed8;--danger:#b42318;--danger-bg:#fef3f2;--success:#067647;--success-bg:#ecfdf3;--focus:rgba(37,99,235,.22);--shadow:0 12px 35px rgba(23,32,51,.09)}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(37,99,235,.11),transparent 34rem),var(--bg)}
+button,input{font:inherit}button{cursor:pointer}.page{width:min(100%,750px);margin:auto;padding:24px 16px 46px}.header{padding:6px 4px 22px}.eyebrow{margin:0 0 7px;color:var(--primary);font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}h1{margin:0;font-size:clamp(1.55rem,5vw,2.15rem)}.subtitle{margin:10px 0 0;color:var(--muted);line-height:1.5}
+.card{padding:22px;border:1px solid var(--border);border-radius:20px;background:#fff;box-shadow:var(--shadow);margin-bottom:16px}.card h2{margin:0;font-size:1.1rem}.desc{margin:6px 0 0;color:var(--muted);font-size:.9rem;line-height:1.5}.fields{display:grid;gap:18px;margin-top:21px}.field{display:grid;gap:8px}.field label{font-size:.92rem;font-weight:750}.field input{min-height:50px;width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:13px;outline:none;background:#fff;color:var(--text)}.field input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--focus)}.field small{font-size:.79rem;color:var(--muted);line-height:1.4}.password-box{position:relative}.password-box input{padding-right:85px}.toggle{position:absolute;top:50%;right:8px;transform:translateY(-50%);background:transparent;color:var(--primary-dark);border:0;font-weight:750;padding:9px}.button{min-height:49px;border:0;border-radius:13px;padding:12px 17px;background:var(--primary);color:#fff;font-weight:800}.button:hover:not(:disabled){background:var(--primary-dark)}.button:disabled{opacity:.55;cursor:wait}.button.secondary{background:#eff6ff;color:var(--primary-dark);border:1px solid #bfdbfe}.button.secondary:hover{background:#dbeafe}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.actions .button{flex:1;min-width:170px}.pill{display:inline-flex;padding:7px 11px;background:#eef2ff;color:#2348a4;border-radius:9px;font-size:.88rem;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;overflow-wrap:anywhere;max-width:100%}.preview{padding:14px 15px;border:1px solid #d9e3f1;border-radius:13px;background:#f8fafc}.preview p{margin:0 0 8px;color:var(--muted);font-size:.79rem;font-weight:700}.notification{margin-bottom:16px;padding:13px 15px;border-radius:13px;font-size:.9rem;line-height:1.5;font-weight:650}.notification.error{background:var(--danger-bg);color:var(--danger);border:1px solid #f7b6b2}.notification.ok{background:var(--success-bg);color:var(--success);border:1px solid #a6f4c5}.success-detail{margin-top:10px;font-size:.86rem;font-weight:450;overflow-wrap:anywhere}.footer{padding:5px 4px;color:var(--muted);font-size:.82rem}.footer a{color:var(--primary-dark)}
+@media(max-width:480px){.page{padding:16px 12px 28px}.card{padding:18px}.actions{display:grid}.actions .button{min-width:0}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="header"><p class="eyebrow">Administración QR</p><h1>Insertar código</h1><p class="subtitle">Registra un nuevo documento en la colección <strong>codigos</strong> de Firebase, sin sobrescribir registros existentes.</p></header>
+<div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
+<section id="accessSection" class="card">
+<h2>Acceso</h2><p class="desc">Utiliza la misma contraseña de <strong>monitor.html</strong>.</p>
+<form id="accessForm" class="fields">
+<div class="field"><label for="password">Contraseña</label><div class="password-box"><input id="password" type="password" autocomplete="current-password" maxlength="200" required><button id="showPassword" class="toggle" type="button">Mostrar</button></div></div>
+<button id="accessButton" class="button" type="submit">Continuar</button>
+</form>
+</section>
+<section id="createSection" class="card" hidden>
+<h2>Nuevo documento QR</h2><p class="desc">El ID se obtiene automáticamente de los caracteres (3 caracteres) situados después de <strong>https://ú.ws/</strong>.</p>
+<form id="createForm" class="fields" autocomplete="off">
+<div class="field"><label for="nombre">Nombre</label><input id="nombre" maxlength="120" placeholder="Ej.: QR83" spellcheck="false" required><small>Es el campo <code>nombre</code>, independiente del ID del documento.</small></div>
+<div class="field"><label for="ruta">Ruta de imagen</label><input id="ruta" value="/imgs/qr/" maxlength="250" autocapitalize="off" spellcheck="false" required><small>Escribe al final el nombre del archivo, por ejemplo: <code>qr-https-ws-qnv-seed672363805.png</code>. Esta página no sube el archivo.</small></div>
+<div class="field"><label for="url">URL</label><input id="url" value="https://ú.ws/" maxlength="180" autocapitalize="off" spellcheck="false" required><small>Por ejemplo: <code>https://ú.ws/qnv</code>.</small></div>
+<div class="preview"><p>Identificador del documento (automático)</p><span class="pill" id="idPreview">Escribe una URL</span><p style="margin-top:13px">Estado y fecha</p><span class="pill">pendiente · fecha actual</span></div>
+<div class="actions"><button id="saveButton" class="button" type="submit">Guardar código</button><button id="logoutButton" class="button secondary" type="button">Cerrar acceso</button></div>
+</form>
+</section>
+<div class="footer">¿Quieres verificar el registro? <a href="/monitor.html" target="_blank" rel="noopener noreferrer">Abrir monitor de QR</a></div>
+</main>
+<script>
+"use strict";
+const API="/.netlify/functions/insertar-codigo";
+const $=(id)=>document.getElementById(id);
+let passwordSesion="";
+let guardando=false;
+function avisar(mensaje,exito=false,detalle=""){
+  const n=$("notification");n.hidden=false;n.className="notification "+(exito?"ok":"error");
+  n.replaceChildren(document.createTextNode(mensaje));
+  if(detalle){const p=document.createElement("div");p.className="success-detail";p.textContent=detalle;n.append(p)}
+}
+function limpiarAviso(){$("notification").hidden=true;$('notification').textContent=""}
+async function solicitar(payload){
+  const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"});
+  let datos={};try{datos=await response.json()}catch{}
+  if(!response.ok)throw Error(datos.error||`Error HTTP ${response.status}`);
+  return datos;
+}
+function codigoUrl(){
+  try{
+    const p=new URL($("url").value.trim());
+    if(p.protocol!=="https:"||p.hostname!=="xn--rda.ws"||p.port||p.search||p.hash||p.username||p.password||!/^\/[a-zA-Z0-9_-]{3}$/.test(p.pathname))return"";
+    return p.pathname.slice(1);
+  }catch{return""}
+}
+function actualizarVista(){const id=codigoUrl();$("idPreview").textContent=id||"URL incompleta o inválida"}
+$("url").addEventListener("input",actualizarVista);
+$("showPassword").addEventListener("click",()=>{
+  const visible=$("password").type==="text";$("password").type=visible?"password":"text";$("showPassword").textContent=visible?"Mostrar":"Ocultar";
+});
+$("accessForm").addEventListener("submit",async(event)=>{
+  event.preventDefault();limpiarAviso();const password=$("password").value;
+  if(!password)return;
+  const boton=$("accessButton");boton.disabled=true;boton.textContent="Validando...";
+  try{
+    await solicitar({accion:"validar",password});passwordSesion=password;$("password").value="";
+    $("accessSection").hidden=true;$("createSection").hidden=false;$("nombre").focus();
+    actualizarVista();
+  }catch(error){avisar(error.message);$("password").focus()}
+  finally{boton.disabled=false;boton.textContent="Continuar"}
+});
+$("createForm").addEventListener("submit",async(event)=>{
+  event.preventDefault();if(guardando)return;limpiarAviso();
+  if(!passwordSesion){avisar("Vuelve a ingresar la contraseña.");return}
+  const id=codigoUrl();if(!id){avisar("Completa una URL válida, por ejemplo https://ú.ws/qnv.");$("url").focus();return}
+  const nombre=$("nombre").value.trim(),ruta=$("ruta").value.trim(),url=$("url").value.trim();
+  guardando=true;$("saveButton").disabled=true;$("saveButton").textContent="Guardando...";
+  try{
+    const r=await solicitar({accion:"crear",password:passwordSesion,nombre,ruta,url});
+    avisar("Código guardado correctamente.",true,`Documento: ${r.id} · Nombre: ${r.nombre} · Estado: pendiente · ${r.url}`);
+    $("nombre").value="";$("ruta").value="/imgs/qr/";$("url").value="https://ú.ws/";actualizarVista();$("nombre").focus();
+  }catch(error){avisar(error.message||"No fue posible crear el código.")}
+  finally{guardando=false;$("saveButton").disabled=false;$("saveButton").textContent="Guardar código"}
+});
+$("logoutButton").addEventListener("click",()=>{
+  passwordSesion="";$("createSection").hidden=true;$("accessSection").hidden=false;limpiarAviso();$("password").focus();
+});
+</script>
+</body>
+</html>
