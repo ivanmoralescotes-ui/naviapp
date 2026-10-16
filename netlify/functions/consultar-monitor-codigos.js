@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { Firestore } = require("@google-cloud/firestore");
+const { Storage } = require("@google-cloud/storage");
 
 const FIRESTORE_PROJECT_ID = "qrpro-f4709";
 const FIRESTORE_COLLECTION = "codigos";
@@ -20,6 +21,14 @@ exports.handler = async function(event) {
     if (!validarPassword(password)) return responder(401, { error: "La contraseña no es correcta." });
 
     if (accion === "validar") return responder(200, { ok: true });
+    if (accion === "contar-bucket-ar") {
+      const codigoBucket = normalizarCodigoBucket(body.codigo);
+      if (!codigoBucket) {
+        return responder(400, { error: "Escribe un Código válido (1 a 36 letras, números, _ o -)." });
+      }
+      const { carpeta, totalArchivos } = await contarArchivosBucketAr(codigoBucket);
+      return responder(200, { ok: true, carpeta, totalArchivos });
+    }
     if (accion !== "consultar") return responder(400, { error: "La acción solicitada no es válida." });
 
     const codigo = normalizarCodigo(body.codigo);
@@ -91,6 +100,41 @@ function validarPassword(passwordIngresado) {
   const b = crypto.createHash("sha256").update(passwordConfigurado, "utf8").digest();
 
   return crypto.timingSafeEqual(a, b);
+}
+
+// Solo permite nombres de carpeta compatibles con guardar-qr-ar.js.
+function normalizarCodigoBucket(valor) {
+  if (typeof valor !== "string") return "";
+  const codigo = valor.trim();
+  return /^[a-zA-Z0-9_-]{1,36}$/.test(codigo) ? codigo : "";
+}
+
+async function contarArchivosBucketAr(codigo) {
+  const credentials = obtenerCredencialesGoogle();
+  const nombreBucket = process.env.GCS_BUCKET;
+  if (!nombreBucket) {
+    const error = new Error("Falta la variable GCS_BUCKET en Netlify.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const bucket = new Storage({ projectId: credentials.project_id, credentials }).bucket(nombreBucket);
+  const carpeta = `${codigo}_ar`;
+  const prefijo = `${carpeta}/`;
+  let totalArchivos = 0;
+  let pageToken;
+
+  // Sin archivos de subcarpetas; omite el objeto marcador de la propia carpeta.
+  // La paginación permite obtener el total exacto aun cuando hay muchos archivos.
+  do {
+    const opciones = { prefix: prefijo, delimiter: "/", maxResults: 1000, autoPaginate: false };
+    if (pageToken) opciones.pageToken = pageToken;
+    const [archivos, siguienteConsulta] = await bucket.getFiles(opciones);
+    totalArchivos += archivos.filter(archivo => archivo.name !== prefijo && !archivo.name.endsWith("/")).length;
+    pageToken = siguienteConsulta?.pageToken || undefined;
+  } while (pageToken);
+
+  return { carpeta, totalArchivos };
 }
 
 function normalizarCodigo(valor) {
