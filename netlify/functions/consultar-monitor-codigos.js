@@ -29,6 +29,24 @@ exports.handler = async function(event) {
       const { carpeta, totalArchivos } = await contarArchivosBucketAr(codigoBucket);
       return responder(200, { ok: true, carpeta, totalArchivos });
     }
+    if (accion === "ver-conf") {
+      const codigoConf = normalizarCodigoBucket(body.codigo);
+      if (!codigoConf) {
+        return responder(400, { error: "Escribe un Código válido (1 a 36 letras, números, _ o -)." });
+      }
+      const documento = `prop${codigoConf}`;
+      const snapshot = await crearClienteFirestore().collection("configg").doc(documento).get();
+      if (!snapshot.exists) {
+        return responder(200, { ok: true, documento, existe: false });
+      }
+      const datos = snapshot.data() || {};
+      const orden = datos.ordenArchivosStorage;
+      const tieneArreglo = Array.isArray(orden);
+      return responder(200, {
+        ok: true, documento, existe: true, tieneArreglo,
+        totalElementos: tieneArreglo ? orden.length : null
+      });
+    }
     if (accion !== "consultar") return responder(400, { error: "La acción solicitada no es válida." });
 
     const codigo = normalizarCodigo(body.codigo);
