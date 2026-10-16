@@ -10,6 +10,9 @@
     *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(37,99,235,.11),transparent 34rem),var(--bg)}
     button,input{font:inherit}.page{width:min(100%,560px);margin:auto;padding:24px 16px 42px}.header{padding:6px 4px 20px}.eyebrow{margin:0 0 7px;color:var(--primary);font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}h1{margin:0;font-size:clamp(1.55rem,6vw,2.15rem)}.subtitle{margin:9px 0 0;color:var(--muted);line-height:1.5}
     .card{padding:20px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.97);box-shadow:var(--shadow)}.grid{display:grid;gap:15px}.field{display:grid;gap:7px}label{font-size:.92rem;font-weight:750}input{width:100%;min-height:50px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;color:var(--text);background:var(--surface);outline:none}input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--focus)}.input-wrap{position:relative}.input-wrap input[type="password"]{padding-right:76px}.toggle{position:absolute;top:50%;right:7px;transform:translateY(-50%);border:0;background:transparent;color:var(--primary-dark);font-weight:750;cursor:pointer}.help{margin:0;color:var(--muted);font-size:.82rem;line-height:1.4}.button{min-height:50px;border:0;border-radius:14px;padding:12px 17px;color:#fff;background:var(--primary);font-weight:800;cursor:pointer}.button:hover:not(:disabled){background:var(--primary-dark)}.button:disabled{opacity:.55;cursor:not-allowed}.notification{display:none;margin-top:16px;padding:13px 15px;border-radius:14px;font-size:.92rem;font-weight:750;line-height:1.45}.notification.show{display:block}.notification.success{color:var(--success);background:var(--success-bg);border:1px solid #a6f4c5}.notification.error{color:var(--danger);background:var(--danger-bg);border:1px solid #f7b6b2}
+    .secondary-link{margin:-5px 0 0;text-align:center;font-size:.79rem;line-height:1.45}
+    .secondary-link a{color:var(--primary-dark);text-decoration:underline;text-underline-offset:2px}
+    .secondary-link a:hover{color:var(--primary)}
   </style>
 </head>
 <body>
@@ -37,6 +40,7 @@
         </div>
 
         <button id="createButton" class="button" type="submit">Crear</button>
+        <p class="secondary-link"><a href="https://xn--rda.ws/darUrl" target="_blank" rel="noopener noreferrer">Ir a Dar URL ↗</a></p>
       </form>
 
       <div id="notification" class="notification" role="status" aria-live="polite"></div>
