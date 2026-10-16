@@ -44,6 +44,7 @@
         <div class="codigo-row">
           <input id="codigo" type="text" placeholder="Ejemplo: fly" maxlength="36" autocomplete="off" autocapitalize="off" spellcheck="false" required pattern="[a-zA-Z0-9_-]+">
           <button id="btnCopiarCodigo" class="copy-code-btn" type="button" aria-live="polite">Copiar</button>
+          <button id="btnExtraerCodigo" class="copy-code-btn" type="button" title="Extraer el código de una URL">Extrae</button>
         </div>
         <p class="example">Se respetarán las mayúsculas y minúsculas tal como las escribas.</p>
       </div>
@@ -138,6 +139,22 @@ $("codigo").addEventListener("input", () => {
   const codigo = $("codigo").value.trim();
   $("rutaDestino").textContent = /^[a-zA-Z0-9_-]{1,36}$/.test(codigo) ? `${codigo}_ar/` : "—";
   limpiarEstado("estadoSubida");
+});
+
+// Extrae el último segmento de una URL de ú.ws, también cuando está en punycode.
+// Si el campo ya contiene únicamente el código, no lo modifica.
+$("btnExtraerCodigo").addEventListener("click", () => {
+  const campo = $("codigo");
+  const texto = campo.value.trim();
+  const prefijos = ["https://ú.ws/", "https://xn--rda.ws/"];
+  const prefijo = prefijos.find((valor) => texto.includes(valor));
+  if (prefijo) {
+    campo.value = texto.slice(texto.indexOf(prefijo) + prefijo.length);
+    campo.dispatchEvent(new Event("input", { bubbles: true }));
+  } else if (!texto) {
+    estado("estadoSubida", "Primero escribe una URL o un código.", "error");
+  }
+  campo.focus();
 });
 
 let reinicioBotonCopiar;

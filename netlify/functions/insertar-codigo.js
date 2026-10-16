@@ -6,6 +6,7 @@ const { Firestore } = require("@google-cloud/firestore");
 const PROJECT_ID = "qrpro-f4709";
 const COLECCION = "codigos";
 const INDICES_UNICOS = "codigos_unicos_control";
+const ESTADOS_PERMITIDOS = new Set(["pendiente", "disponible", "reservado", "dado"]);
 
 function responder(statusCode, datos) {
   return {
@@ -52,6 +53,12 @@ function validarEntrada(body) {
   const nombre = typeof body.nombre === "string" ? body.nombre.trim() : "";
   const ruta = typeof body.ruta === "string" ? body.ruta.trim() : "";
   const urlIngresada = typeof body.url === "string" ? body.url.trim() : "";
+  // Compatibilidad: una petición antigua sin el campo estado usa pendiente.
+  const estado = body.estado === undefined ? "pendiente" :
+    (typeof body.estado === "string" ? body.estado.trim() : "");
+  if (!ESTADOS_PERMITIDOS.has(estado)) {
+    throw errorHTTP(400, "Estado inválido. Debe ser pendiente, disponible, reservado o dado.");
+  }
 
   if (!/^[a-zA-Z0-9_-]{1,120}$/.test(nombre)) {
     throw errorHTTP(400, "Nombre inválido. Utiliza entre 1 y 120 letras, números, guiones o guiones bajos.");
@@ -74,7 +81,7 @@ function validarEntrada(body) {
 
   const id = parsed.pathname.slice(1);
   const url = `https://ú.ws/${id}`;
-  return { id, nombre, ruta, url };
+  return { id, nombre, ruta, url, estado };
 }
 
 function firestore() {
@@ -131,7 +138,7 @@ async function insertarSinDuplicados(db, dato) {
     const fecha = new Date();
     tx.create(ref, {
       nombre: dato.nombre,
-      estado: "pendiente",
+      estado: dato.estado,
       fecha,
       ruta: dato.ruta,
       url: dato.url
@@ -156,7 +163,7 @@ exports.handler = async (event) => {
 
     const dato = validarEntrada(body);
     const fecha = await insertarSinDuplicados(firestore(), dato);
-    return responder(201, { ok: true, id: dato.id, nombre: dato.nombre, ruta: dato.ruta, url: dato.url, estado: "pendiente", fecha });
+    return responder(201, { ok: true, id: dato.id, nombre: dato.nombre, ruta: dato.ruta, url: dato.url, estado: dato.estado, fecha });
   } catch (error) {
     if (Number.isInteger(error?.statusCode)) return responder(error.statusCode, { error: error.message });
     // Firestore ALREADY_EXISTS (crear el mismo ID durante una carrera).
