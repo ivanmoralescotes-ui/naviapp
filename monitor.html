@@ -242,13 +242,18 @@ try{
 const datos=await llamar({accion:"ver-conf",password:passwordSesion,codigo});
 if(el.codigo.value.trim()===codigo){
 if(!datos.existe){
-resultado.textContent=`El documento ${datos.documento} no existe en configg.`;
-}else if(!datos.tieneArreglo){
+resultado.textContent=`El documento ${datos.documento} no existe en configg (no hay linkdirecto que consultar).`;
+}else{
+const estadoLink=datos.tieneLinkDirecto===true
+? "linkdirecto: tiene un valor."
+: "linkdirecto: vacío o sin definir.";
+if(!datos.tieneArreglo){
 resultado.dataset.error="true";
-resultado.textContent=`El documento ${datos.documento} existe, pero ordenArchivosStorage no es un arreglo.`;
+resultado.textContent=`El documento ${datos.documento} existe, pero ordenArchivosStorage no es un arreglo. ${estadoLink}`;
 }else{
 const total=datos.totalElementos;
-resultado.textContent=`Documento ${datos.documento}: ordenArchivosStorage contiene ${total} ${total===1?"elemento":"elementos"}.`;
+resultado.textContent=`Documento ${datos.documento}: ordenArchivosStorage contiene ${total} ${total===1?"elemento":"elementos"}. ${estadoLink}`;
+}
 }
 }
 }catch(error){

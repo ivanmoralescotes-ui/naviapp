@@ -132,7 +132,8 @@ exports.handler = async (event) => {
         if (!documentoConfig.exists) {
           throw errorEstado(404, `Ya no existe ${actual.documentoConfig} en configg. No se cambió ninguna clave.`);
         }
-        t.update(refConfig, { clave: simpleStringHash(claveNueva) });
+        // Actualizar ambos campos de forma atómica, solo tras confirmar la asignación.
+        t.update(refConfig, { clave: simpleStringHash(claveNueva), linkdirecto: "" });
         return actual;
       });
 

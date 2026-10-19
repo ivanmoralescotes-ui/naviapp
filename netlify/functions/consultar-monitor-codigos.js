@@ -44,7 +44,9 @@ exports.handler = async function(event) {
       const tieneArreglo = Array.isArray(orden);
       return responder(200, {
         ok: true, documento, existe: true, tieneArreglo,
-        totalElementos: tieneArreglo ? orden.length : null
+        totalElementos: tieneArreglo ? orden.length : null,
+        // Solo informamos si hay contenido: nunca enviamos la URL al navegador.
+        tieneLinkDirecto: typeof datos.linkdirecto === "string" && datos.linkdirecto.trim().length > 0
       });
     }
     if (accion !== "consultar") return responder(400, { error: "La acción solicitada no es válida." });
