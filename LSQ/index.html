@@ -465,8 +465,18 @@ body {
 
 	let initPromise = null;
 	let isRedirecting = false;
+	let enlaceDirectoPendiente = "";
+
+	function redirigirEnlaceDirecto(destino) {
+	  if (!destino || isRedirecting) return;
+	  isRedirecting = true;
+	  enlaceDirectoPendiente = "";
+	  window.location.href = destino;
+	}
 
 	function resetForInit() {
+	  isRedirecting = false;
+	  enlaceDirectoPendiente = "";
 	  stopSlideshow();
 	  slides = [{ type: "html" }];
 	  currentIndex = 0;
@@ -504,8 +514,8 @@ body {
 		console.log("starting");
 		await startAll(penultima);
 
-		// Si linkdirecto inició una redirección, no seguimos cargando slides ni Storage.
-		if (isRedirecting) {
+		// Si linkdirecto espera la clave o ya redirige, no cargar slides ni Storage.
+		if (isRedirecting || enlaceDirectoPendiente) {
 		  return;
 		}
 
@@ -798,6 +808,15 @@ async function delayedTask() {
       authSubmit.textContent = "Loading...";
       authError.textContent = "";
 
+      // La redirección protegida solo se permite tras introducir la clave correcta.
+      // En este caso no se necesita cargar imágenes ni iniciar el slideshow.
+      if (enlaceDirectoPendiente) {
+        authValidated = true;
+        authSubmit.textContent = "Redirigiendo...";
+        redirigirEnlaceDirecto(enlaceDirectoPendiente);
+        return;
+      }
+
       try {
         await asegurarSlidesStorage(authInput.value);
         preloadSlides();
@@ -826,6 +845,7 @@ async function delayedTask() {
 
     authInput.addEventListener("input", () => {
       if (
+        !enlaceDirectoPendiente &&
         authRequired &&
         !authValidated &&
         !authFailed &&
@@ -1203,16 +1223,16 @@ async function delayedTask() {
 		//console.log("segundosslide:" + segundosslide);
       }
 
-      // window.location.href = rutaImagen
-	  if (props.linkdirecto != null && props.linkdirecto != "") {
-        //console.log("direct:" + props.linkdirecto);
-
-        // Marcamos que estamos saliendo de esta página para que no continúe
-        // la carga del slideshow ni aparezcan mensajes de error transitorios.
-        isRedirecting = true;
-        window.location.href = props.linkdirecto;
+      // La clave de lectura siempre tiene prioridad sobre linkdirecto.
+      if (props.linkdirecto != null && String(props.linkdirecto).trim() !== "") {
+        const destinoDirecto = String(props.linkdirecto).trim();
+        if (authRequired && !authValidated) {
+          enlaceDirectoPendiente = destinoDirecto;
+        } else {
+          redirigirEnlaceDirecto(destinoDirecto);
+        }
         return;
-      }	
+      }
 	  
 	  // ... (aquí dejas tu bloque de images tal cual)
 	  if (theimages != null && theimages.length > 0) {
