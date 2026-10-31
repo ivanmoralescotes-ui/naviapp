@@ -305,7 +305,7 @@ body {
 
     <div id="auth-overlay" aria-live="polite">
       <div id="auth-card">
-        <p id="auth-title">Clave:</p>
+        <p id="auth-title">Password:</p>
         <input id="auth-input" type="password" inputmode="numeric" autocomplete="off" placeholder="" />
         <button id="auth-submit" type="button">Ok</button>
         <p id="auth-error"></p>
@@ -731,7 +731,7 @@ async function delayedTask() {
     }
 
     function resetAuthUI() {
-      authTitle.textContent = "Clave:";
+      authTitle.textContent = "Password:";
       authInput.value = "";
       authInput.style.display = "block";
       authSubmit.style.display = "block";
@@ -777,7 +777,7 @@ async function delayedTask() {
       stopSlideshow();
       hideAllSlides();
       loadingOverlay.classList.add("hide");
-      authTitle.textContent = "Clave incorrecta.";
+      authTitle.textContent = "Invalid password.";
       authInput.style.display = "none";
       authSubmit.style.display = "none";
       authError.textContent = "";
