@@ -250,17 +250,36 @@ body {
       color: #ff9f9f;
     }
 
-.whatsapp-btn{
-    color:#25D366;
-    text-decoration:none;
-    font-size:21px;
-    font-weight:500;
+/* WhatsApp: icono blanco sobre círculo verde, más visible y fácil de pulsar. */
+#slide-html a.whatsapp-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #25D366;
+    color: #fff;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.88);
+    box-shadow: 0 5px 18px rgba(37,211,102,0.35);
+    transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.whatsapp-btn i{
-    margin-right:0;
-    font-size:28px;
+#slide-html a.whatsapp-btn i {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1;
 }
+
+#slide-html a.whatsapp-btn:hover {
+    background: #1ebe5d;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 22px rgba(37,211,102,0.45);
+}
+
+#slide-html a.whatsapp-btn:active { transform: scale(0.95); }
+#slide-html a.whatsapp-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 
 /* Botón Spotify */
@@ -306,7 +325,7 @@ body {
     <div id="auth-overlay" aria-live="polite">
       <div id="auth-card">
         <p id="auth-title">Password:</p>
-        <input id="auth-input" type="password" inputmode="numeric" autocomplete="off" placeholder="" />
+        <input id="auth-input" type="password" inputmode="text" autocomplete="off" placeholder="" />
         <button id="auth-submit" type="button">Ok</button>
         <p id="auth-error"></p>
       </div>
@@ -360,7 +379,8 @@ body {
 		<a id="verse-link2" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" >Instagram</a>
 		
 		<br>
-        <a id="verse-link3" href="#" target="_blank" class="whatsapp-btn" 
+        <a id="verse-link3" href="#" target="_blank" class="whatsapp-btn"
+            aria-label="Abrir WhatsApp" title="WhatsApp"
 		    rel="noopener noreferrer" style="display: none;" >
 			<i class="fa-brands fa-whatsapp"></i></a>
 			
@@ -1270,7 +1290,7 @@ async function delayedTask() {
 	  } else { 
 	        verseLinkEl2.style.display = "none"; 
 	  } if (thewhatsapp != "" && thewhatsapp != "no") { 
-	        verseLinkEl3.style.display = "block"; 
+	        verseLinkEl3.style.display = "inline-flex"; 
 			verseLink3 = "https://wa.me/" + thewhatsapp + "?text=hola"; 
 	  } else { 
 	        verseLinkEl3.style.display = "none"; 
